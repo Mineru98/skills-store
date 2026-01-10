@@ -1,6 +1,7 @@
 ---
 name: powershell-utf8-fixer
 description: Detect and fix PowerShell script encoding issues that cause Korean and other non-ASCII characters to display incorrectly on Windows. Use when (1) PowerShell scripts display garbled Korean/non-ASCII text, (2) creating new .ps1 files with non-ASCII content, (3) validating encoding before committing PowerShell scripts, or (4) troubleshooting character display issues in PowerShell output.
+model: claude-haiku-4-5-20251001
 ---
 
 # PowerShell UTF-8 Fixer
