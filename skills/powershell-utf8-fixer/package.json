@@ -1,0 +1,27 @@
+{
+  "name": "powershell-utf8-fixer",
+  "version": "1.0.0",
+  "description": "Detect and fix PowerShell script encoding issues that cause Korean and other non-ASCII characters to display incorrectly on Windows",
+  "main": "scripts/fix_powershell_encoding.js",
+  "scripts": {
+    "check": "bun scripts/check_powershell_encoding.js",
+    "fix": "bun scripts/fix_powershell_encoding.js"
+  },
+  "bin": {
+    "ps-check-encoding": "scripts/check_powershell_encoding.js",
+    "ps-fix-encoding": "scripts/fix_powershell_encoding.js"
+  },
+  "keywords": [
+    "powershell",
+    "utf8",
+    "bom",
+    "encoding",
+    "korean",
+    "windows"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
