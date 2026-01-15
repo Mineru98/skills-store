@@ -1,0 +1,11 @@
+{
+  "name": "excel-data-analyzer-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
