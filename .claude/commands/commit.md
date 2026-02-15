@@ -7,13 +7,27 @@ model: claude-haiku-4-5-20251001
 ## Description
 기능별로 변경된 파일을 그룹화하여 구조화된 커밋을 생성합니다. Conventional Commits 형식을 따르며, 모든 커밋 메시지는 한글로 작성해야 합니다.
 
-이 워크플로우는 `/Coding Conventions` 스킬의 `references/git-commit-conventions.md`를 참고합니다.
+## PowerShell/Windows 환경: 한글 커밋 메시지 깨짐 방지
+
+**PowerShell에서 실행 시** `git commit -m "한글"`은 인코딩 문제로 한글이 깨질 수 있습니다. 반드시 아래 방식을 사용하세요:
+
+1. UTF-8로 저장된 임시 파일에 커밋 메시지 작성
+2. `git commit -F <파일경로>` 로 커밋
+3. 커밋 후 임시 파일 삭제
+
+```powershell
+# (선택) 터미널 UTF-8 설정
+chcp 65001
+
+# 예: commit_msg.txt에 메시지 저장 후
+git commit -F commit_msg.txt
+# 완료 후: Remove-Item commit_msg.txt
+```
 
 ## Workflow
 
 ### 1. Analyze Changes
-```bash
-# Get overview of all changes
+```powershell
 git status
 git diff --stat
 ```
@@ -28,17 +42,20 @@ git diff --stat
 - **설정**: 설정 파일, 의존성
 
 ### 3. Create Commits Per Functional Group
-For each identified group:
+각 그룹별로:
 
-```bash
-# Stage only files for this specific feature/change
+```powershell
+# 해당 기능/변경에 해당하는 파일만 스테이징
 git add <file1> <file2> <file3>
 
-# Verify staged files
+# 스테이징 확인
 git status
 
-# Create commit with Conventional Commits format
-git commit -m "<type>(<scope>): <subject>"
+# [PowerShell] 커밋 메시지를 UTF-8 파일로 작성 후 -F 옵션 사용
+# 1. 임시 파일 생성 (예: commit_msg.txt)
+# 2. Conventional Commits 형식으로 메시지 작성
+# 3. git commit -F commit_msg.txt
+# 4. Remove-Item commit_msg.txt
 ```
 
 **Conventional Commits Format:**
@@ -65,44 +82,48 @@ git commit -m "<type>(<scope>): <subject>"
 - Lowercase subject, no period at end
 - Keep subject under 50 characters
 
-### 4. Example: Multiple Commits for Mixed Changes
+### 4. Example: Multiple Commits for Mixed Changes (PowerShell)
 
-If you changed:
-- `auth/login.ts`, `auth/middleware.ts` (authentication feature)
-- `utils/date.ts` (bug fix)
-- `README.md` (documentation)
+변경 사항:
+- `auth/login.ts`, `auth/middleware.ts` (인증 기능)
+- `utils/date.ts` (버그 수정)
+- `README.md` (문서)
 
-Create separate commits:
-
-```bash
-# Commit 1: Authentication feature
+```powershell
+# Commit 1: 인증 기능
 git add auth/login.ts auth/middleware.ts
-git commit -m "feat(auth): JWT 로그인 및 미들웨어 추가
+# commit_msg1.txt 작성:
+# feat(auth): JWT 로그인 및 미들웨어 추가
+#
+# - JWT 토큰 생성 구현
+# - 보호된 라우트용 인증 미들웨어 추가
+# - 기존 사용자 서비스와 통합
+git commit -F commit_msg1.txt
+Remove-Item commit_msg1.txt
 
-- JWT 토큰 생성 구현
-- 보호된 라우트용 인증 미들웨어 추가
-- 기존 사용자 서비스와 통합"
-
-# Commit 2: Bug fix
+# Commit 2: 버그 수정
 git add utils/date.ts
-git commit -m "fix(utils): 날짜 포맷팅 시 타임존 처리 수정
+# commit_msg2.txt 작성:
+# fix(utils): 날짜 포맷팅 시 타임존 처리 수정
+#
+# 이전에는 UTC 대신 로컬 시간을 사용하여
+# 다른 서버 위치에서 날짜 불일치 문제 발생
+git commit -F commit_msg2.txt
+Remove-Item commit_msg2.txt
 
-이전에는 UTC 대신 로컬 시간을 사용하여
-다른 서버 위치에서 날짜 불일치 문제 발생"
-
-# Commit 3: Documentation
+# Commit 3: 문서
 git add README.md
-git commit -m "docs: README에 새 인증 플로우 안내 추가
-
-JWT 인증 설정을 위한 단계별 가이드 작성"
+# commit_msg3.txt 작성:
+# docs: README에 새 인증 플로우 안내 추가
+#
+# JWT 인증 설정을 위한 단계별 가이드 작성
+git commit -F commit_msg3.txt
+Remove-Item commit_msg3.txt
 ```
 
 ### 5. Verification
-```bash
-# Review commit history
+```powershell
 git log --oneline -5
-
-# Verify each commit's changes
 git show <commit-hash>
 ```
 
@@ -110,6 +131,7 @@ git show <commit-hash>
 - [ ] `git status` 및 `git diff`로 모든 변경 파일 분석
 - [ ] 기능 그룹 식별 (기능 추가, 버그 수정, 문서 등)
 - [ ] 각 커밋마다 관련 파일만 스테이징
+- [ ] **PowerShell: `git commit -F <파일>` 사용** (한글 깨짐 방지)
 - [ ] 커밋 메시지는 반드시 **한글**로 작성
 - [ ] Conventional Commits 형식 준수
 - [ ] 모든 커밋 생성 후 커밋 내역 검증
