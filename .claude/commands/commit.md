@@ -9,9 +9,11 @@ argument-hint: [커밋 메시지 힌트 (선택)]
 
 ## 현재 상태 수집
 
+```bash
 !git status
 !git diff --stat
 !git log --oneline -3
+```
 
 ## 실행 지시
 
