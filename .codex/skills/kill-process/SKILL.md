@@ -1,7 +1,6 @@
 ---
 name: kill-process
 description: 지정한 포트에서 실행 중인 프로세스를 찾아 종료합니다.
-argument-hint: "[port1 port2 ...] (예: 3000 또는 3000 8080 5173)"
 ---
 
 $ARGUMENTS: 포트 번호 (하나 또는 여러 개, 공백/쉼표로 구분. e.g. 3000 또는 3000 8080 5173)

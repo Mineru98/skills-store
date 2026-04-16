@@ -1,7 +1,6 @@
 ---
 name: commit
 description: 변경된 파일을 기능별로 그룹화하여 커밋 생성
-argument-hint: "[커밋 메시지 힌트 (선택)]"
 ---
 
 # Commit Skill
