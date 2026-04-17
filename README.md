@@ -78,4 +78,4 @@ $kill-process 3000
 
 ## 라이선스
 
-GNU AGPL v3. 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
+MIT License. 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
