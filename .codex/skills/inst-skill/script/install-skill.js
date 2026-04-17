@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Skills Store - GitHub URL 기반 스킬 설치 스크립트
 // Usage: node install-skill.js <github-url> [--target <path>]
-// Example: node install-skill.js https://github.com/Mineru98/skills-store/tree/main/.claude/skills/commands-creator
+// Example: node install-skill.js https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
 
 const https = require("https");
 const fs = require("fs");
@@ -120,7 +120,7 @@ async function downloadFile(url, destPath) {
 
 // ── 스킬 이름 추출 ──
 function extractSkillName(ghPath) {
-  // .claude/skills/commands-creator/... → commands-creator
+  // .codex/skills/commit/... → commands-creator
   // some/path/my-skill → my-skill
   const parts = ghPath.replace(/\/$/, "").split("/");
   return parts[parts.length - 1];
@@ -135,13 +135,13 @@ async function main() {
     console.log("사용법:");
     console.log("  node install-skill.js <github-url> [옵션]\n");
     console.log("옵션:");
-    console.log("  --target <path>  설치 경로 (기본: ./.claude/skills/)");
-    console.log("  --global         ~/.claude/skills/ 에 전역 설치");
+    console.log("  --target <path>  설치 경로 (기본: ./.codex/skills/)");
+    console.log("  --global         ~/.codex/skills/ 에 전역 설치");
     console.log("  --name <name>    스킬 폴더명 직접 지정");
     console.log("  --dry-run        실제 설치 없이 파일 목록만 출력");
     console.log("\n예시:");
     console.log(
-      "  node install-skill.js https://github.com/Mineru98/skills-store/tree/main/.claude/skills/commands-creator"
+      "  node install-skill.js https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit"
     );
     console.log(
       "  node install-skill.js https://github.com/user/repo/tree/main/my-skill --global"
@@ -173,11 +173,11 @@ async function main() {
   } else if (isGlobal) {
     targetBase = path.join(
       process.env.HOME || process.env.USERPROFILE,
-      ".claude",
+      ".codex",
       "skills"
     );
   } else {
-    targetBase = path.resolve(".claude", "skills");
+    targetBase = path.resolve(".codex", "skills");
   }
 
   // --name 옵션

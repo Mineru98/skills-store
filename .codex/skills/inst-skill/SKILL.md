@@ -1,12 +1,12 @@
 ---
 name: inst-skill
-description: GitHub URL로 Claude Code 스킬을 설치합니다. GitHub 저장소의 스킬 폴더 URL을 입력하면 해당 스킬의 모든 파일을 자동으로 다운로드하여 .claude/skills/ 에 설치합니다.
+description: GitHub URL로 Codex 스킬을 설치합니다. GitHub 저장소의 스킬 폴더 URL을 입력하면 해당 스킬의 모든 파일을 자동으로 다운로드하여 .codex/skills/ 에 설치합니다.
 argument-hint: "<GitHub URL> [옵션: --global, --name <이름>, --dry-run]"
 ---
 
 $ARGUMENTS: GitHub 스킬 폴더 URL과 옵션
 
-GitHub URL에서 Claude Code 스킬을 설치해줘.
+GitHub URL에서 Codex 스킬을 설치해줘.
 
 다음 순서로 진행해:
 
@@ -22,15 +22,15 @@ node <이 스킬의 script/install-skill.js 경로> $ARGUMENTS
 
 - **URL 형식**: `https://github.com/{owner}/{repo}/tree/{branch}/{path}`
 - **옵션**:
-  - `--global` : `~/.claude/skills/`에 전역 설치 (기본은 현재 프로젝트의 `.claude/skills/`)
+  - `--global` : `~/.codex/skills/`에 전역 설치 (기본은 현재 프로젝트의 `.codex/skills/`)
   - `--name <이름>` : 스킬 폴더명을 직접 지정
   - `--dry-run` : 실제 설치 없이 파일 목록만 확인
 
 ## 사용 예시
 
 ```
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.claude/skills/commands-creator
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.claude/skills/mcp-builder --global
+/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
+/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
 /inst-skill https://github.com/user/repo/tree/main/my-skill --name custom-name
 /inst-skill https://github.com/user/repo/tree/main/my-skill --dry-run
 ```
