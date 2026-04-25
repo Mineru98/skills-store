@@ -1,0 +1,164 @@
+# Codex execution policy for local development.
+#
+# Derived from:
+# - .claude/rules/workflow-build.md
+# - .claude/rules/testing.md
+# - docs/codex_rules.md
+#
+# These rules only affect commands requested outside the sandbox.
+
+prefix_rule(
+    pattern = ["pwd"],
+    decision = "allow",
+    justification = "Read-only workspace inspection is safe.",
+    match = ["pwd"],
+)
+
+prefix_rule(
+    pattern = ["ls"],
+    decision = "allow",
+    justification = "Read-only workspace inspection is safe.",
+    match = ["ls", "ls -la .codex/rules"],
+)
+
+prefix_rule(
+    pattern = ["find"],
+    decision = "allow",
+    justification = "Read-only file discovery is safe.",
+    match = ["find .claude/rules -maxdepth 1 -type f"],
+)
+
+prefix_rule(
+    pattern = ["rg"],
+    decision = "allow",
+    justification = "Read-only repository search is safe and preferred for lookup.",
+    match = ["rg UserDTO src", "rg --files .claude .codex docs"],
+)
+
+prefix_rule(
+    pattern = ["sed"],
+    decision = "allow",
+    justification = "Read-only file excerpts are safe.",
+    match = ["sed -n '1,120p' docs/codex_rules.md"],
+)
+
+prefix_rule(
+    pattern = ["head"],
+    decision = "allow",
+    justification = "Read-only file excerpts are safe.",
+    match = ["head -40 package.json"],
+)
+
+prefix_rule(
+    pattern = ["tail"],
+    decision = "allow",
+    justification = "Read-only file excerpts are safe.",
+    match = ["tail -40 package.json"],
+)
+
+prefix_rule(
+    pattern = ["wc"],
+    decision = "allow",
+    justification = "Read-only file metrics are safe.",
+    match = ["wc -l .claude/rules/*.md"],
+)
+
+prefix_rule(
+    pattern = ["git", "status"],
+    decision = "allow",
+    justification = "Read-only git status is safe and helps protect user changes.",
+    match = ["git status --short"],
+)
+
+prefix_rule(
+    pattern = ["git", "diff"],
+    decision = "allow",
+    justification = "Read-only git diff is safe and helps review changes.",
+    match = ["git diff", "git diff -- .codex/rules"],
+)
+
+prefix_rule(
+    pattern = ["git", "show"],
+    decision = "allow",
+    justification = "Read-only git object inspection is safe.",
+    match = ["git show HEAD --stat"],
+)
+
+prefix_rule(
+    pattern = ["git", "log"],
+    decision = "allow",
+    justification = "Read-only git history inspection is safe.",
+    match = ["git log --oneline -5"],
+)
+
+prefix_rule(
+    pattern = ["git", "ls-files"],
+    decision = "allow",
+    justification = "Read-only git file listing is safe.",
+    match = ["git ls-files .claude/rules"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "lint"],
+    decision = "allow",
+    justification = "Project verification command required before build.",
+    match = ["yarn lint"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "type-check"],
+    decision = "allow",
+    justification = "Project verification command required before build.",
+    match = ["yarn type-check"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "build"],
+    decision = "allow",
+    justification = "Project verification command required before deploy.",
+    match = ["yarn build"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "test"],
+    decision = "allow",
+    justification = "Project verification command after test tooling is introduced.",
+    match = ["yarn test", "yarn test --run"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "export"],
+    decision = "allow",
+    justification = "Project static export command is a local build artifact operation.",
+    match = ["yarn export"],
+)
+
+prefix_rule(
+    pattern = ["codex", "execpolicy", "check"],
+    decision = "allow",
+    justification = "Rule validation is safe and should be available for this folder.",
+    match = [
+        "codex execpolicy check --pretty --rules .codex/rules/project-dev-workflow.rules -- yarn lint",
+    ],
+)
+
+prefix_rule(
+    pattern = ["yarn", "dev"],
+    decision = "prompt",
+    justification = "Development server is long-running and binds port 3000.",
+    match = ["yarn dev"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "start:test"],
+    decision = "prompt",
+    justification = "Test server is long-running and binds port 3001.",
+    match = ["yarn start:test"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "storybook"],
+    decision = "prompt",
+    justification = "Storybook is long-running and binds port 6006.",
+    match = ["yarn storybook"],
+)

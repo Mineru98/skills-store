@@ -1,0 +1,91 @@
+# Codex execution policy for high-risk commands.
+#
+# Derived from:
+# - .claude/rules/workflow-build.md
+# - docs/codex_rules.md
+#
+# The most restrictive matching decision wins.
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Destructive history/worktree reset is blocked. Inspect status and diff first.",
+    match = ["git reset --hard", "git reset --hard HEAD"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "Deleting untracked files is blocked. Use targeted removal only after explicit request.",
+    match = ["git clean -fd", "git clean -xdf"],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing changes affects remote state and should be explicitly approved.",
+    match = ["git push", "git push origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit"],
+    decision = "prompt",
+    justification = "Creating commits should be deliberate and follow the Lore Commit Protocol.",
+    match = ["git commit -m 'message'"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "prompt",
+    justification = "Recursive deletion is high-risk. Prefer targeted file deletion after review.",
+    match = ["rm -rf .next", "rm -rf node_modules"],
+)
+
+prefix_rule(
+    pattern = ["docker", "build"],
+    decision = "prompt",
+    justification = "Docker builds can be slow and consume disk; run after local verification.",
+    match = ["docker build -t app:local ."],
+)
+
+prefix_rule(
+    pattern = ["docker", "push"],
+    decision = "prompt",
+    justification = "Pushing images affects remote registry state.",
+    match = ["docker push registry.example.com/app:latest"],
+)
+
+prefix_rule(
+    pattern = ["docker", "service", "update"],
+    decision = "prompt",
+    justification = "Service updates affect deployed runtime state and require deploy intent.",
+    match = ["docker service update --image app:latest app_web"],
+)
+
+prefix_rule(
+    pattern = ["kubectl"],
+    decision = "prompt",
+    justification = "Kubernetes commands may affect shared or production infrastructure.",
+    match = ["kubectl get pods", "kubectl rollout restart deployment/app"],
+)
+
+prefix_rule(
+    pattern = ["aws", "ecs"],
+    decision = "prompt",
+    justification = "ECS commands may affect deployed infrastructure.",
+    match = ["aws ecs update-service --cluster app --service web"],
+)
+
+prefix_rule(
+    pattern = ["curl"],
+    decision = "prompt",
+    justification = "Network calls should be reviewed for target and side effects.",
+    match = ["curl https://example.com"],
+)
+
+prefix_rule(
+    pattern = ["wget"],
+    decision = "prompt",
+    justification = "Network downloads should be reviewed for target and side effects.",
+    match = ["wget https://example.com/file.tgz"],
+)
