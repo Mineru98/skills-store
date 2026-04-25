@@ -1,5 +1,5 @@
 ---
-name: framework-selection-py
+name: framework-selection
 description: "INVOKE THIS SKILL at the START of any LangChain/LangGraph/Deep Agents project, before writing any agent code. Determines which framework layer is right for the task: LangChain, LangGraph, Deep Agents, or a combination. Must be consulted before other agent skills."
 ---
 
@@ -60,7 +60,7 @@ Answer these questions in order:
 - State needs to persist across multiple sessions
 - Control flow is conditional or iterative
 
-**Skills to invoke next:** `langchain-models-py`, `langchain-rag-py`, `langchain-middleware-py`
+**Skills to invoke next:** `langchain-models`, `langchain-rag`, `langchain-middleware`
 
 </langchain-profile>
 
@@ -79,7 +79,7 @@ Answer these questions in order:
 - You want planning, file management, and subagent delegation handled for you (use Deep Agents instead)
 - The workflow is straightforward enough for a simple agent
 
-**Skills to invoke next:** `langgraph-fundamentals-py`, `langgraph-human-in-the-loop-py`, `langgraph-persistence-py`
+**Skills to invoke next:** `langgraph-fundamentals`, `langgraph-human-in-the-loop`, `langgraph-persistence`
 
 </langgraph-profile>
 
@@ -111,7 +111,7 @@ Deep Agents ships with a built-in middleware layer out of the box — you config
 | `MemoryMiddleware` | Long-term memory across sessions via a `Store` instance | Opt-in |
 | `HumanInTheLoopMiddleware` | Interrupt and request human approval before sensitive tool calls | Opt-in |
 
-**Skills to invoke next:** `deep-agents-core-py`, `deep-agents-memory-py`, `deep-agents-orchestration-py`
+**Skills to invoke next:** `deep-agents-core`, `deep-agents-memory`, `deep-agents-orchestration`
 
 </deep-agents-profile>
 

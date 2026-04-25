@@ -1,5 +1,5 @@
 ---
-name: langchain-dependencies-py
+name: langchain-dependencies
 description: "INVOKE THIS SKILL when setting up a new project or when asked about package versions, installation, or dependency management for LangChain, LangGraph, LangSmith, or Deep Agents. Covers required packages, minimum versions, environment requirements, versioning best practices, and common community tool packages for both Python and TypeScript."
 ---
 
@@ -150,7 +150,7 @@ These packages have tighter compatibility requirements — use the latest availa
 
 ## Minimal Project Templates
 
-<ex-langgraph-python>
+<ex-langgraphthon>
 Minimal dependency set for a LangGraph project (provider-agnostic).
 ```
 # requirements.txt
@@ -164,12 +164,12 @@ langsmith>=0.3.0
 # langchain-anthropic
 # langchain-google-genai
 ```
-</ex-langgraph-python>
+</ex-langgraphthon>
 
 <ex-langgraph-typescript>
 </ex-langgraph-typescript>
 
-<ex-deepagents-python>
+<ex-deepagentsthon>
 Minimal dependency set for a Deep Agents project (provider-agnostic).
 ```
 # requirements.txt
@@ -182,12 +182,12 @@ langsmith>=0.3.0
 # langchain-anthropic
 # langchain-openai
 ```
-</ex-deepagents-python>
+</ex-deepagentsthon>
 
 <ex-deepagents-typescript>
 </ex-deepagents-typescript>
 
-<ex-with-tools-python>
+<ex-with-toolsthon>
 Adding Tavily search and a vector store to a LangGraph project.
 ```
 # requirements.txt
@@ -210,7 +210,7 @@ langchain-text-splitters  # use latest; semver
 # Your model provider:
 # langchain-openai / langchain-anthropic / etc.
 ```
-</ex-with-tools-python>
+</ex-with-toolsthon>
 
 <ex-with-tools-typescript>
 </ex-with-tools-typescript>
@@ -331,14 +331,14 @@ Each entry shows the correct package and import path. If a dedicated package exi
 <fix-core-not-installed>
 </fix-core-not-installed>
 
-<fix-python-version>
+<fixthon-version>
 Python 3.9 and below are not supported by LangChain 1.0.
 ```python
 # Verify before installing
 import sys
 assert sys.version_info >= (3, 10), "Python 3.10+ required for LangChain 1.0"
 ```
-</fix-python-version>
+</fixthon-version>
 
 <fix-node-version>
 </fix-node-version>
