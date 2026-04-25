@@ -1,81 +1,92 @@
-# Skills Store
+# Skills Store — LangChain (TypeScript)
 
-Codex와 Claude 환경에서 재사용할 수 있는 프롬프트 자산을 모아둔 저장소입니다.
+Codex와 Claude Code 환경에서 사용하는 **LangChain · LangGraph · Deep Agents 스킬 세트**의 TypeScript 버전입니다.
 
-현재 기준으로 이 저장소는 `Codex`용 스킬을 주 관리 대상으로 두고 있고, 기존 `Claude`용 커맨드와 스킬도 함께 보관합니다.
+이 브랜치의 모든 코드 예시는 TypeScript (`langchain`, `@langchain/langgraph`, `deepagents`) 패키지를 기준으로 작성되어 있습니다. Python 버전은 `langchain-python` 브랜치를 참고하세요.
 
-## 구성
+## 디렉터리 구조
 
-### Codex 자산
+```
+.
+├── .codex/
+│   ├── AGENTS.md           # Codex 응답 규칙
+│   └── skills/             # Codex 스킬 (LangChain/LangGraph/Deep Agents)
+├── .claude/
+│   └── skills/             # Claude 스킬 (동일 셋, Claude Code용 미러)
+├── AGENTS.md
+├── CLAUDE.md
+├── LICENSE
+└── README.md
+```
 
-`/.codex/skills`
+`.codex/skills` 와 `.claude/skills` 는 동일한 스킬 카탈로그를 두 환경에서 사용할 수 있도록 미러링되어 있습니다.
 
-현재 포함된 스킬:
+## 스킬 카탈로그
 
-| Skill | 설명 |
-| --- | --- |
-| `commit` | 변경 파일을 목적별로 묶어 한국어 Conventional Commit을 생성 |
-| `inst-skill` | GitHub 스킬 폴더 URL로 Codex 스킬을 설치 |
-| `kill-process` | 지정한 포트에서 실행 중인 프로세스를 찾아 종료 |
-| `playwright-cli` | 브라우저 자동화 작업에서 Playwright 도구 또는 CLI 사용 가이드 제공 |
+각 스킬은 호출 트리거를 `description` 에 명시한 SKILL.md 한 장으로 구성됩니다.
 
-### Claude 자산
-
-`/.claude/commands`
-
-현재 포함된 커맨드:
-
-| Command | 설명 |
-| --- | --- |
-| `commit` | 변경사항을 분석해 커밋 생성 |
-| `kill-process` | 포트 기반 프로세스 종료 |
-
-`/.claude/skills`
-
-현재 포함된 스킬:
+### 진입점
 
 | Skill | 설명 |
 | --- | --- |
-| `commands-creator` | Claude 커맨드 작성 가이드 |
-| `conventions` | 언어별 코딩/커밋 규칙 모음 |
-| `excel-data-analyzer` | 엑셀 데이터 분석 자동화 |
-| `inst-skill` | GitHub URL 기반 스킬 설치 |
-| `mcp-builder` | MCP 서버 개발 가이드 |
-| `playwright-cli` | Playwright CLI 사용 가이드 |
-| `subagents-creator` | 서브에이전트 정의와 운용 가이드 |
+| `framework-selection` | 프로젝트 시작 시 LangChain · LangGraph · Deep Agents 중 어느 계층을 쓸지 결정. 다른 스킬보다 먼저 호출. |
+| `langchain-dependencies` | 패키지 버전·설치·환경 요구사항 정리 (LangChain · LangGraph · LangSmith · Deep Agents). |
+
+### LangChain
+
+| Skill | 설명 |
+| --- | --- |
+| `langchain-fundamentals` | `createAgent()`, `tool()`, 미들웨어 기반 프로덕션 에이전트 작성. |
+| `langchain-middleware` | `HumanInTheLoopMiddleware`, 커스텀 미들웨어 훅, Zod 구조화 출력. |
+| `langchain-rag` | 도큐먼트 로더, `RecursiveCharacterTextSplitter`, OpenAI 임베딩, Chroma/FAISS/Pinecone. |
+
+### LangGraph
+
+| Skill | 설명 |
+| --- | --- |
+| `langgraph-fundamentals` | `StateGraph`, 노드/엣지, `Command`, `Send`, 스트리밍, 에러 처리. |
+| `langgraph-persistence` | 체크포인터, `thread_id`, time travel, `Store`, 서브그래프 영속화. |
+| `langgraph-human-in-the-loop` | `interrupt()`, `Command({ resume })`, 4단계 에러 처리 전략. |
+
+### Deep Agents
+
+| Skill | 설명 |
+| --- | --- |
+| `deep-agents-core` | `createDeepAgent()`, 하니스 아키텍처, SKILL.md 포맷, 설정 옵션. |
+| `deep-agents-memory` | `StateBackend`, `StoreBackend`, `FilesystemMiddleware`, `CompositeBackend` 라우팅. |
+| `deep-agents-orchestration` | `SubAgentMiddleware`, `TodoList` 기반 플래닝, HITL interrupt. |
 
 ## 사용 방법
 
-### Codex에서 스킬 사용
+### Codex 에서 사용
 
-이 저장소의 스킬은 일반적으로 `~/.codex/skills/` 또는 프로젝트의 `.codex/skills/` 아래에 배치해 사용합니다.
-
-예시:
+저장소를 클론한 뒤 `.codex/skills/` 의 스킬을 그대로 사용하거나, 필요한 스킬을 `~/.codex/skills/` 로 복사해 전역 등록합니다.
 
 ```text
-$commit
-$kill-process 3000
+/framework-selection
+/langchain-fundamentals
 ```
 
-`inst-skill` 스킬을 사용하면 GitHub의 스킬 폴더 URL로 다른 Codex 스킬을 바로 내려받을 수 있습니다.
+### Claude Code 에서 사용
 
-예시:
+`.claude/skills/` 의 스킬은 키워드 자동 감지 또는 `Skill` 도구로 호출됩니다.
 
 ```text
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
+/langgraph-fundamentals
+/deep-agents-core
 ```
 
-### Claude 자산 사용
+### 다른 저장소로 가져오기
 
-기존 Claude용 자산은 `.claude/commands/`, `.claude/skills/` 구조를 유지한 채 보관되어 있습니다. Codex용 자산과 별개로 참고하거나 마이그레이션 용도로 사용할 수 있습니다.
+`inst-skill` (다른 브랜치 제공) 이나 단순 복사로 개별 스킬을 다른 프로젝트에 이식할 수 있습니다.
 
-## 참고 사항
+## 권장 호출 순서
 
-- 루트에는 별도 설치 스크립트(`install.sh`, `install.bat`)가 없습니다.
-- 일부 오래된 Claude 자산 파일은 현재 인코딩 상태가 고르지 않을 수 있습니다.
-- 최근 변경사항은 `.codex/skills` 기준으로 관리되고 있습니다.
+1. **`framework-selection`** — 어떤 계층(LangChain / LangGraph / Deep Agents) 으로 갈지 결정.
+2. **`langchain-dependencies`** — 결정된 계층에 맞는 패키지·버전을 고정.
+3. **계층별 fundamentals** — `langchain-fundamentals`, `langgraph-fundamentals`, `deep-agents-core` 중 해당 항목.
+4. **세부 기능 스킬** — RAG, 미들웨어, persistence, HITL, memory, orchestration 등 필요에 따라.
 
 ## 라이선스
 
-MIT License. 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
+MIT License. 자세한 내용은 [LICENSE](LICENSE) 를 참고하세요.
