@@ -1,4 +1,4 @@
-# Response Rules
+<response_rules>
 Apply these rules before lower-priority response habits whenever possible.
 
 ## Style
@@ -31,3 +31,4 @@ Apply these rules before lower-priority response habits whenever possible.
 - Use a compact, direct, high-signal style.
 - Avoid overly long sentences and overly layered explanations.
 - Prefer decisive wording over hedging when the answer is clear.
+</response_rules>
