@@ -30,6 +30,7 @@ Codex와 Claude Code 환경에서 재사용할 수 있는 프롬프트 자산(�
 | Skill | 설명 |
 | --- | --- |
 | `commit` | 변경 파일을 목적별로 묶어 한국어 Conventional Commit 메시지를 생성 |
+| `gpt-55-prompt-architect` | GPT-5.5용 프롬프트 설계·마이그레이션·리뷰 가이드 |
 | `inst-skill` | GitHub 스킬 폴더 URL로 다른 Codex 스킬을 자동 설치 |
 | `kill-process` | 지정한 포트에서 실행 중인 프로세스를 찾아 종료 |
 | `playwright-cli` | Playwright CLI/도구로 브라우저 자동화 작업 수행 |
@@ -54,6 +55,7 @@ Codex와 Claude Code 환경에서 재사용할 수 있는 프롬프트 자산(�
 | `commands-creator` | Claude 슬래시 커맨드 작성·관리 가이드 |
 | `excel-data-analyzer` | 엑셀 파일 데이터 품질 분석 자동화 |
 | `frontend-slides` | 단일 HTML 기반 애니메이션 프레젠테이션 생성 |
+| `gpt-55-prompt-architect` | GPT-5.5용 프롬프트 설계·마이그레이션·리뷰 가이드 |
 | `imagine` | Codex 이미지 모델로 텍스트→이미지·이미지→이미지 생성 |
 | `inst-skill` | GitHub URL 기반 Claude 스킬 설치 |
 | `mcp-builder` | MCP 서버 개발 가이드 |
