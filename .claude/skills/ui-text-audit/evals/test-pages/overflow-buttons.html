@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>UI Text Audit — Synthetic Bad Page</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 40px;
+    font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+    background: #f4f5f7;
+    color: #222;
+  }
+  h1 { font-size: 18px; margin-bottom: 24px; }
+  .row { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+  .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+
+  /* Case 1: button width too small for label, overflow visible */
+  .btn-overflow {
+    width: 80px;            /* too narrow for "결제 진행하기" */
+    height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: visible;       /* spills out */
+    text-align: left;
+    line-height: 24px;
+  }
+
+  /* Case 2: button with vertical writing-mode (broken in horizontal context) */
+  .btn-vertical {
+    writing-mode: vertical-rl;
+    width: 40px;
+    height: 120px;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  /* Case 3: button with overflow:hidden + ellipsis (clipping) */
+  .btn-clipped {
+    width: 100px;
+    height: 40px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #f59e0b;
+    color: white;
+    border: none;
+    font-size: 14px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* Case 4: clean control button */
+  .btn-clean {
+    padding: 8px 16px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  /* Case 5: stacked overlapping labels (different parents) */
+  .stack { position: relative; width: 240px; height: 60px; }
+  .stack .a, .stack .b {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  .stack .a { top: 8px; left: 0; }
+  .stack .b { top: 22px; left: 60px; }   /* overlaps a */
+
+  /* Case 6: bad padding (asymmetric) */
+  .btn-padded {
+    padding: 8px 60px 8px 8px;   /* 7.5x right vs left */
+    background: #db2777;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <h1>UI Text Audit — Synthetic Bad Page</h1>
+
+  <div class="row">
+    <div>
+      <div class="label">overflow (confirmed)</div>
+      <button class="btn-overflow">결제 진행하기</button>
+    </div>
+    <div>
+      <div class="label">vertical (suspected)</div>
+      <button class="btn-vertical">메뉴 열기</button>
+    </div>
+    <div>
+      <div class="label">ellipsis clip (suspected)</div>
+      <button class="btn-clipped">아주 긴 라벨이 들어 있어요</button>
+    </div>
+    <div>
+      <div class="label">clean</div>
+      <button class="btn-clean">취소</button>
+    </div>
+    <div>
+      <div class="label">bad padding (suspected)</div>
+      <button class="btn-padded">확인</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <div class="label">overlap (confirmed)</div>
+      <div class="stack">
+        <div class="a">사용자 이름</div>
+        <div class="b">관리자 권한</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
