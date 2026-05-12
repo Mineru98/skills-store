@@ -1,5 +1,5 @@
 ---
-name: inst-skill
+name: install-skill
 description: GitHub URL로 Codex 스킬을 설치합니다. GitHub 저장소의 스킬 폴더 URL을 입력하면 해당 스킬의 모든 파일을 자동으로 다운로드하여 .codex/skills/ 에 설치합니다.
 argument-hint: "<GitHub URL> [옵션: --global, --name <이름>, --dry-run]"
 ---
@@ -29,10 +29,10 @@ node <이 스킬의 script/install-skill.js 경로> $ARGUMENTS
 ## 사용 예시
 
 ```
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
-/inst-skill https://github.com/user/repo/tree/main/my-skill --name custom-name
-/inst-skill https://github.com/user/repo/tree/main/my-skill --dry-run
+/install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
+/install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
+/install-skill https://github.com/user/repo/tree/main/my-skill --name custom-name
+/install-skill https://github.com/user/repo/tree/main/my-skill --dry-run
 ```
 
 ## 주의사항

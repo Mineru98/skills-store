@@ -31,7 +31,7 @@ Codex와 Claude Code 환경에서 재사용할 수 있는 프롬프트 자산(�
 | --- | --- |
 | `commit` | 변경 파일을 목적별로 묶어 한국어 Conventional Commit 메시지를 생성 |
 | `gpt-55-prompt-architect` | GPT-5.5용 프롬프트 설계·마이그레이션·리뷰 가이드 |
-| `inst-skill` | GitHub 스킬 폴더 URL로 다른 Codex 스킬을 자동 설치 |
+| `install-skill` | GitHub 스킬 폴더 URL로 다른 Codex 스킬을 자동 설치 |
 | `kill-process` | 지정한 포트에서 실행 중인 프로세스를 찾아 종료 |
 | `playwright-cli` | Playwright CLI/도구로 브라우저 자동화 작업 수행 |
 
@@ -57,7 +57,7 @@ Codex와 Claude Code 환경에서 재사용할 수 있는 프롬프트 자산(�
 | `frontend-slides` | 단일 HTML 기반 애니메이션 프레젠테이션 생성 |
 | `gpt-55-prompt-architect` | GPT-5.5용 프롬프트 설계·마이그레이션·리뷰 가이드 |
 | `imagine` | Codex 이미지 모델로 텍스트→이미지·이미지→이미지 생성 |
-| `inst-skill` | GitHub URL 기반 Claude 스킬 설치 |
+| `install-skill` | GitHub URL 기반 Claude 스킬 설치 |
 | `mcp-builder` | MCP 서버 개발 가이드 |
 | `playwright-cli` | Playwright CLI 사용 가이드 |
 | `subagents-creator` | Claude 서브에이전트 정의·운용 가이드 |
@@ -91,11 +91,11 @@ Codex와 Claude Code 환경에서 재사용할 수 있는 프롬프트 자산(�
 /kill-process 3000
 ```
 
-`inst-skill` 로 GitHub URL을 지정하면 다른 Codex 스킬을 바로 내려받을 수 있습니다.
+`install-skill` 로 GitHub URL을 지정하면 다른 Codex 스킬을 바로 내려받을 수 있습니다.
 
 ```text
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
-/inst-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
+/install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
+/install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
 ```
 
 ### Claude 자산 사용
