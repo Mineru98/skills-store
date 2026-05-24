@@ -64,6 +64,7 @@ Codex와 Claude Code에서 재사용하는 프롬프트 자산 저장소입니�
 - `premium-korean-aesthetic`
 - `subagents-creator`
 - `ui-text-audit`
+- `visual-companion`
 
 ### 프로젝트 룰
 
@@ -106,6 +107,7 @@ Claude 룰을 Codex 실행 정책으로 다시 쓴 폴더입니다.
 - `playwright-cli`
 - `premium-korean-aesthetic`
 - `web-advisor`
+- `visual-companion`
 
 ## 사용 방법
 
