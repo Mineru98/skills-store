@@ -15,6 +15,8 @@ Resolve bundled scripts relative to this skill directory:
 - `scripts/frame-template.html`
 - `scripts/helper.js`
 - `scripts/wait-for-event.cjs`
+- `scripts/mark-pending-question.cjs`
+- `scripts/read-pending-event.cjs`
 
 Browser-based visual brainstorming companion for showing mockups, diagrams, and options.
 
@@ -43,6 +45,12 @@ A question *about* a UI topic is not automatically a visual question. "What kind
 ## How It Works
 
 The server watches a directory for HTML files and serves the newest one to the browser. You write HTML content to `screen_dir`, the user sees it in their browser and can click to select options or submit small forms. Browser events are recorded to `state_dir/events`, `state_dir/latest-event.json`, and `state_dir/latest-selection.json`.
+
+Browser events are durable. Do not depend only on a currently running `wait-for-event.cjs` process. The browser sends user events through WebSocket and an immediate HTTP fallback, and the server deduplicates them by `eventId`. If the waiting command is interrupted or the user may ask unrelated terminal questions while a visual choice remains open, recover the answer later with `read-pending-event.cjs`.
+
+Diagnostics are durable too. Browser helper sends, server records, duplicate drops, wait starts, wait matches, timeout events, and pending recovery checks are appended as JSON lines to `state_dir/diagnostics.jsonl`. Check that file first when a user says they clicked but Codex did not react.
+
+The server injects a per-session token into served pages and requires that token for browser event, diagnostic, and WebSocket event paths. This prevents unrelated local pages from spoofing visual choices when the server port is reachable.
 
 For the best Codex/Claude flow, do not require the user to retype a browser choice in the terminal. After pushing a screen, run `scripts/wait-for-event.cjs` with the returned `state_dir`; it blocks until the next browser event and prints the JSON event directly into the session.
 
@@ -111,15 +119,24 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
 
 ## The Loop
 
+0. **Check pending visual answers first** — at the start of any later user turn, if a visual companion session is active or a previous visual question was left pending, run:
+
+   ```bash
+   node scripts/read-pending-event.cjs "$STATE_DIR"
+   ```
+
+   If it returns `answered`, use that browser choice before continuing with the new request. Do this proactively; do not wait for the user to remind you to check. If it returns `pending`, continue with the new request and leave the visual question open.
+
 1. **Check server is alive**, then **write HTML** to a new file in `screen_dir`:
-   - Before each write, check that `$STATE_DIR/server-info` exists. If it doesn't (or `$STATE_DIR/server-stopped` exists), the server has shut down — restart it with `start-server.sh` before continuing. The server auto-exits after 30 minutes of inactivity.
+      - Before each write, check that `$STATE_DIR/server-info` exists. If it doesn't (or `$STATE_DIR/server-stopped` exists), the server has shut down — restart it with `start-server.sh` before continuing. The server auto-exits after 4 hours of inactivity. An open browser page sends heartbeat events to keep active sessions alive.
    - Use semantic filenames: `platform.html`, `visual-style.html`, `layout.html`
    - **Never reuse filenames** — each screen gets a fresh file
    - Use Write tool — **never use cat/heredoc** (dumps noise into terminal)
    - Server automatically serves the newest file
 
 2. **Choose a response mode:**
-   - **Automatic bridge, preferred:** run `node scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000` after writing the screen. The user clicks or submits in the browser, and the command returns the event JSON in the same session. Use this when the next step depends only on the browser interaction.
+   - **Automatic bridge, preferred:** run `node scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 1800000` after writing the screen. Use `--timeout-ms 0` only when an intentionally open-ended wait is acceptable. The user clicks or submits in the browser, and the command returns the event JSON in the same session. Use this when the next step depends only on the browser interaction. The bridge keeps the local server alive while it waits, creates a pending recovery marker, and `--clear` ignores stale events without deleting clicks that arrive just before the wait command starts.
+   - **Durable pending mode:** run `node scripts/mark-pending-question.cjs "$STATE_DIR" --id <short-id>` after writing the screen, then continue with other work or end the turn. Later, run `node scripts/read-pending-event.cjs "$STATE_DIR"` to recover the latest matching click without blocking. Use this whenever the user may keep using the terminal for other prompts while the visual question remains open.
    - **Terminal confirmation:** end your turn and ask the user to respond in terminal only when their feedback is primarily prose, the browser is optional, or long discussion is expected.
 
 3. **Tell user what to expect:**
@@ -155,7 +172,7 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
 Use this when a browser click or short form submit should drive the next agent step without asking the user to type the same answer again.
 
 ```bash
-node .codex/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000
+node .codex/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 1800000
 ```
 
 The command prints one JSON event and exits. Useful fields:
@@ -168,7 +185,42 @@ The command prints one JSON event and exits. Useful fields:
 
 Use `--type submit` to wait only for form submissions. Use `--since-ms <timestamp>` when you want to preserve older events and wait for a newer one.
 
+Reliability guards:
+
+- `--clear` is race-safe. It sets a cutoff for old events instead of deleting the events file, so a fast click made between screen render and waiter startup is still accepted.
+- `--clear-grace-ms <N>` controls that fast-click grace window. The default is `5000`.
+- `--timeout-ms 0` disables the bridge timeout for deliberately long waits.
+- While waiting, the command pings the local server every 25 seconds so long user pauses do not trigger the server idle timeout. Use `--no-keepalive` only for debugging.
+- The waiting command writes `pending-question.json` before blocking and marks it answered after a matching event. If the shell wait is interrupted, run `read-pending-event.cjs` later to recover the click.
+- Browser clicks are sent by WebSocket and by HTTP fallback. Duplicate deliveries are expected and are collapsed by `eventId`.
+- To debug missed clicks, inspect `state_dir/diagnostics.jsonl` alongside `state_dir/events`.
+
 This bridge does not inject messages into Codex or Claude through a private UI API. It returns the browser event through the same shell/tool channel the agent already controls, which is the reliable cross-runtime path.
+
+## Durable Pending Questions
+
+Use this when the browser question should remain open while the user may continue asking unrelated terminal questions.
+
+After writing the screen:
+
+```bash
+node .codex/skills/visual-companion/scripts/mark-pending-question.cjs "$STATE_DIR" --id layout-choice
+```
+
+Then continue with the other requested work. The server keeps recording browser events to disk.
+
+At the start of each later user turn, before responding to the new request:
+
+```bash
+node .codex/skills/visual-companion/scripts/read-pending-event.cjs "$STATE_DIR"
+```
+
+Return shapes:
+
+- `{"status":"pending", ...}` means no matching browser answer has arrived yet.
+- `{"status":"answered", "event": ...}` means use `event.choice`, `event.value`, `event.fields`, or `event.text`.
+
+This mode is the fallback guard for long waits, interrupted turns, and terminal-side detours.
 
 ## Writing Content Fragments
 

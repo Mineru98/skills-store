@@ -79,6 +79,7 @@ const URL_HOST = process.env.BRAINSTORM_URL_HOST || (HOST === '127.0.0.1' ? 'loc
 const SESSION_DIR = process.env.BRAINSTORM_DIR || '/tmp/brainstorm';
 const CONTENT_DIR = path.join(SESSION_DIR, 'content');
 const STATE_DIR = path.join(SESSION_DIR, 'state');
+const SESSION_TOKEN = process.env.BRAINSTORM_TOKEN || crypto.randomBytes(24).toString('hex');
 let ownerPid = process.env.BRAINSTORM_OWNER_PID ? Number(process.env.BRAINSTORM_OWNER_PID) : null;
 
 const MIME_TYPES = {
@@ -100,7 +101,10 @@ h1 { color: #333; } p { color: #666; }</style>
 
 const frameTemplate = fs.readFileSync(path.join(__dirname, 'frame-template.html'), 'utf-8');
 const helperScript = fs.readFileSync(path.join(__dirname, 'helper.js'), 'utf-8');
-const helperInjection = '<script>\n' + helperScript + '\n</script>';
+const helperInjection = '<script>window.__VISUAL_COMPANION_TOKEN=' + JSON.stringify(SESSION_TOKEN) + ';</script>\n<script>\n' + helperScript + '\n</script>';
+const seenEventIds = new Set();
+const MAX_EVENT_IDS = 1000;
+const DIAGNOSTICS_FILE = path.join(STATE_DIR, 'diagnostics.jsonl');
 
 // ========== Helper Functions ==========
 
@@ -142,6 +146,40 @@ function handleRequest(req, res) {
 
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html);
+  } else if (req.method === 'GET' && req.url === '/__visual_companion_wait_ping') {
+    res.writeHead(204);
+    res.end();
+  } else if (req.method === 'POST' && req.url === '/__visual_companion_event') {
+    if (!isAuthorizedRequest(req)) {
+      rejectUnauthorized(res, 'event');
+      return;
+    }
+    readJsonBody(req, res, (payload) => {
+      const events = Array.isArray(payload) ? payload : [payload];
+      let accepted = 0;
+      for (const event of events) {
+        if (event && typeof event === 'object' && recordEvent(event, 'http-fallback')) accepted += 1;
+      }
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'accepted', accepted }) + '\n');
+    });
+  } else if (req.method === 'POST' && req.url === '/__visual_companion_log') {
+    if (!isAuthorizedRequest(req)) {
+      rejectUnauthorized(res, 'log');
+      return;
+    }
+    readJsonBody(req, res, (payload) => {
+      const entries = Array.isArray(payload) ? payload : [payload];
+      let accepted = 0;
+      for (const entry of entries) {
+        if (entry && typeof entry === 'object') {
+          appendDiagnostic('client-log', entry);
+          accepted += 1;
+        }
+      }
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'accepted', accepted }) + '\n');
+    });
   } else if (req.method === 'GET' && req.url.startsWith('/files/')) {
     const fileName = req.url.slice(7);
     const filePath = path.join(CONTENT_DIR, path.basename(fileName));
@@ -160,6 +198,45 @@ function handleRequest(req, res) {
   }
 }
 
+function isAuthorizedRequest(req) {
+  return req.headers['x-visual-companion-token'] === SESSION_TOKEN;
+}
+
+function rejectUnauthorized(res, endpoint) {
+  appendDiagnostic('unauthorized-request', { endpoint });
+  res.writeHead(403);
+  res.end('Forbidden');
+}
+
+function readJsonBody(req, res, callback) {
+  const chunks = [];
+  let size = 0;
+  let rejected = false;
+
+  req.on('data', (chunk) => {
+    if (rejected) return;
+    size += chunk.length;
+    if (size > 1024 * 1024) {
+      rejected = true;
+      res.writeHead(413);
+      res.end('Payload too large');
+      req.destroy();
+      return;
+    }
+    chunks.push(chunk);
+  });
+
+  req.on('end', () => {
+    if (rejected) return;
+    try {
+      callback(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
+    } catch {
+      res.writeHead(400);
+      res.end('Invalid JSON');
+    }
+  });
+}
+
 // ========== WebSocket Connection Handling ==========
 
 const clients = new Set();
@@ -167,6 +244,12 @@ const clients = new Set();
 function handleUpgrade(req, socket) {
   const key = req.headers['sec-websocket-key'];
   if (!key) { socket.destroy(); return; }
+  const parsedUrl = new URL(req.url || '/', 'http://localhost');
+  if (parsedUrl.searchParams.get('token') !== SESSION_TOKEN) {
+    appendDiagnostic('unauthorized-websocket', {});
+    socket.destroy();
+    return;
+  }
 
   const accept = computeAcceptKey(key);
   socket.write(
@@ -226,15 +309,63 @@ function handleMessage(text) {
   try {
     event = JSON.parse(text);
   } catch (e) {
+    appendDiagnostic('websocket-parse-error', { message: e.message });
     console.error('Failed to parse WebSocket message:', e.message);
     return;
   }
+  recordEvent(event, 'websocket');
+}
+
+function rememberEventId(eventId) {
+  if (!eventId) return false;
+  if (seenEventIds.has(eventId)) return true;
+  seenEventIds.add(eventId);
+  if (seenEventIds.size > MAX_EVENT_IDS) {
+    seenEventIds.delete(seenEventIds.values().next().value);
+  }
+  return false;
+}
+
+function appendDiagnostic(action, detail = {}) {
+  const entry = {
+    action,
+    timestamp: Date.now(),
+    ...detail,
+  };
+  try {
+    fs.appendFileSync(DIAGNOSTICS_FILE, JSON.stringify(entry) + '\n');
+  } catch (error) {
+    console.error('Failed to write visual companion diagnostic:', error.message);
+  }
+}
+
+function recordEvent(event, transport) {
   touchActivity();
   const normalizedEvent = {
     source: 'browser',
     timestamp: Date.now(),
+    transport,
     ...event,
   };
+  if (normalizedEvent.type === 'heartbeat') {
+    return false;
+  }
+  if (rememberEventId(normalizedEvent.eventId)) {
+    appendDiagnostic('event-ignored-duplicate', {
+      eventId: normalizedEvent.eventId || null,
+      type: normalizedEvent.type || null,
+      choice: normalizedEvent.choice || null,
+      transport: normalizedEvent.transport || null,
+    });
+    return false;
+  }
+  appendDiagnostic('event-recorded', {
+    eventId: normalizedEvent.eventId || null,
+    type: normalizedEvent.type || null,
+    choice: normalizedEvent.choice || null,
+    value: normalizedEvent.value || null,
+    transport: normalizedEvent.transport || null,
+  });
   console.log(JSON.stringify({ source: 'user-event', ...normalizedEvent }));
   if (normalizedEvent.type) {
     const eventsFile = path.join(STATE_DIR, 'events');
@@ -250,6 +381,7 @@ function handleMessage(text) {
       );
     }
   }
+  return true;
 }
 
 function broadcast(msg) {
@@ -261,7 +393,7 @@ function broadcast(msg) {
 
 // ========== Activity Tracking ==========
 
-const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const IDLE_TIMEOUT_MS = Number(process.env.BRAINSTORM_IDLE_TIMEOUT_MS || 4 * 60 * 60 * 1000);
 let lastActivity = Date.now();
 
 function touchActivity() {
@@ -301,10 +433,10 @@ function startServer() {
 
       if (!knownFiles.has(filename)) {
         knownFiles.add(filename);
-        const eventsFile = path.join(STATE_DIR, 'events');
-        if (fs.existsSync(eventsFile)) fs.unlinkSync(eventsFile);
+        appendDiagnostic('screen-added', { file: filePath });
         console.log(JSON.stringify({ type: 'screen-added', file: filePath }));
       } else {
+        appendDiagnostic('screen-updated', { file: filePath });
         console.log(JSON.stringify({ type: 'screen-updated', file: filePath }));
       }
 
@@ -331,7 +463,7 @@ function startServer() {
     try { process.kill(ownerPid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
   }
 
-  // Check every 60s: exit if owner process died or idle for 30 minutes
+  // Check every 60s: exit if owner process died or idle timeout expires.
   const lifecycleCheck = setInterval(() => {
     if (!ownerAlive()) shutdown('owner process exited');
     else if (Date.now() - lastActivity > IDLE_TIMEOUT_MS) shutdown('idle timeout');
