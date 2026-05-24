@@ -44,14 +44,18 @@ Codex와 Claude Code에서 재사용하는 스킬, agent, 명령, 프로젝트 �
 
 ### Best use case
 
-글로 설명하면 애매한 선택지를 브라우저 화면으로 보여주고, 사용자의 클릭/입력 이벤트를 다시 Codex 또는 Claude 세션으로 가져올 때 사용합니다.
+`visual-companion`은 Claude나 Codex와 기획 문서, 요구사항, 인터뷰를 진행할 때 말로만 설명하기 어려운 선택지를 브라우저 화면으로 보여주기 위해 만들었습니다.
+
+텍스트 질문만으로는 서로 같은 장면을 떠올리고 있는지 확인하기 어렵습니다. 특히 화면 구성, 플로우, 정보 구조, 비교안처럼 시각적 판단이 필요한 주제는 말로만 좁히면 오해가 생기기 쉽습니다.
+
+이 스킬은 그런 순간에 Superpowers의 시각 선택 기능처럼 작동합니다. 에이전트가 브라우저에 선택지, 와이어프레임, 다이어그램, 비교안을 띄우고, 사용자의 클릭이나 짧은 입력을 다시 세션으로 가져와 다음 인터뷰나 기획 문서에 반영합니다.
 
 적합한 작업:
 
-- 와이어프레임, 레이아웃, 카드형 선택지 비교
-- 아키텍처 다이어그램, 플로우, 상태 전이도
-- 디자인 방향 A/B/C 비교
-- 인터뷰 중 시각적으로 골라야 하는 요구사항
+- [ouroboros](https://github.com/Q00/ouroboros)의 `interview` 중 시각 선택지가 필요한 요구사항 정리
+- [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex)의 `deep-interview`에서 텍스트 질문만으로 좁히기 어려운 화면/플로우 선택
+- [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode)의 `deep-interview`에서 사용자가 브라우저로 선택하고 Claude Code가 그 결과를 이어받는 흐름
+- 기획 문서 작성 중 레이아웃, 정보 구조, 사용자 흐름, 다이어그램을 눈으로 보고 결정해야 하는 순간
 
 부적합한 작업:
 
@@ -63,34 +67,29 @@ Codex와 Claude Code에서 재사용하는 스킬, agent, 명령, 프로젝트 �
 
 ```text
 $visual-companion
-신규 온보딩 화면 레이아웃 3안을 브라우저에서 비교할 수 있게 만들어줘.
-각 안은 카드 클릭으로 선택할 수 있어야 하고, 선택 결과를 다음 기획 문서 작성에 반영해줘.
+ouroboros interview 중 나온 온보딩 요구사항이 아직 추상적입니다.
+사용자가 브라우저에서 선택할 수 있도록 온보딩 플로우 3안을 시각화하고,
+선택 결과를 다음 interview 답변과 PRD 정리에 반영해줘.
 ```
 
 ```text
-visual-companion을 사용해서 관리자 대시보드 정보 구조를 다이어그램으로 보여줘.
-사용자가 브라우저에서 한 구조를 선택하면 그 선택을 기준으로 PRD 초안을 이어서 작성해줘.
+omx deep-interview를 진행하다가 대시보드 정보 구조 선택에서 막혔습니다.
+visual-companion으로 3가지 정보 구조를 브라우저에 보여주고,
+사용자가 고른 안을 기준으로 다음 질문과 구현 계획을 이어가줘.
 ```
 
 ### Claude Code 호출 예시
 
 ```text
-visual-companion 스킬을 사용해 결제 플로우 와이어프레임 3개를 브라우저로 보여줘.
-클릭한 안을 기준으로 Claude Code에서 구현 계획을 정리해줘.
+omc deep-interview 중 결제 플로우 요구사항이 말로만 정리되어 애매합니다.
+visual-companion 스킬로 플로우 후보 3개를 브라우저에 띄우고,
+사용자의 선택을 Claude Code 기획 문서에 반영해줘.
 ```
 
 ```text
-visual-companion으로 랜딩 페이지 첫 화면 톤앤매너 3안을 시각화해줘.
-브라우저에서 선택한 결과를 반영해서 섹션 구성안을 만들어줘.
-```
-
-### 실행 파일
-
-```bash
-.codex/skills/visual-companion/scripts/start-server.sh
-.codex/skills/visual-companion/scripts/wait-for-event.cjs
-.claude/skills/visual-companion/scripts/start-server.sh
-.claude/skills/visual-companion/scripts/wait-for-event.cjs
+ouroboros interview에서 랜딩 페이지 방향을 정해야 합니다.
+visual-companion으로 첫 화면 구조와 섹션 흐름 후보를 시각화하고,
+클릭된 선택지를 기준으로 요구사항을 좁혀줘.
 ```
 
 </details>
