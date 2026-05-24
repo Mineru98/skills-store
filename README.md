@@ -2,9 +2,9 @@
 
 ![Skills Store overview](assets/images/skills-store-overview.png)
 
-Codex와 Claude Code에서 재사용하는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 작업용 저장소입니다.
+Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
 
-핵심 사용 순서는 `visual-companion`, `kill-process`, `install-skill`, 디자인 계열 스킬, 그 외 문서/데이터/프롬프트/agent 순서입니다.
+자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, 디자인 계열 스킬, 문서/데이터/프롬프트/agent 순입니다.
 
 ## 빠른 사용 순서
 
@@ -12,7 +12,7 @@ Codex와 Claude Code에서 재사용하는 스킬, agent, 명령, 프로젝트 �
 2. 로컬 개발 서버 포트가 막히면 `kill-process`로 포트를 비웁니다.
 3. 외부 GitHub 스킬을 가져와야 하면 `install-skill`을 씁니다.
 4. UI, 랜딩, [redacted], 슬라이드 작업은 디자인 그룹에서 고릅니다.
-5. 문서 AI-feel 감사, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
+5. 문서 AI-feel 점검, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 
 ## 저장소 구조
 
@@ -44,18 +44,18 @@ Codex와 Claude Code에서 재사용하는 스킬, agent, 명령, 프로젝트 �
 
 ### Best use case
 
-`visual-companion`은 Claude나 Codex와 기획 문서, 요구사항, 인터뷰를 진행할 때 말로만 설명하기 어려운 선택지를 브라우저 화면으로 보여주기 위해 만들었습니다.
+`visual-companion`은 기획 문서, 요구사항, 인터뷰 중 말로만 설명하기 어려운 선택지를 브라우저 화면으로 보여줄 때 씁니다.
 
 텍스트 질문만으로는 서로 같은 장면을 떠올리고 있는지 확인하기 어렵습니다. 특히 화면 구성, 플로우, 정보 구조, 비교안처럼 시각적 판단이 필요한 주제는 말로만 좁히면 오해가 생기기 쉽습니다.
 
-이 스킬은 그런 순간에 Superpowers의 시각 선택 기능처럼 작동합니다. 에이전트가 브라우저에 선택지, 와이어프레임, 다이어그램, 비교안을 띄우고, 사용자의 클릭이나 짧은 입력을 다시 세션으로 가져와 다음 인터뷰나 기획 문서에 반영합니다.
+이 스킬은 그런 순간에 선택지, 와이어프레임, 다이어그램, 비교안을 브라우저에 띄웁니다. 사용자가 고른 값이나 짧은 입력을 다시 세션으로 가져와 다음 인터뷰나 기획 문서에 씁니다.
 
 적합한 작업:
 
-- [ouroboros](https://github.com/Q00/ouroboros)의 `interview` 중 시각 선택지가 필요한 요구사항 정리
-- [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex)의 `deep-interview`에서 텍스트 질문만으로 좁히기 어려운 화면/플로우 선택
-- [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode)의 `deep-interview`에서 사용자가 브라우저로 선택하고 Claude Code가 그 결과를 이어받는 흐름
-- 기획 문서 작성 중 레이아웃, 정보 구조, 사용자 흐름, 다이어그램을 눈으로 보고 결정해야 하는 순간
+- [ouroboros](https://github.com/Q00/ouroboros) `interview` 중 시각 선택지가 필요한 요구사항 정리
+- [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex) `deep-interview`에서 텍스트 질문만으로 좁히기 어려운 화면/플로우 선택
+- [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) `deep-interview`에서 사용자가 브라우저로 고른 값을 Claude Code가 이어받는 흐름
+- 기획 문서 작성 중 레이아웃, 정보 구조, 사용자 흐름, 다이어그램을 눈으로 보고 골라야 하는 순간
 
 부적합한 작업:
 
@@ -99,7 +99,7 @@ visual-companion으로 첫 화면 구조와 섹션 흐름 후보를 시각화하
 
 ### Best use case
 
-개발 서버를 다시 띄우려는데 `3000`, `5173`, `8080` 같은 포트가 이미 사용 중일 때 사용합니다.
+개발 서버를 다시 띄우려는데 `3000`, `5173`, `8080` 같은 포트가 이미 사용 중일 때 씁니다.
 
 ### Codex 호출 예시
 
@@ -134,7 +134,7 @@ kill-process 스킬로 3000번과 5173번 포트를 비우고, 종료 후 포트
 
 ### Best use case
 
-GitHub 저장소의 특정 스킬 폴더를 현재 프로젝트의 `.codex/skills/` 또는 `.claude/skills/`로 내려받을 때 사용합니다.
+GitHub 저장소의 특정 스킬 폴더를 현재 프로젝트의 `.codex/skills/` 또는 `.claude/skills/`로 내려받을 때 씁니다.
 
 ### Codex 호출 예시
 
@@ -173,15 +173,15 @@ https://github.com/Mineru98/skills-store/tree/main/.claude/skills/frontend-desig
 
 ### 추천 순서
 
-1. `make-[redacted]` - URL에서 [redacted]와 [redacted]을 추출합니다.
-2. `[redacted]-validator` - [redacted]를 검증하고 회귀를 확인합니다.
-3. `frontend-design` - 실제 UI, 컴포넌트, 앱 화면을 만듭니다.
-4. `landing-page-builder` - 한국어 랜딩 페이지를 처음부터 만듭니다.
-5. `landing-page-upgrader` - 기존 랜딩 페이지를 프리미엄 톤으로 개선합니다.
-6. `premium-korean-aesthetic` - 한국어 랜딩의 폰트, 여백, 카드, 모션 기준을 강하게 적용합니다.
-7. `frontend-slides` - HTML 기반 발표 자료를 만들거나 PPTX를 웹 슬라이드로 전환합니다.
-8. `complete-html-output` - 랜딩 페이지 산출물이 중간 생략 없이 완성되도록 강제합니다.
-9. `playwright-cli` - 브라우저 확인, 스크린샷, 폼 입력, UI 검증을 자동화합니다.
+1. `make-[redacted]` - URL에서 [redacted]와 [redacted] 추출
+2. `[redacted]-validator` - [redacted] 검증과 회귀 확인
+3. `frontend-design` - UI, 컴포넌트, 앱 화면 작성
+4. `landing-page-builder` - 한국어 랜딩 페이지 신규 작성
+5. `landing-page-upgrader` - 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
+6. `premium-korean-aesthetic` - 한국어 랜딩의 폰트, 여백, 카드, 모션 기준 적용
+7. `frontend-slides` - HTML 발표 자료 작성 또는 PPTX 웹 슬라이드 전환
+8. `complete-html-output` - 랜딩 페이지 산출물의 omission, TODO, skeleton code 방지
+9. `playwright-cli` - 브라우저 확인, 스크린샷, 폼 입력, UI 검증
 
 ### Codex 호출 예시
 
@@ -204,21 +204,21 @@ make-[redacted] 스킬을 사용해서 https://example.com 의 [redacted]과 컴
 ```
 
 ```text
-frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페이지를 고급스럽게 개선해줘.
+frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페이지의 문체와 여백을 다듬어줘.
 기존 HTML 구조는 최대한 유지하고 타이포그래피, 여백, 모션, CTA만 정교하게 다듬어줘.
 ```
 
 ### 스킬별 요약
 
-- `make-[redacted]`: 라이브 URL을 Playwright로 캡처하고 HTML/CSS/스크린샷 근거를 합쳐 [redacted]를 만듭니다.
-- `[redacted]-validator`: Google `@google/[redacted]` 기준으로 [redacted] 오류, 경고, 회귀를 검사합니다.
-- `frontend-design`: 웹 페이지, 컴포넌트, 앱 UI를 실제 코드로 만듭니다.
-- `landing-page-builder`: Tailwind CDN 기반 단일 HTML 랜딩 페이지를 만듭니다.
-- `landing-page-upgrader`: 기존 랜딩 페이지의 AI스러운 패턴을 줄이고 한국어 랜딩 품질을 높입니다.
-- `premium-korean-aesthetic`: Pretendard, Solar Icon, 한국어 줄바꿈, 고급 카드/모션 기준을 적용합니다.
-- `frontend-slides`: 100vh에 맞는 애니메이션 HTML 프레젠테이션을 만듭니다.
-- `complete-html-output`: HTML 산출물의 생략, TODO, 골격 코드 출력을 금지합니다.
-- `playwright-cli`: 브라우저 자동화와 시각 검증을 수행합니다.
+- `make-[redacted]`: Playwright 캡처, HTML/CSS 확인, 스크린샷 근거를 묶어 [redacted] 작성
+- `[redacted]-validator`: Google `@google/[redacted]` 기준의 오류, 경고, 회귀 확인
+- `frontend-design`: 웹 페이지, 컴포넌트, 앱 UI 코드 작성
+- `landing-page-builder`: Tailwind CDN 기반 단일 HTML 랜딩 페이지 작성
+- `landing-page-upgrader`: 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
+- `premium-korean-aesthetic`: Pretendard, Solar Icon, 한국어 줄바꿈, 카드/모션 기준 적용
+- `frontend-slides`: 100vh HTML 프레젠테이션 작성 또는 PPTX 웹 전환
+- `complete-html-output`: HTML 산출물의 omission, TODO, skeleton code 출력 차단
+- `playwright-cli`: 브라우저 자동화, 스크린샷, 폼 입력, UI 확인
 
 </details>
 
@@ -229,7 +229,7 @@ frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페
 
 ```text
 $ai-slop-document-auditor
-proposal.pdf의 한국어 카피가 AI가 쓴 느낌인지 감사하고, 근거와 수정 우선순위를 알려줘.
+proposal.pdf의 한국어 카피가 AI-feel인지 점검하고, 근거와 수정 우선순위를 알려줘.
 ```
 
 ```text
@@ -241,7 +241,7 @@ $gpt-55-prompt-architect
 ### Claude Code 호출 예시
 
 ```text
-ai-slop-document-auditor 스킬로 deck.pptx의 제목, bullet, CTA에서 AI 느낌이 나는 부분을 감사해줘.
+ai-slop-document-auditor 스킬로 deck.pptx의 제목, bullet, CTA에서 AI-feel이 나는 부분을 찾아줘.
 원본 파일은 수정하지 말고 보고서만 작성해줘.
 ```
 
@@ -251,10 +251,10 @@ excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 
 
 ### 스킬별 요약
 
-- `ai-slop-document-auditor`: PDF, Markdown, TXT, PPT/PPTX, HTML, DOCX 등의 한국어 문서에서 AI-feel을 감사합니다.
-- `excel-data-analyzer`: Excel 파일의 구조, 누락값, 혼합 타입, 통계 요약을 분석합니다.
-- `gpt-55-prompt-architect`: GPT-5.5용 프롬프트를 설계, 마이그레이션, 리뷰합니다.
-- `commit`: 변경 파일을 기능별로 묶어 커밋을 만듭니다.
+- `ai-slop-document-auditor`: PDF, Markdown, TXT, PPT/PPTX, HTML, DOCX 한국어 문서의 AI-feel 점검
+- `excel-data-analyzer`: Excel 구조, 누락값, 혼합 타입, 통계 요약 분석
+- `gpt-55-prompt-architect`: GPT-5.5용 프롬프트 설계, 마이그레이션, 리뷰
+- `commit`: 변경 파일을 기능별로 묶어 커밋 작성
 
 </details>
 
@@ -263,11 +263,11 @@ excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 
 
 ### Codex에는 없는 Claude Code 스킬
 
-- `commands-creator`: Claude Code slash command 작성과 관리 가이드입니다.
-- `imagine`: Claude Code에서 이미지 생성/편집을 수행합니다.
-- `mcp-builder`: Python 또는 Node/TypeScript MCP 서버를 설계하고 구현할 때 사용합니다.
-- `subagents-creator`: Claude subagent 정의, 위임 패턴, 디버깅을 돕습니다.
-- `ui-text-audit`: 웹 UI의 버튼/입력/카드 텍스트 오버플로우, 세로 렌더링, 잘림을 검사합니다.
+- `commands-creator`: Claude Code slash command 작성과 관리 가이드
+- `imagine`: Claude Code 이미지 생성/편집
+- `mcp-builder`: Python 또는 Node/TypeScript MCP 서버 설계와 구현
+- `subagents-creator`: Claude subagent 정의, 위임 패턴, 디버깅
+- `ui-text-audit`: 웹 UI의 버튼/입력/카드 텍스트 오버플로우, 세로 렌더링, 잘림 확인
 
 ### Claude Code 호출 예시
 
@@ -288,15 +288,15 @@ ui-text-audit 스킬로 http://localhost:3000 화면의 버튼 텍스트 잘림�
 
 ### 사용 가능한 agent
 
-- `ai-slop-detector`: 한국어 PPT 제목, bullet, CTA의 AI-feel 패턴 태그만 판정합니다.
-- `ai-slop-guardrail`: 짧은 한국어 비즈니스 카피에서 피해야 할 AI-feel 금지 표현과 구조를 만듭니다.
-- `ai-slop-rewriter`: 정보와 구조를 보존하면서 한국어 짧은 카피를 AI 느낌 덜 나게 고칩니다.
-- `songcopy`: 쓸모랩 소속 카피라이터 페르소나로 광고 카피, 슬로건, 헤드라인, 캠페인 메시지를 만듭니다.
+- `ai-slop-detector`: 한국어 PPT 제목, bullet, CTA의 AI-feel pattern tag 판정
+- `ai-slop-guardrail`: 짧은 한국어 비즈니스 카피에서 피할 표현과 구조 정리
+- `ai-slop-rewriter`: 정보와 구조를 유지한 AI-feel 줄이기
+- `songcopy`: 쓸모랩 소속 카피라이터 페르소나의 광고 카피, 슬로건, 헤드라인, 캠페인 메시지 작성
 
 ### Codex 호출 예시
 
 ```text
-ai-slop-detector agent로 아래 CTA 문구의 AI-feel 태그만 뽑아줘.
+ai-slop-detector agent로 아래 CTA 문구의 AI-feel tag만 뽑아줘.
 "혁신적인 경험을 통해 비즈니스 성장을 가속화하세요"
 ```
 
@@ -312,9 +312,9 @@ songcopy agent로 B2B SaaS 랜딩 페이지 헤드라인 5개를 뽑아줘.
 
 ### 사용 가능한 agent
 
-- `ai-slop-detector`: 한국어 짧은 비즈니스 카피의 AI-feel 태그만 판정합니다.
-- `ai-slop-guardrail`: AI-feel을 막기 위한 금지 표현과 구조만 정리합니다.
-- `ai-slop-rewriter`: 입력 구조와 정보를 보존하며 사람이 쓴 듯한 한국어 카피로 고칩니다.
+- `ai-slop-detector`: 한국어 짧은 비즈니스 카피의 AI-feel tag 판정
+- `ai-slop-guardrail`: AI-feel을 막기 위한 금지 표현과 구조 정리
+- `ai-slop-rewriter`: 입력 구조와 정보를 유지한 문체 수정
 
 ### Claude Code 호출 예시
 
@@ -324,7 +324,7 @@ ai-slop-guardrail subagent로 이 슬라이드 카피를 작성할 때 피해야
 ```
 
 ```text
-ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI 느낌 덜 나게 고쳐줘.
+ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고쳐줘.
 슬라이드 순서와 원래 정보는 유지해줘.
 ```
 
@@ -439,7 +439,7 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI 느낌 덜 나게 �
 - Codex 스킬은 `$skill-name` 형태나 자연어 요청으로 호출합니다.
 - Claude Code 명령은 `/command` 형태로 호출합니다.
 - Claude Code 스킬과 subagent는 자연어 요청의 키워드와 작업 맥락으로 호출합니다.
-- 원본 문서 감사, 브라우저 캡처, 디자인 추출처럼 읽기 전용 검사가 가능한 작업은 먼저 검사 결과를 남기고 수정합니다.
+- 원본 문서 점검, 브라우저 캡처, 디자인 추출처럼 읽기 전용 확인이 가능한 작업은 먼저 결과를 남기고 수정합니다.
 
 ## 라이선스
 
