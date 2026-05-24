@@ -1,17 +1,20 @@
 # Skills Store
 
-Codex와 Claude Code에서 재사용하는 프롬프트 자산 저장소입니다.
+![Skills Store overview](assets/images/skills-store-overview.png)
 
-이 저장소는 두 환경의 자산을 같은 구조로 정리합니다.
+Codex와 Claude Code에서 재사용하는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 작업용 저장소입니다.
 
-- `.claude/` - Claude Code용 명령, 스킬, 프로젝트 룰
-- `.codex/` - Codex CLI용 스킬, 에이전트 설정, 규칙
-- `AGENTS.md` - 이 저장소에서 따르는 공통 실행 규칙
-- `CLAUDE.md` - Claude Code용 저장소 메모
-- `LICENSE` - 저장소 라이선스
-- `scripts/` - 설치 및 보조 스크립트
+핵심 사용 순서는 `visual-companion`, `kill-process`, `install-skill`, 디자인 계열 스킬, 그 외 문서/데이터/프롬프트/agent 순서입니다.
 
-## 디렉터리 구조
+## 빠른 사용 순서
+
+1. 시각적 선택지나 와이어프레임이 필요하면 `visual-companion`을 먼저 씁니다.
+2. 로컬 개발 서버 포트가 막히면 `kill-process`로 포트를 비웁니다.
+3. 외부 GitHub 스킬을 가져와야 하면 `install-skill`을 씁니다.
+4. UI, 랜딩, [redacted], 슬라이드 작업은 디자인 그룹에서 고릅니다.
+5. 문서 AI-feel 감사, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
+
+## 저장소 구조
 
 ```text
 .
@@ -19,34 +22,364 @@ Codex와 Claude Code에서 재사용하는 프롬프트 자산 저장소입니�
 ├── CLAUDE.md
 ├── LICENSE
 ├── README.md
+├── assets/
+│   └── images/
 ├── scripts/
-│   └── frontend-setup.sh
 ├── .claude/
+│   ├── agents/
 │   ├── commands/
 │   ├── rules/
-│   │   └── frontend/
 │   └── skills/
 └── .codex/
     ├── agents/
     ├── config.toml
     ├── rules/
-    │   └── frontend/
     └── skills/
 ```
 
-## Claude Code 자산
+## 사용법 가이드
 
-### 슬래시 커맨드
+<details open>
+<summary><strong>1. visual-companion</strong> - 브라우저로 보는 시각 선택 도구</summary>
 
-`/.claude/commands`
+### Best use case
 
-- `commit` - 변경사항을 분석해 커밋 메시지를 생성
-- `kill-process` - 포트 기반 프로세스 종료
+글로 설명하면 애매한 선택지를 브라우저 화면으로 보여주고, 사용자의 클릭/입력 이벤트를 다시 Codex 또는 Claude 세션으로 가져올 때 사용합니다.
 
-### 스킬
+적합한 작업:
 
-`/.claude/skills`
+- 와이어프레임, 레이아웃, 카드형 선택지 비교
+- 아키텍처 다이어그램, 플로우, 상태 전이도
+- 디자인 방향 A/B/C 비교
+- 인터뷰 중 시각적으로 골라야 하는 요구사항
 
+부적합한 작업:
+
+- 단순 텍스트 질문
+- API 설계, 데이터 모델링처럼 표나 문장으로 충분한 결정
+- 시각 자료 없이 가능한 요구사항 정리
+
+### Codex 호출 예시
+
+```text
+$visual-companion
+신규 온보딩 화면 레이아웃 3안을 브라우저에서 비교할 수 있게 만들어줘.
+각 안은 카드 클릭으로 선택할 수 있어야 하고, 선택 결과를 다음 기획 문서 작성에 반영해줘.
+```
+
+```text
+visual-companion을 사용해서 관리자 대시보드 정보 구조를 다이어그램으로 보여줘.
+사용자가 브라우저에서 한 구조를 선택하면 그 선택을 기준으로 PRD 초안을 이어서 작성해줘.
+```
+
+### Claude Code 호출 예시
+
+```text
+visual-companion 스킬을 사용해 결제 플로우 와이어프레임 3개를 브라우저로 보여줘.
+클릭한 안을 기준으로 Claude Code에서 구현 계획을 정리해줘.
+```
+
+```text
+visual-companion으로 랜딩 페이지 첫 화면 톤앤매너 3안을 시각화해줘.
+브라우저에서 선택한 결과를 반영해서 섹션 구성안을 만들어줘.
+```
+
+### 실행 파일
+
+```bash
+.codex/skills/visual-companion/scripts/start-server.sh
+.codex/skills/visual-companion/scripts/wait-for-event.cjs
+.claude/skills/visual-companion/scripts/start-server.sh
+.claude/skills/visual-companion/scripts/wait-for-event.cjs
+```
+
+</details>
+
+<details>
+<summary><strong>2. kill-process</strong> - 포트 점유 프로세스 종료</summary>
+
+### Best use case
+
+개발 서버를 다시 띄우려는데 `3000`, `5173`, `8080` 같은 포트가 이미 사용 중일 때 사용합니다.
+
+### Codex 호출 예시
+
+```text
+$kill-process 3000
+```
+
+```text
+kill-process 스킬로 3000번과 5173번 포트를 비우고, 종료 후 포트가 비었는지 확인해줘.
+```
+
+### Claude Code 호출 예시
+
+```text
+/kill-process 3000
+```
+
+```text
+/kill-process 3000 5173
+```
+
+### 동작
+
+1. `lsof -ti :<port>`로 PID를 찾습니다.
+2. PID가 있으면 프로세스를 종료합니다.
+3. 같은 포트를 다시 확인해 비워졌는지 검증합니다.
+
+</details>
+
+<details>
+<summary><strong>3. install-skill</strong> - GitHub 스킬 설치</summary>
+
+### Best use case
+
+GitHub 저장소의 특정 스킬 폴더를 현재 프로젝트의 `.codex/skills/` 또는 `.claude/skills/`로 내려받을 때 사용합니다.
+
+### Codex 호출 예시
+
+```text
+$install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/visual-companion
+```
+
+```text
+install-skill로 아래 Codex 스킬을 전역 스킬 폴더에 설치해줘.
+https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process
+```
+
+### Claude Code 호출 예시
+
+```text
+install-skill 스킬로 아래 Claude Code 스킬을 설치해줘.
+https://github.com/Mineru98/skills-store/tree/main/.claude/skills/visual-companion
+```
+
+```text
+GitHub의 .claude/skills/frontend-design 폴더를 현재 프로젝트 Claude 스킬로 설치해줘.
+https://github.com/Mineru98/skills-store/tree/main/.claude/skills/frontend-design
+```
+
+### 포함 파일
+
+```text
+.codex/skills/install-skill/script/install-skill.js
+.claude/skills/install-skill/script/install-skill.js
+```
+
+</details>
+
+<details>
+<summary><strong>4. 디자인 관련 스킬 그룹</strong></summary>
+
+### 추천 순서
+
+1. `make-[redacted]` - URL에서 [redacted]와 [redacted]을 추출합니다.
+2. `[redacted]-validator` - [redacted]를 검증하고 회귀를 확인합니다.
+3. `frontend-design` - 실제 UI, 컴포넌트, 앱 화면을 만듭니다.
+4. `landing-page-builder` - 한국어 랜딩 페이지를 처음부터 만듭니다.
+5. `landing-page-upgrader` - 기존 랜딩 페이지를 프리미엄 톤으로 개선합니다.
+6. `premium-korean-aesthetic` - 한국어 랜딩의 폰트, 여백, 카드, 모션 기준을 강하게 적용합니다.
+7. `frontend-slides` - HTML 기반 발표 자료를 만들거나 PPTX를 웹 슬라이드로 전환합니다.
+8. `complete-html-output` - 랜딩 페이지 산출물이 중간 생략 없이 완성되도록 강제합니다.
+9. `playwright-cli` - 브라우저 확인, 스크린샷, 폼 입력, UI 검증을 자동화합니다.
+
+### Codex 호출 예시
+
+```text
+$make-[redacted]
+https://example.com 을 분석해서 [redacted]를 만들고, [redacted]-validator까지 통과시켜줘.
+```
+
+```text
+$frontend-design
+한국어 SaaS 관리자 대시보드 첫 화면을 React 컴포넌트로 만들어줘.
+기존 [redacted]이 있으면 맞추고, 없으면 절제된 업무용 UI로 구현해줘.
+```
+
+### Claude Code 호출 예시
+
+```text
+make-[redacted] 스킬을 사용해서 https://example.com 의 [redacted]과 컴포넌트 규칙을 [redacted]로 추출해줘.
+완성 후 [redacted]-validator로 검증해줘.
+```
+
+```text
+frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페이지를 고급스럽게 개선해줘.
+기존 HTML 구조는 최대한 유지하고 타이포그래피, 여백, 모션, CTA만 정교하게 다듬어줘.
+```
+
+### 스킬별 요약
+
+- `make-[redacted]`: 라이브 URL을 Playwright로 캡처하고 HTML/CSS/스크린샷 근거를 합쳐 [redacted]를 만듭니다.
+- `[redacted]-validator`: Google `@google/[redacted]` 기준으로 [redacted] 오류, 경고, 회귀를 검사합니다.
+- `frontend-design`: 웹 페이지, 컴포넌트, 앱 UI를 실제 코드로 만듭니다.
+- `landing-page-builder`: Tailwind CDN 기반 단일 HTML 랜딩 페이지를 만듭니다.
+- `landing-page-upgrader`: 기존 랜딩 페이지의 AI스러운 패턴을 줄이고 한국어 랜딩 품질을 높입니다.
+- `premium-korean-aesthetic`: Pretendard, Solar Icon, 한국어 줄바꿈, 고급 카드/모션 기준을 적용합니다.
+- `frontend-slides`: 100vh에 맞는 애니메이션 HTML 프레젠테이션을 만듭니다.
+- `complete-html-output`: HTML 산출물의 생략, TODO, 골격 코드 출력을 금지합니다.
+- `playwright-cli`: 브라우저 자동화와 시각 검증을 수행합니다.
+
+</details>
+
+<details>
+<summary><strong>5. 문서, 데이터, 프롬프트 스킬</strong></summary>
+
+### Codex 호출 예시
+
+```text
+$ai-slop-document-auditor
+proposal.pdf의 한국어 카피가 AI가 쓴 느낌인지 감사하고, 근거와 수정 우선순위를 알려줘.
+```
+
+```text
+$gpt-55-prompt-architect
+기존 GPT-4용 시스템 프롬프트를 GPT-5.5용으로 마이그레이션해줘.
+목표, 검증 루프, 도구 사용 규칙을 명확히 정리해줘.
+```
+
+### Claude Code 호출 예시
+
+```text
+ai-slop-document-auditor 스킬로 deck.pptx의 제목, bullet, CTA에서 AI 느낌이 나는 부분을 감사해줘.
+원본 파일은 수정하지 말고 보고서만 작성해줘.
+```
+
+```text
+excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 구조를 분석하고 정리 보고서를 만들어줘.
+```
+
+### 스킬별 요약
+
+- `ai-slop-document-auditor`: PDF, Markdown, TXT, PPT/PPTX, HTML, DOCX 등의 한국어 문서에서 AI-feel을 감사합니다.
+- `excel-data-analyzer`: Excel 파일의 구조, 누락값, 혼합 타입, 통계 요약을 분석합니다.
+- `gpt-55-prompt-architect`: GPT-5.5용 프롬프트를 설계, 마이그레이션, 리뷰합니다.
+- `commit`: 변경 파일을 기능별로 묶어 커밋을 만듭니다.
+
+</details>
+
+<details>
+<summary><strong>6. Claude Code 전용 스킬</strong></summary>
+
+### Codex에는 없는 Claude Code 스킬
+
+- `commands-creator`: Claude Code slash command 작성과 관리 가이드입니다.
+- `imagine`: Claude Code에서 이미지 생성/편집을 수행합니다.
+- `mcp-builder`: Python 또는 Node/TypeScript MCP 서버를 설계하고 구현할 때 사용합니다.
+- `subagents-creator`: Claude subagent 정의, 위임 패턴, 디버깅을 돕습니다.
+- `ui-text-audit`: 웹 UI의 버튼/입력/카드 텍스트 오버플로우, 세로 렌더링, 잘림을 검사합니다.
+
+### Claude Code 호출 예시
+
+```text
+commands-creator 스킬로 /release-note 명령을 만들어줘.
+인자는 버전 번호와 변경 범위를 받게 하고, 출력은 한국어 릴리즈 노트로 해줘.
+```
+
+```text
+ui-text-audit 스킬로 http://localhost:3000 화면의 버튼 텍스트 잘림과 카드 텍스트 오버플로우를 검사해줘.
+문제가 있으면 CSS 수정 프롬프트까지 만들어줘.
+```
+
+</details>
+
+<details>
+<summary><strong>7. Codex agent</strong></summary>
+
+### 사용 가능한 agent
+
+- `ai-slop-detector`: 한국어 PPT 제목, bullet, CTA의 AI-feel 패턴 태그만 판정합니다.
+- `ai-slop-guardrail`: 짧은 한국어 비즈니스 카피에서 피해야 할 AI-feel 금지 표현과 구조를 만듭니다.
+- `ai-slop-rewriter`: 정보와 구조를 보존하면서 한국어 짧은 카피를 AI 느낌 덜 나게 고칩니다.
+- `songcopy`: 쓸모랩 소속 카피라이터 페르소나로 광고 카피, 슬로건, 헤드라인, 캠페인 메시지를 만듭니다.
+
+### Codex 호출 예시
+
+```text
+ai-slop-detector agent로 아래 CTA 문구의 AI-feel 태그만 뽑아줘.
+"혁신적인 경험을 통해 비즈니스 성장을 가속화하세요"
+```
+
+```text
+songcopy agent로 B2B SaaS 랜딩 페이지 헤드라인 5개를 뽑아줘.
+톤은 과장 없이 날카롭고, 바로 클라이언트 데크에 붙일 수 있게 해줘.
+```
+
+</details>
+
+<details>
+<summary><strong>8. Claude Code agent</strong></summary>
+
+### 사용 가능한 agent
+
+- `ai-slop-detector`: 한국어 짧은 비즈니스 카피의 AI-feel 태그만 판정합니다.
+- `ai-slop-guardrail`: AI-feel을 막기 위한 금지 표현과 구조만 정리합니다.
+- `ai-slop-rewriter`: 입력 구조와 정보를 보존하며 사람이 쓴 듯한 한국어 카피로 고칩니다.
+
+### Claude Code 호출 예시
+
+```text
+ai-slop-guardrail subagent로 이 슬라이드 카피를 작성할 때 피해야 할 표현만 정리해줘.
+수정문은 만들지 말고 금지 목록만 출력해줘.
+```
+
+```text
+ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI 느낌 덜 나게 고쳐줘.
+슬라이드 순서와 원래 정보는 유지해줘.
+```
+
+</details>
+
+## Codex 자산 목록
+
+<details>
+<summary><strong>.codex/skills</strong></summary>
+
+- `ai-slop-document-auditor`
+- `commit`
+- `complete-html-output`
+- `[redacted]-validator`
+- `excel-data-analyzer`
+- `frontend-design`
+- `frontend-slides`
+- `gpt-55-prompt-architect`
+- `install-skill`
+- `kill-process`
+- `landing-page-builder`
+- `landing-page-upgrader`
+- `make-[redacted]`
+- `playwright-cli`
+- `premium-korean-aesthetic`
+- `visual-companion`
+
+</details>
+
+<details>
+<summary><strong>.codex/agents</strong></summary>
+
+- `ai-slop-detector`
+- `ai-slop-guardrail`
+- `ai-slop-rewriter`
+- `songcopy`
+
+</details>
+
+<details>
+<summary><strong>.codex/rules</strong></summary>
+
+- `frontend/project-coding-conventions.md`
+- `frontend/project-dev-workflow.rules`
+- `frontend/project-safety.rules`
+
+</details>
+
+## Claude Code 자산 목록
+
+<details>
+<summary><strong>.claude/skills</strong></summary>
+
+- `ai-slop-document-auditor`
 - `commands-creator`
 - `complete-html-output`
 - `[redacted]-validator`
@@ -66,97 +399,49 @@ Codex와 Claude Code에서 재사용하는 프롬프트 자산 저장소입니�
 - `ui-text-audit`
 - `visual-companion`
 
-### 프로젝트 룰
+</details>
 
-`/.claude/rules/frontend`
-
-세션 시작 시 자동 로드되는 규칙 카탈로그입니다.
-`00-index.md` 에 규칙 목록과 각 파일의 스코프가 정리되어 있습니다.
-
-## Codex 자산
-
-### 에이전트
-
-`/.codex/agents`
-
-- `docs-researcher.toml` - OpenAI 문서 MCP를 사용하는 문서 전용 에이전트
-
-### 규칙
-
-`/.codex/rules/frontend`
-
-Claude 룰을 Codex 실행 정책으로 다시 쓴 폴더입니다.
-`project-dev-workflow.rules`, `project-safety.rules`, `project-coding-conventions.md` 로 구성됩니다.
-
-### 스킬
-
-`/.codex/skills`
+<details>
+<summary><strong>.claude/commands</strong></summary>
 
 - `commit`
-- `complete-html-output`
-- `[redacted]-validator`
-- `excel-data-analyzer`
-- `frontend-design`
-- `frontend-slides`
-- `gpt-55-prompt-architect`
-- `install-skill`
 - `kill-process`
-- `landing-page-builder`
-- `landing-page-upgrader`
-- `make-[redacted]`
-- `playwright-cli`
-- `premium-korean-aesthetic`
-- `web-advisor`
-- `visual-companion`
 
-## 사용 방법
+</details>
 
-### visual-companion
+<details>
+<summary><strong>.claude/agents</strong></summary>
 
-`visual-companion` 은 Claude나 Codex와 기획 문서를 작성하는 과정에서 시각적인 선택지를 브라우저로 보여주고, 사용자의 선택이나 짧은 입력을 세션으로 다시 전달하는 스킬입니다.
+- `ai-slop-detector`
+- `ai-slop-guardrail`
+- `ai-slop-rewriter`
 
-필요한 이유는 Claude나 Codex와 기획 문서를 작성할 때 글로 설명하는 일이 잦기 때문입니다. 문제는 말로만 설명하는 과정에서 서로 어떤 의미인지 정확히 이해하지 못하는 경우가 생긴다는 점입니다. 이 스킬은 그런 상황에서 화면, 레이아웃, 다이어그램, 비교안 같은 시각 자료를 기반으로 의사결정을 할 수 있도록 돕습니다. Superpowers의 특정 시각 선택 기능만 따로 분리해 만든 도구입니다.
+</details>
 
-독립적으로 이 스킬만 사용할 수도 있고, [ouroboros](https://github.com/Q00/ouroboros)의 interview 와 함께 사용할 수도 있습니다. 또한 [omx](https://github.com/Yeachan-Heo/oh-my-codex), [omc](https://github.com/Yeachan-Heo/oh-my-claudecode)의 deep-interview 흐름과 같이 사용하면 텍스트 질문으로 애매한 선택지를 시각적으로 확인하면서 요구사항을 좁힐 수 있습니다.
+<details>
+<summary><strong>.claude/rules</strong></summary>
 
-기본 사용 흐름은 다음과 같습니다.
+- `frontend/00-index.md`
+- `frontend/api-infrastructure.md`
+- `frontend/architecture.md`
+- `frontend/naming-conventions.md`
+- `frontend/react-components.md`
+- `frontend/state-management.md`
+- `frontend/styling-emotion.md`
+- `frontend/testing.md`
+- `frontend/typescript.md`
+- `frontend/workflow-build.md`
 
-1. `visual-companion` 서버를 실행합니다.
-2. 에이전트가 선택지, 와이어프레임, 다이어그램, 비교안을 HTML 화면으로 작성합니다.
-3. 사용자가 브라우저에서 카드를 클릭하거나 입력을 제출합니다.
-4. `wait-for-event.cjs` 가 브라우저 이벤트를 받아 Claude/Codex 세션으로 전달합니다.
-5. 에이전트는 받은 선택을 바탕으로 다음 질문, 인터뷰, 기획 문서, 구현 계획을 이어갑니다.
+</details>
 
-```bash
-node .codex/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000
-node .claude/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000
-```
+## 운영 메모
 
-이 방식은 사용자가 브라우저에서 선택한 내용을 다시 터미널에 입력하지 않아도 되도록 하기 위한 브리지입니다. Codex나 Claude의 비공개 UI에 메시지를 직접 주입하는 방식이 아니라, 스킬 서버가 기록한 브라우저 이벤트를 에이전트가 제어하는 shell/tool 채널로 읽어오는 방식입니다.
-
-### Codex 스킬
-
-프로젝트의 `.codex/skills/` 또는 전역 `~/.codex/skills/` 에 둔 스킬을 사용할 수 있습니다.
-
-```text
-/commit
-/kill-process 3000
-```
-
-`install-skill` 로 GitHub URL을 지정하면 다른 Codex 스킬을 내려받을 수 있습니다.
-
-```text
-/install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/commit
-/install-skill https://github.com/Mineru98/skills-store/tree/main/.codex/skills/kill-process --global
-```
-
-### Claude Code 자산
-
-`.claude/commands/` 의 커맨드는 Claude Code에서 `/commit`, `/kill-process` 로 호출됩니다.
-`.claude/skills/` 의 스킬은 키워드 자동 감지 또는 Skill 도구로 호출됩니다.
-
-`.claude/rules/frontend/` 는 스코프에 맞는 파일을 읽을 때 자동 로드됩니다.
+- 프로젝트 안에서 쓰는 스킬은 `.codex/skills/` 또는 `.claude/skills/` 아래에 둡니다.
+- Codex 스킬은 `$skill-name` 형태나 자연어 요청으로 호출합니다.
+- Claude Code 명령은 `/command` 형태로 호출합니다.
+- Claude Code 스킬과 subagent는 자연어 요청의 키워드와 작업 맥락으로 호출합니다.
+- 원본 문서 감사, 브라우저 캡처, 디자인 추출처럼 읽기 전용 검사가 가능한 작업은 먼저 검사 결과를 남기고 수정합니다.
 
 ## 라이선스
 
-MIT License. 자세한 내용은 [LICENSE](LICENSE) 를 참고하세요.
+MIT License. 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
