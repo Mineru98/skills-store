@@ -14,6 +14,7 @@ Resolve bundled scripts relative to this skill directory:
 - `scripts/server.cjs`
 - `scripts/frame-template.html`
 - `scripts/helper.js`
+- `scripts/wait-for-event.cjs`
 
 Browser-based visual brainstorming companion for showing mockups, diagrams, and options.
 
@@ -41,7 +42,9 @@ A question *about* a UI topic is not automatically a visual question. "What kind
 
 ## How It Works
 
-The server watches a directory for HTML files and serves the newest one to the browser. You write HTML content to `screen_dir`, the user sees it in their browser and can click to select options. Selections are recorded to `state_dir/events` that you read on your next turn.
+The server watches a directory for HTML files and serves the newest one to the browser. You write HTML content to `screen_dir`, the user sees it in their browser and can click to select options or submit small forms. Browser events are recorded to `state_dir/events`, `state_dir/latest-event.json`, and `state_dir/latest-selection.json`.
+
+For the best Codex/Claude flow, do not require the user to retype a browser choice in the terminal. After pushing a screen, run `scripts/wait-for-event.cjs` with the returned `state_dir`; it blocks until the next browser event and prints the JSON event directly into the session.
 
 **Content fragments vs full documents:** If your HTML file starts with `<!DOCTYPE` or `<html`, the server serves it as-is (just injects the helper script). Otherwise, the server automatically wraps your content in the frame template — adding the header, CSS theme, selection indicator, and all interactive infrastructure. **Write content fragments by default.** Only write full documents when you need complete control over the page.
 
@@ -115,19 +118,26 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
    - Use Write tool — **never use cat/heredoc** (dumps noise into terminal)
    - Server automatically serves the newest file
 
-2. **Tell user what to expect and end your turn:**
+2. **Choose a response mode:**
+   - **Automatic bridge, preferred:** run `node scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000` after writing the screen. The user clicks or submits in the browser, and the command returns the event JSON in the same session. Use this when the next step depends only on the browser interaction.
+   - **Terminal confirmation:** end your turn and ask the user to respond in terminal only when their feedback is primarily prose, the browser is optional, or long discussion is expected.
+
+3. **Tell user what to expect:**
    - Remind them of the URL (every step, not just first)
    - Give a brief text summary of what's on screen (e.g., "Showing 3 layout options for the homepage")
-   - Ask them to respond in the terminal: "Take a look and let me know what you think. Click to select an option if you'd like."
+   - For automatic bridge mode, say: "Click or submit in the browser; I will receive it here automatically."
+   - For terminal confirmation mode, say: "Take a look and let me know what you think. Click to select an option if you'd like."
 
-3. **On your next turn** — after the user responds in the terminal:
+4. **Read the result:**
+   - In automatic bridge mode, parse the JSON printed by `wait-for-event.cjs`.
+   - In terminal confirmation mode, after the user responds in the terminal:
    - Read `$STATE_DIR/events` if it exists — this contains the user's browser interactions (clicks, selections) as JSON lines
    - Merge with the user's terminal text to get the full picture
    - The terminal message is the primary feedback; `state_dir/events` provides structured interaction data
 
-4. **Iterate or advance** — if feedback changes current screen, write a new file (e.g., `layout-v2.html`). Only move to the next question when the current step is validated.
+5. **Iterate or advance** — if feedback changes current screen, write a new file (e.g., `layout-v2.html`). Only move to the next question when the current step is validated.
 
-5. **Unload when returning to terminal** — when the next step doesn't need the browser (e.g., a clarifying question, a tradeoff discussion), push a waiting screen to clear the stale content:
+6. **Unload when returning to terminal** — when the next step doesn't need the browser (e.g., a clarifying question, a tradeoff discussion), push a waiting screen to clear the stale content:
 
    ```html
    <!-- filename: waiting.html (or waiting-2.html, etc.) -->
@@ -138,7 +148,27 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
 
    This prevents the user from staring at a resolved choice while the conversation has moved on. When the next visual question comes up, push a new content file as usual.
 
-6. Repeat until done.
+7. Repeat until done.
+
+## Automatic Browser-to-Session Bridge
+
+Use this when a browser click or short form submit should drive the next agent step without asking the user to type the same answer again.
+
+```bash
+node .codex/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000
+```
+
+The command prints one JSON event and exits. Useful fields:
+
+- `type`: normally `click`, `choice`, or `submit`.
+- `choice`: the selected `data-choice`, when present.
+- `value`: explicit `data-value` or API value, when present.
+- `fields`: submitted form fields, when present.
+- `text`: visible text from the clicked or submitted element.
+
+Use `--type submit` to wait only for form submissions. Use `--since-ms <timestamp>` when you want to preserve older events and wait for a newer one.
+
+This bridge does not inject messages into Codex or Claude through a private UI API. It returns the browser event through the same shell/tool channel the agent already controls, which is the reliable cross-runtime path.
 
 ## Writing Content Fragments
 
@@ -247,8 +277,25 @@ The frame template provides these CSS classes for your content:
 </div>
 <button class="mock-button">Action Button</button>
 <input class="mock-input" placeholder="Input field">
+<textarea class="mock-textarea" placeholder="Text input"></textarea>
 <div class="placeholder">Placeholder area</div>
 ```
+
+### Browser form inputs
+
+Use `data-brainstorm-form` for short free-text answers that should come back through the automatic bridge.
+
+```html
+<form data-brainstorm-form data-choice="custom-scope">
+  <div class="form-row">
+    <label for="scope">Scope notes</label>
+    <textarea id="scope" name="scope" class="mock-textarea"></textarea>
+  </div>
+  <button class="mock-button" type="submit">Submit</button>
+</form>
+```
+
+For a button outside a form, add `data-submit`. The helper collects nearby `input`, `textarea`, and `select` values and sends a `submit` event.
 
 ### Typography and sections
 
@@ -266,6 +313,7 @@ When the user clicks options in the browser, their interactions are recorded to 
 {"type":"click","choice":"a","text":"Option A - Simple Layout","timestamp":1706000101}
 {"type":"click","choice":"c","text":"Option C - Complex Grid","timestamp":1706000108}
 {"type":"click","choice":"b","text":"Option B - Hybrid","timestamp":1706000115}
+{"type":"submit","choice":"custom","fields":{"notes":"Use compact spacing"},"timestamp":1706000120}
 ```
 
 The full event stream shows the user's exploration path — they may click multiple options before settling. The last `choice` event is typically the final selection, but the pattern of clicks can reveal hesitation or preferences worth asking about.

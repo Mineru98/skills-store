@@ -32,8 +32,30 @@
     }
   }
 
+  function collectFields(root) {
+    const fields = {};
+    root.querySelectorAll('input, textarea, select').forEach((field) => {
+      const key = field.name || field.id;
+      if (!key) return;
+      if (field.type === 'checkbox') {
+        fields[key] = field.checked;
+      } else if (field.type === 'radio') {
+        if (field.checked) fields[key] = field.value;
+      } else {
+        fields[key] = field.value;
+      }
+    });
+    return fields;
+  }
+
   // Capture clicks on choice elements
   document.addEventListener('click', (e) => {
+    const submitControl = e.target.closest('[data-submit], button, input[type="submit"]');
+    const isSubmitControl = submitControl && (
+      submitControl.matches('[data-submit], input[type="submit"]') ||
+      (submitControl.tagName === 'BUTTON' && (!submitControl.hasAttribute('type') || submitControl.type === 'submit'))
+    );
+    if (isSubmitControl) return;
     const target = e.target.closest('[data-choice]');
     if (!target) return;
 
@@ -61,6 +83,36 @@
     }, 0);
   });
 
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-submit]');
+    if (!trigger) return;
+
+    const root = trigger.closest('[data-brainstorm-form]') || trigger.closest('.option, .card, .section') || document;
+    sendEvent({
+      type: 'submit',
+      text: trigger.textContent.trim(),
+      choice: trigger.dataset.choice || root.dataset.choice || null,
+      value: trigger.dataset.value || null,
+      fields: collectFields(root),
+      id: trigger.id || null
+    });
+  });
+
+  document.addEventListener('submit', (e) => {
+    const form = e.target.closest('[data-brainstorm-form]');
+    if (!form) return;
+    e.preventDefault();
+
+    sendEvent({
+      type: 'submit',
+      text: form.textContent.trim(),
+      choice: form.dataset.choice || null,
+      value: form.dataset.value || null,
+      fields: collectFields(form),
+      id: form.id || null
+    });
+  });
+
   // Frame UI: selection tracking
   window.selectedChoice = null;
 
@@ -81,7 +133,8 @@
   // Expose API for explicit use
   window.brainstorm = {
     send: sendEvent,
-    choice: (value, metadata = {}) => sendEvent({ type: 'choice', value, ...metadata })
+    choice: (value, metadata = {}) => sendEvent({ type: 'choice', value, ...metadata }),
+    submit: (fields = {}, metadata = {}) => sendEvent({ type: 'submit', fields, ...metadata })
   };
 
   connect();

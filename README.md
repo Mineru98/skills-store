@@ -111,6 +111,29 @@ Claude 룰을 Codex 실행 정책으로 다시 쓴 폴더입니다.
 
 ## 사용 방법
 
+### visual-companion
+
+`visual-companion` 은 Claude나 Codex와 기획 문서를 작성하는 과정에서 시각적인 선택지를 브라우저로 보여주고, 사용자의 선택이나 짧은 입력을 세션으로 다시 전달하는 스킬입니다.
+
+필요한 이유는 Claude나 Codex와 기획 문서를 작성할 때 글로 설명하는 일이 잦기 때문입니다. 문제는 말로만 설명하는 과정에서 서로 어떤 의미인지 정확히 이해하지 못하는 경우가 생긴다는 점입니다. 이 스킬은 그런 상황에서 화면, 레이아웃, 다이어그램, 비교안 같은 시각 자료를 기반으로 의사결정을 할 수 있도록 돕습니다. Superpowers의 특정 시각 선택 기능만 따로 분리해 만든 도구입니다.
+
+독립적으로 이 스킬만 사용할 수도 있고, [ouroboros](https://github.com/Q00/ouroboros)의 interview 와 함께 사용할 수도 있습니다. 또한 [omx](https://github.com/Yeachan-Heo/oh-my-codex), [omc](https://github.com/Yeachan-Heo/oh-my-claudecode)의 deep-interview 흐름과 같이 사용하면 텍스트 질문으로 애매한 선택지를 시각적으로 확인하면서 요구사항을 좁힐 수 있습니다.
+
+기본 사용 흐름은 다음과 같습니다.
+
+1. `visual-companion` 서버를 실행합니다.
+2. 에이전트가 선택지, 와이어프레임, 다이어그램, 비교안을 HTML 화면으로 작성합니다.
+3. 사용자가 브라우저에서 카드를 클릭하거나 입력을 제출합니다.
+4. `wait-for-event.cjs` 가 브라우저 이벤트를 받아 Claude/Codex 세션으로 전달합니다.
+5. 에이전트는 받은 선택을 바탕으로 다음 질문, 인터뷰, 기획 문서, 구현 계획을 이어갑니다.
+
+```bash
+node .codex/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000
+node .claude/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 600000
+```
+
+이 방식은 사용자가 브라우저에서 선택한 내용을 다시 터미널에 입력하지 않아도 되도록 하기 위한 브리지입니다. Codex나 Claude의 비공개 UI에 메시지를 직접 주입하는 방식이 아니라, 스킬 서버가 기록한 브라우저 이벤트를 에이전트가 제어하는 shell/tool 채널로 읽어오는 방식입니다.
+
 ### Codex 스킬
 
 프로젝트의 `.codex/skills/` 또는 전역 `~/.codex/skills/` 에 둔 스킬을 사용할 수 있습니다.

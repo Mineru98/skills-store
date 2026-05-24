@@ -230,10 +230,25 @@ function handleMessage(text) {
     return;
   }
   touchActivity();
-  console.log(JSON.stringify({ source: 'user-event', ...event }));
-  if (event.choice) {
+  const normalizedEvent = {
+    source: 'browser',
+    timestamp: Date.now(),
+    ...event,
+  };
+  console.log(JSON.stringify({ source: 'user-event', ...normalizedEvent }));
+  if (normalizedEvent.type) {
     const eventsFile = path.join(STATE_DIR, 'events');
-    fs.appendFileSync(eventsFile, JSON.stringify(event) + '\n');
+    fs.appendFileSync(eventsFile, JSON.stringify(normalizedEvent) + '\n');
+    fs.writeFileSync(
+      path.join(STATE_DIR, 'latest-event.json'),
+      JSON.stringify(normalizedEvent, null, 2) + '\n'
+    );
+    if (normalizedEvent.choice || normalizedEvent.value || normalizedEvent.fields) {
+      fs.writeFileSync(
+        path.join(STATE_DIR, 'latest-selection.json'),
+        JSON.stringify(normalizedEvent, null, 2) + '\n'
+      );
+    }
   }
 }
 
