@@ -63,33 +63,30 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 - API 설계, 데이터 모델링처럼 표나 문장으로 충분한 결정
 - 시각 자료 없이 가능한 요구사항 정리
 
+### Hermes Agent 호출 예시
+
+```text
+ooo interview "결제 플로우 요구사항이 말로만 정리되어 애매합니다" UI/UX 에 대한 결정을 해야하는 질문에서는 visual-companion 스킬을 사용해서 인터뷰를 이어서 진행하세요.
+```
+
 ### Codex 호출 예시
 
 ```text
-$visual-companion
-ouroboros interview 중 나온 온보딩 요구사항이 아직 추상적입니다.
-사용자가 브라우저에서 선택할 수 있도록 온보딩 플로우 3안을 시각화하고,
-선택 결과를 다음 interview 답변과 PRD 정리에 반영해줘.
+$ouroboros interview "결제 플로우 요구사항이 말로만 정리되어 애매합니다" UI/UX 에 대한 결정을 해야하는 질문에서는 $visual-companion 스킬을 사용해서 인터뷰를 이어서 진행하세요.
 ```
 
 ```text
-omx deep-interview를 진행하다가 대시보드 정보 구조 선택에서 막혔습니다.
-visual-companion으로 3가지 정보 구조를 브라우저에 보여주고,
-사용자가 고른 안을 기준으로 다음 질문과 구현 계획을 이어가줘.
+$deep-interview "결제 플로우 요구사항이 말로만 정리되어 애매합니다" UI/UX 에 대한 결정을 해야하는 질문에서는 $visual-companion 스킬을 사용해서 인터뷰를 이어서 진행하세요.
 ```
 
 ### Claude Code 호출 예시
 
 ```text
-omc deep-interview 중 결제 플로우 요구사항이 말로만 정리되어 애매합니다.
-visual-companion 스킬로 플로우 후보 3개를 브라우저에 띄우고,
-사용자의 선택을 Claude Code 기획 문서에 반영해줘.
+/ouroboros interview "랜딩 페이지 방향을 정해야 해." UI/UX 에 대한 결정을 해야하는 질문에서는 $visual-companion 스킬을 사용해서 인터뷰를 이어서 진행하세요.
 ```
 
 ```text
-ouroboros interview에서 랜딩 페이지 방향을 정해야 합니다.
-visual-companion으로 첫 화면 구조와 섹션 흐름 후보를 시각화하고,
-클릭된 선택지를 기준으로 요구사항을 좁혀줘.
+/deep-interview "랜딩 페이지 방향을 정해야 해." UI/UX 에 대한 결정을 해야하는 질문에서는 $visual-companion 스킬을 사용해서 인터뷰를 이어서 진행하세요.
 ```
 
 </details>
