@@ -134,6 +134,95 @@
     return fields;
   }
 
+  function isMultiContainer(container) {
+    return container && container.dataset.multiselect !== undefined;
+  }
+
+  function getMultiContainers() {
+    return Array.from(document.querySelectorAll('.options[data-multiselect], .cards[data-multiselect]'));
+  }
+
+  function extractLabel(el) {
+    const heading = el.querySelector('h3, .content h3, .card-body h3');
+    return (heading?.textContent || el.textContent || '').trim();
+  }
+
+  function collectSelections(container) {
+    return Array.from(container.querySelectorAll('.selected')).map((el) => ({
+      choice: el.dataset.choice,
+      text: extractLabel(el)
+    }));
+  }
+
+  function updateMultiUI() {
+    const containers = getMultiContainers();
+    const submitBtn = document.getElementById('multi-submit');
+    const indicator = document.getElementById('indicator-text');
+    if (containers.length === 0) {
+      if (submitBtn) submitBtn.hidden = true;
+      return;
+    }
+    let total = 0;
+    containers.forEach((c) => { total += c.querySelectorAll('.selected').length; });
+    if (submitBtn) {
+      submitBtn.hidden = false;
+      submitBtn.disabled = total === 0;
+      submitBtn.textContent = total === 0 ? 'Submit' : 'Submit (' + total + ')';
+    }
+    if (indicator) {
+      if (total === 0) {
+        indicator.textContent = 'Select one or more, then click Submit';
+      } else {
+        indicator.innerHTML = '<span class="selected-text">' + total + ' selected</span> - click Submit when ready';
+      }
+    }
+  }
+
+  function submitMultiSelection() {
+    const containers = getMultiContainers();
+    const selections = [];
+    containers.forEach((c) => {
+      collectSelections(c).forEach((s) => selections.push(s));
+    });
+    if (selections.length === 0) return;
+
+    const choices = selections.map((s) => s.choice);
+    const texts = selections.map((s) => s.text);
+    sendEvent({
+      type: 'submit',
+      choices,
+      texts,
+      choice: choices.length === 1 ? choices[0] : null,
+      text: texts.join(', '),
+      count: choices.length
+    });
+
+    const submitBtn = document.getElementById('multi-submit');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitted (' + choices.length + ')';
+    }
+    const indicator = document.getElementById('indicator-text');
+    if (indicator) {
+      indicator.innerHTML = '<span class="selected-text">' + choices.length + ' submitted</span> - return to terminal to continue';
+    }
+  }
+
+  function initMultiSelect() {
+    const submitBtn = document.getElementById('multi-submit');
+    if (submitBtn && !submitBtn.dataset.bound) {
+      submitBtn.dataset.bound = '1';
+      submitBtn.addEventListener('click', submitMultiSelection);
+    }
+    updateMultiUI();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMultiSelect);
+  } else {
+    initMultiSelect();
+  }
+
   // Capture clicks on choice elements
   document.addEventListener('click', (e) => {
     const submitControl = e.target.closest('[data-submit], input[type="submit"], button[type="submit"]');
@@ -144,34 +233,43 @@
     if (isSubmitControl) return;
 
     const target = e.target.closest('[data-choice]');
-    if (target) {
-      if (!target.hasAttribute('onclick') && typeof window.toggleSelect === 'function') {
-        window.toggleSelect(target);
-      }
-      sendEvent({
-        type: 'click',
-        text: target.textContent.trim(),
-        choice: target.dataset.choice,
-        id: target.id || null
-      });
+    if (!target) return;
 
-      // Update indicator bar (defer so toggleSelect runs first)
-      setTimeout(() => {
-        const indicator = document.getElementById('indicator-text');
-        if (!indicator) return;
-        const container = target.closest('.options') || target.closest('.cards');
-        const selected = container ? container.querySelectorAll('.selected') : [];
-        if (selected.length === 0) {
-          indicator.textContent = 'Click an option above, then return to the terminal';
-        } else if (selected.length === 1) {
-          const label = selected[0].querySelector('h3, .content h3, .card-body h3')?.textContent?.trim() || selected[0].dataset.choice;
-          indicator.innerHTML = '<span class="selected-text">' + label + ' selected</span> - return to terminal to continue';
-        } else {
-          indicator.innerHTML = '<span class="selected-text">' + selected.length + ' selected</span> - return to terminal to continue';
-        }
-      }, 0);
+    const container = target.closest('.options, .cards');
+    const multi = isMultiContainer(container);
+
+    if (!target.hasAttribute('onclick') && typeof window.toggleSelect === 'function') {
+      window.toggleSelect(target);
+    }
+
+    if (multi) {
+      // Multi-select: do not send per-click events. Wait for explicit submit.
+      updateMultiUI();
       return;
     }
+
+    sendEvent({
+      type: 'click',
+      text: target.textContent.trim(),
+      choice: target.dataset.choice,
+      id: target.id || null
+    });
+
+    // Single-select indicator update (defer so toggleSelect runs first)
+    setTimeout(() => {
+      const indicator = document.getElementById('indicator-text');
+      if (!indicator) return;
+      const c = target.closest('.options') || target.closest('.cards');
+      const selected = c ? c.querySelectorAll('.selected') : [];
+      if (selected.length === 0) {
+        indicator.textContent = 'Click an option above, then return to the terminal';
+      } else if (selected.length === 1) {
+        const label = extractLabel(selected[0]) || selected[0].dataset.choice;
+        indicator.innerHTML = '<span class="selected-text">' + label + ' selected</span> - return to terminal to continue';
+      } else {
+        indicator.innerHTML = '<span class="selected-text">' + selected.length + ' selected</span> - return to terminal to continue';
+      }
+    }, 0);
   });
 
   document.addEventListener('click', (e) => {

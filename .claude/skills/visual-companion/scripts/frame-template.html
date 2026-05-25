@@ -84,7 +84,10 @@
       border-top: 1px solid var(--border);
       padding: 0.5rem 1.5rem;
       flex-shrink: 0;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
     }
     .indicator-bar span {
       font-size: 0.75rem;
@@ -94,6 +97,24 @@
       color: var(--accent);
       font-weight: 500;
     }
+    .multi-submit {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .multi-submit:hover:not(:disabled) { background: var(--accent-hover); }
+    .multi-submit:disabled {
+      background: var(--bg-tertiary);
+      color: var(--text-tertiary);
+      cursor: not-allowed;
+    }
+    .multi-submit[hidden] { display: none; }
 
     /* ===== TYPOGRAPHY ===== */
     h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
@@ -220,6 +241,7 @@
 
   <div class="indicator-bar">
     <span id="indicator-text">Click an option above, then return to the terminal</span>
+    <button id="multi-submit" class="multi-submit" type="button" hidden>Submit</button>
   </div>
 
 </body>

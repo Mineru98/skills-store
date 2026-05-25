@@ -271,12 +271,33 @@ The frame template provides these CSS classes for your content:
 </div>
 ```
 
-**Multi-select:** Add `data-multiselect` to the container to let users select multiple options. Each click toggles the item. The indicator bar shows the count.
+**Multi-select:** Add `data-multiselect` to the container to let users select multiple options. Each click toggles the item locally **without sending an event**. A Submit button appears in the bottom indicator bar — only when the user clicks Submit does a single `submit` event fire with all selected choices.
 
 ```html
 <div class="options" data-multiselect>
   <!-- same option markup — users can select/deselect multiple -->
 </div>
+```
+
+The submitted event looks like:
+
+```json
+{
+  "type": "submit",
+  "choices": ["a", "c"],
+  "texts": ["Option A - Simple Layout", "Option C - Complex Grid"],
+  "count": 2,
+  "choice": null,
+  "text": "Option A - Simple Layout, Option C - Complex Grid"
+}
+```
+
+`choice` is `null` for multi-select submits with more than one selection (set to the single value when exactly one is selected). Use `choices` (array) as the canonical field. Single-select containers (no `data-multiselect`) keep the old behavior: a click fires an immediate `click` event with `choice`.
+
+When waiting on multi-select results, pair `wait-for-event.cjs` with `--type submit` so single browser clicks during the selection phase are ignored:
+
+```bash
+node scripts/wait-for-event.cjs "$STATE_DIR" --clear --type submit --timeout-ms 1800000
 ```
 
 ### Cards (visual designs)
