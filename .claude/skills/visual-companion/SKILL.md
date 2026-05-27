@@ -173,7 +173,7 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
 Use this when a browser click or short form submit should drive the next agent step without asking the user to type the same answer again.
 
 ```bash
-node .claude/skills/visual-companion/scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 1800000
+node ./scripts/wait-for-event.cjs "$STATE_DIR" --clear --timeout-ms 1800000
 ```
 
 The command prints one JSON event and exits. Useful fields:
@@ -205,7 +205,7 @@ Use this when the browser question should remain open while the user may continu
 After writing the screen:
 
 ```bash
-node .claude/skills/visual-companion/scripts/mark-pending-question.cjs "$STATE_DIR" --id layout-choice
+node ./scripts/mark-pending-question.cjs "$STATE_DIR" --id layout-choice
 ```
 
 Then continue with the other requested work. The server keeps recording browser events to disk.
@@ -213,7 +213,7 @@ Then continue with the other requested work. The server keeps recording browser 
 At the start of each later user turn, before responding to the new request:
 
 ```bash
-node .claude/skills/visual-companion/scripts/read-pending-event.cjs "$STATE_DIR"
+node ./scripts/read-pending-event.cjs "$STATE_DIR"
 ```
 
 Return shapes:
