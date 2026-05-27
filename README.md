@@ -4,15 +4,17 @@
 
 Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
 
-자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, 디자인 계열 스킬, 문서/데이터/프롬프트/agent 순입니다.
+자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, 디자인 계열 스킬, 문서/데이터/프롬프트/agent 순입니다.
 
 ## 빠른 사용 순서
 
 1. 시각적 선택지나 와이어프레임이 필요하면 `visual-companion`을 먼저 씁니다.
 2. 로컬 개발 서버 포트가 막히면 `kill-process`로 포트를 비웁니다.
 3. 외부 GitHub 스킬을 가져와야 하면 `install-skill`을 씁니다.
-4. UI, 랜딩, [redacted], 슬라이드 작업은 디자인 그룹에서 고릅니다.
-5. 문서 AI-feel 점검, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
+4. 이 저장소의 특정 skill이나 agent를 홈 또는 현재 프로젝트로 동기화해야 하면 `migrate-skill-agent`를 씁니다.
+5. UI, 랜딩, DESIGN.md, 슬라이드 작업은 디자인 그룹에서 고릅니다.
+6. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
+7. 문서 AI-feel 점검, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 
 ## 저장소 구조
 
@@ -166,12 +168,57 @@ https://github.com/Mineru98/skills-store/tree/main/.claude/skills/frontend-desig
 </details>
 
 <details>
-<summary><strong>4. 디자인 관련 스킬 그룹</strong></summary>
+<summary><strong>4. migrate-skill-agent</strong> - skills-store 항목 동기화</summary>
+
+### Best use case
+
+`skills-store`에 있는 특정 skill 또는 agent를 홈 디렉터리나 현재 프로젝트의 `.codex/`와 `.claude/` 자산으로 가져올 때 씁니다.
+
+외부 GitHub URL을 직접 내려받는 `install-skill`과 달리, 이 스킬은 로컬 `skills-store` 저장소를 찾아 `git pull`로 최신화한 뒤 지정한 항목만 복사합니다.
+
+### Codex 호출 예시
+
+```text
+$migrate-skill-agent --skill slide-ko-polish --target home
+```
+
+```text
+$migrate-skill-agent --agent songcopy --target project
+```
+
+### Claude Code 호출 예시
+
+```text
+migrate-skill-agent 스킬로 slide-ko-polish를 홈 디렉터리에 설치해줘.
+```
+
+```text
+migrate-skill-agent 스킬로 songcopy agent를 현재 프로젝트에 설치해줘.
+```
+
+### 옵션
+
+- `--skill <name>`: skill만 검색해서 설치
+- `--agent <name>`: agent만 검색해서 설치
+- `--target home`: `~/.codex`와 `~/.claude` 아래에 설치
+- `--target project`: 현재 프로젝트의 `.codex`와 `.claude` 아래에 설치
+
+### 포함 파일
+
+```text
+.codex/skills/migrate-skill-agent/scripts/migrate-skill-agent.sh
+.claude/skills/migrate-skill-agent/scripts/migrate-skill-agent.sh
+```
+
+</details>
+
+<details>
+<summary><strong>5. 디자인 관련 스킬 그룹</strong></summary>
 
 ### 추천 순서
 
-1. `make-[redacted]` - URL에서 [redacted]와 [redacted] 추출
-2. `[redacted]-validator` - [redacted] 검증과 회귀 확인
+1. `make-design-md` - URL에서 DESIGN.md와 디자인 토큰 추출
+2. `design-md-validator` - DESIGN.md 검증과 회귀 확인
 3. `frontend-design` - UI, 컴포넌트, 앱 화면 작성
 4. `landing-page-builder` - 한국어 랜딩 페이지 신규 작성
 5. `landing-page-upgrader` - 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
@@ -183,21 +230,21 @@ https://github.com/Mineru98/skills-store/tree/main/.claude/skills/frontend-desig
 ### Codex 호출 예시
 
 ```text
-$make-[redacted]
-https://example.com 을 분석해서 [redacted]를 만들고, [redacted]-validator까지 통과시켜줘.
+$make-design-md
+https://example.com 을 분석해서 DESIGN.md를 만들고, design-md-validator까지 통과시켜줘.
 ```
 
 ```text
 $frontend-design
 한국어 SaaS 관리자 대시보드 첫 화면을 React 컴포넌트로 만들어줘.
-기존 [redacted]이 있으면 맞추고, 없으면 절제된 업무용 UI로 구현해줘.
+기존 DESIGN.md가 있으면 맞추고, 없으면 절제된 업무용 UI로 구현해줘.
 ```
 
 ### Claude Code 호출 예시
 
 ```text
-make-[redacted] 스킬을 사용해서 https://example.com 의 [redacted]과 컴포넌트 규칙을 [redacted]로 추출해줘.
-완성 후 [redacted]-validator로 검증해줘.
+make-design-md 스킬을 사용해서 https://example.com 의 디자인 토큰과 컴포넌트 규칙을 DESIGN.md로 추출해줘.
+완성 후 design-md-validator로 검증해줘.
 ```
 
 ```text
@@ -207,8 +254,8 @@ frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페
 
 ### 스킬별 요약
 
-- `make-[redacted]`: Playwright 캡처, HTML/CSS 확인, 스크린샷 근거를 묶어 [redacted] 작성
-- `[redacted]-validator`: Google `@google/[redacted]` 기준의 오류, 경고, 회귀 확인
+- `make-design-md`: Playwright 캡처, HTML/CSS 확인, 스크린샷 근거를 묶어 DESIGN.md 작성
+- `design-md-validator`: Google `@google/design.md` 기준의 오류, 경고, 회귀 확인
 - `frontend-design`: 웹 페이지, 컴포넌트, 앱 UI 코드 작성
 - `landing-page-builder`: Tailwind CDN 기반 단일 HTML 랜딩 페이지 작성
 - `landing-page-upgrader`: 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
@@ -220,7 +267,55 @@ frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페
 </details>
 
 <details>
-<summary><strong>5. 문서, 데이터, 프롬프트 스킬</strong></summary>
+<summary><strong>6. slide-ko-polish</strong> - 한국어 발표자료 번역체와 줄바꿈 점검</summary>
+
+### Best use case
+
+영어 원문을 한국어로 옮긴 HTML/Markdown 발표자료에서 번역체 표현, 무거운 명사문, 한국어 어절 줄바꿈 문제를 같이 점검할 때 씁니다.
+
+검증 스크립트는 regex/HTML 구조 검사와 LLM fresh review를 묶어서 실행합니다. LLM CLI는 `claude`, `codex`, `gemini` 순으로 자동 감지하며, `LLM_CLI` 환경변수로 고정할 수 있습니다.
+
+### Codex 호출 예시
+
+```text
+$slide-ko-polish
+slides.html의 한국어가 번역체인지 점검하고, 어색한 문장과 줄바꿈을 다듬어줘.
+검증은 verify.sh까지 실행해줘.
+```
+
+```bash
+.codex/skills/slide-ko-polish/verify.sh slides.html
+.codex/skills/slide-ko-polish/polish-loop.sh slides.html
+```
+
+### Claude Code 호출 예시
+
+```text
+/slide-ko-polish slides.html의 한국어 번역체와 CJK 줄바꿈을 다듬어줘.
+```
+
+```bash
+.claude/skills/slide-ko-polish/verify.sh slides.html
+.claude/skills/slide-ko-polish/polish-loop.sh slides.html
+```
+
+### Gemini CLI에서 직접 실행
+
+```bash
+LLM_CLI=gemini .codex/skills/slide-ko-polish/verify.sh slides.html
+LLM_CLI=gemini .codex/skills/slide-ko-polish/polish-loop.sh slides.html
+```
+
+### 라이선스 인용
+
+이 스킬은 [hackertaco/skill-forge](https://github.com/hackertaco/skill-forge)의 `slide-ko-polish`를 프로젝트용 Codex/Claude 스킬로 등록한 것입니다.
+
+원본 라이선스는 MIT License이며 저작권 표기는 `Copyright (c) 2026 hackertaco`입니다. 전체 라이선스 전문은 각 플랫폼 스킬 폴더의 `LICENSE`에 포함했습니다.
+
+</details>
+
+<details>
+<summary><strong>7. 문서, 데이터, 프롬프트 스킬</strong></summary>
 
 ### Codex 호출 예시
 
@@ -256,7 +351,7 @@ excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 
 </details>
 
 <details>
-<summary><strong>6. Claude Code 전용 스킬</strong></summary>
+<summary><strong>8. Claude Code 전용 스킬</strong></summary>
 
 ### Codex에는 없는 Claude Code 스킬
 
@@ -281,7 +376,7 @@ ui-text-audit 스킬로 http://localhost:3000 화면의 버튼 텍스트 잘림�
 </details>
 
 <details>
-<summary><strong>7. Codex agent</strong></summary>
+<summary><strong>9. Codex agent</strong></summary>
 
 ### 사용 가능한 agent
 
@@ -305,13 +400,14 @@ songcopy agent로 B2B SaaS 랜딩 페이지 헤드라인 5개를 뽑아줘.
 </details>
 
 <details>
-<summary><strong>8. Claude Code agent</strong></summary>
+<summary><strong>10. Claude Code agent</strong></summary>
 
 ### 사용 가능한 agent
 
 - `ai-slop-detector`: 한국어 짧은 비즈니스 카피의 AI-feel tag 판정
 - `ai-slop-guardrail`: AI-feel을 막기 위한 금지 표현과 구조 정리
 - `ai-slop-rewriter`: 입력 구조와 정보를 유지한 문체 수정
+- `songcopy`: 쓸모랩 소속 카피라이터 페르소나의 광고 카피, 슬로건, 헤드라인, 캠페인 메시지 작성
 
 ### Claude Code 호출 예시
 
@@ -325,6 +421,11 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 슬라이드 순서와 원래 정보는 유지해줘.
 ```
 
+```text
+songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
+톤은 과장 없이 실무자가 바로 검토할 수 있게 해줘.
+```
+
 </details>
 
 ## Codex 자산 목록
@@ -335,7 +436,7 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 - `ai-slop-document-auditor`
 - `commit`
 - `complete-html-output`
-- `[redacted]-validator`
+- `design-md-validator`
 - `excel-data-analyzer`
 - `frontend-design`
 - `frontend-slides`
@@ -344,9 +445,11 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 - `kill-process`
 - `landing-page-builder`
 - `landing-page-upgrader`
-- `make-[redacted]`
+- `make-design-md`
+- `migrate-skill-agent`
 - `playwright-cli`
 - `premium-korean-aesthetic`
+- `slide-ko-polish`
 - `visual-companion`
 
 </details>
@@ -364,6 +467,7 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 <details>
 <summary><strong>.codex/rules</strong></summary>
 
+- `frontend/README.md`
 - `frontend/project-coding-conventions.md`
 - `frontend/project-dev-workflow.rules`
 - `frontend/project-safety.rules`
@@ -378,7 +482,7 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 - `ai-slop-document-auditor`
 - `commands-creator`
 - `complete-html-output`
-- `[redacted]-validator`
+- `design-md-validator`
 - `excel-data-analyzer`
 - `frontend-design`
 - `frontend-slides`
@@ -387,11 +491,13 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 - `install-skill`
 - `landing-page-builder`
 - `landing-page-upgrader`
-- `make-[redacted]`
+- `make-design-md`
 - `mcp-builder`
+- `migrate-skill-agent`
 - `playwright-cli`
 - `premium-korean-aesthetic`
 - `subagents-creator`
+- `slide-ko-polish`
 - `ui-text-audit`
 - `visual-companion`
 
@@ -411,6 +517,7 @@ ai-slop-rewriter subagent로 PPTX의 제목과 bullet만 AI-feel 덜 나게 고�
 - `ai-slop-detector`
 - `ai-slop-guardrail`
 - `ai-slop-rewriter`
+- `songcopy`
 
 </details>
 
