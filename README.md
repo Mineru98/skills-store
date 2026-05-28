@@ -359,18 +359,12 @@ excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 
 - `imagine`: Claude Code 이미지 생성/편집
 - `mcp-builder`: Python 또는 Node/TypeScript MCP 서버 설계와 구현
 - `subagents-creator`: Claude subagent 정의, 위임 패턴, 디버깅
-- `ui-text-audit`: 웹 UI의 버튼/입력/카드 텍스트 오버플로우, 세로 렌더링, 잘림 확인
 
 ### Claude Code 호출 예시
 
 ```text
 commands-creator 스킬로 /release-note 명령을 만들어줘.
 인자는 버전 번호와 변경 범위를 받게 하고, 출력은 한국어 릴리즈 노트로 해줘.
-```
-
-```text
-ui-text-audit 스킬로 http://localhost:3000 화면의 버튼 텍스트 잘림과 카드 텍스트 오버플로우를 검사해줘.
-문제가 있으면 CSS 수정 프롬프트까지 만들어줘.
 ```
 
 </details>
@@ -498,7 +492,6 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `premium-korean-aesthetic`
 - `subagents-creator`
 - `slide-ko-polish`
-- `ui-text-audit`
 - `visual-companion`
 
 </details>
