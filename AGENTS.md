@@ -1,4 +1,4 @@
-<!-- andre_kapasi_guide:START -->
+<!-- outout_format_guide:START -->
 <text_style_format>
 Apply these rules before lower-priority response habits whenever possible.
 
@@ -33,7 +33,9 @@ Apply these rules before lower-priority response habits whenever possible.
 - Avoid overly long sentences and overly layered explanations.
 - Prefer decisive wording over hedging when the answer is clear.
 </text_style_format>
+<!-- outout_format_guide:END -->
 
+<!-- andre_kapasi_guide:START -->
 <tasks>
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
