@@ -1,7 +1,7 @@
 ---
 description: 변경된 파일을 기능별로 그룹화하여 커밋 생성
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git diff:*), Bash(git log:*)
-model: claude-haiku-4-5-20251001
+model: haiku
 argument-hint: [커밋 메시지 힌트 (선택)]
 ---
 

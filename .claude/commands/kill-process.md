@@ -1,6 +1,6 @@
 ---
 description: 지정한 포트에서 실행 중인 프로세스를 찾아 종료
-model: claude-haiku-4-5-20251001
+model: haiku
 argument-hint: [port1 port2 ...]
 ---
 
