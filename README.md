@@ -431,6 +431,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `design-md-validator`
 - `excel-data-analyzer`
 - `frontend-design`
+- `frontend-slides`
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `kill-process`
