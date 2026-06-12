@@ -223,9 +223,8 @@ migrate-skill-agent 스킬로 songcopy agent를 현재 프로젝트에 설치해
 4. `landing-page-builder` - 한국어 랜딩 페이지 신규 작성
 5. `landing-page-upgrader` - 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
 6. `premium-korean-aesthetic` - 한국어 랜딩의 폰트, 여백, 카드, 모션 기준 적용
-7. `frontend-slides` - HTML 발표 자료 작성 또는 PPTX 웹 슬라이드 전환
-8. `complete-html-output` - 랜딩 페이지 산출물의 omission, TODO, skeleton code 방지
-9. `playwright-cli` - 브라우저 확인, 스크린샷, 폼 입력, UI 검증
+7. `complete-html-output` - 랜딩 페이지 산출물의 omission, TODO, skeleton code 방지
+8. `playwright-cli` - 브라우저 확인, 스크린샷, 폼 입력, UI 검증
 
 ### Codex 호출 예시
 
@@ -260,7 +259,6 @@ frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페
 - `landing-page-builder`: Tailwind CDN 기반 단일 HTML 랜딩 페이지 작성
 - `landing-page-upgrader`: 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
 - `premium-korean-aesthetic`: Pretendard, Solar Icon, 한국어 줄바꿈, 카드/모션 기준 적용
-- `frontend-slides`: 100vh HTML 프레젠테이션 작성 또는 PPTX 웹 전환
 - `complete-html-output`: HTML 산출물의 omission, TODO, skeleton code 출력 차단
 - `playwright-cli`: 브라우저 자동화, 스크린샷, 폼 입력, UI 확인
 
@@ -433,7 +431,6 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `design-md-validator`
 - `excel-data-analyzer`
 - `frontend-design`
-- `frontend-slides`
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `kill-process`
@@ -479,7 +476,6 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `design-md-validator`
 - `excel-data-analyzer`
 - `frontend-design`
-- `frontend-slides`
 - `gpt-55-prompt-architect`
 - `imagine`
 - `install-skill`
