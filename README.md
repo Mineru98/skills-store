@@ -4,7 +4,7 @@
 
 Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
 
-자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, 디자인 계열 스킬, 문서/데이터/프롬프트/agent 순입니다.
+자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, 디자인 계열 스킬, 문서/데이터/프롬프트/agent 순입니다.
 
 ## 빠른 사용 순서
 
@@ -12,9 +12,10 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 2. 로컬 개발 서버 포트가 막히면 `kill-process`로 포트를 비웁니다.
 3. 외부 GitHub 스킬을 가져와야 하면 `install-skill`을 씁니다.
 4. 이 저장소의 특정 skill이나 agent를 홈 또는 현재 프로젝트로 동기화해야 하면 `migrate-skill-agent`를 씁니다.
-5. UI, 랜딩, DESIGN.md, 슬라이드 작업은 디자인 그룹에서 고릅니다.
-6. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
-7. 문서 AI-feel 점검, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
+5. 발표자료나 문서에 넣을 이라스토야 일러스트가 필요하면 `irasutoya-search`를 씁니다.
+6. UI, 랜딩, DESIGN.md, 슬라이드 작업은 디자인 그룹에서 고릅니다.
+7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
+8. 문서 AI-feel 점검, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 
 ## 저장소 구조
 
@@ -213,7 +214,49 @@ migrate-skill-agent 스킬로 songcopy agent를 현재 프로젝트에 설치해
 </details>
 
 <details>
-<summary><strong>5. 디자인 관련 스킬 그룹</strong></summary>
+<summary><strong>5. irasutoya-search</strong> - 이라스토야 일러스트 검색</summary>
+
+### Best use case
+
+발표자료, 블로그, 문서, 채팅에 넣을 귀여운 무료 일러스트가 필요할 때 씁니다.
+
+사용자의 한국어/영어 설명을 일본어 검색어로 줄여 `irasutoya` CLI를 실행하고, 제목, 페이지 URL, 이미지 URL, 매칭 이유를 보고합니다. 새 이미지를 생성하지 않고 이라스토야 기존 카탈로그만 검색합니다.
+
+### Codex 호출 예시
+
+```text
+$irasutoya-search
+발표 자료에 쓸 건데, 뭔가 신기한 걸 발견하고 궁금해하는 남자아이 일러스트 하나 찾아줘.
+```
+
+```bash
+irasutoya search "不思議 男の子"
+irasutoya random
+```
+
+### Claude Code 호출 예시
+
+```text
+irasutoya-search 스킬로 컴퓨터 앞에서 곤란해하는 회사원 이미지를 찾아줘.
+```
+
+```bash
+irasutoya search "困った 会社員"
+```
+
+### 포함 파일
+
+```text
+.codex/skills/irasutoya-search/SKILL.md
+.codex/skills/irasutoya-search/agents/openai.yaml
+.claude/skills/irasutoya-search/SKILL.md
+.claude/skills/irasutoya-search/evals/evals.json
+```
+
+</details>
+
+<details>
+<summary><strong>6. 디자인 관련 스킬 그룹</strong></summary>
 
 ### 추천 순서
 
@@ -265,7 +308,7 @@ frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페
 </details>
 
 <details>
-<summary><strong>6. slide-ko-polish</strong> - 한국어 발표자료 번역체와 줄바꿈 점검</summary>
+<summary><strong>7. slide-ko-polish</strong> - 한국어 발표자료 번역체와 줄바꿈 점검</summary>
 
 ### Best use case
 
@@ -313,7 +356,7 @@ LLM_CLI=gemini .codex/skills/slide-ko-polish/polish-loop.sh slides.html
 </details>
 
 <details>
-<summary><strong>7. 문서, 데이터, 프롬프트 스킬</strong></summary>
+<summary><strong>8. 문서, 데이터, 프롬프트 스킬</strong></summary>
 
 ### Codex 호출 예시
 
@@ -349,7 +392,7 @@ excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 
 </details>
 
 <details>
-<summary><strong>8. Claude Code 전용 스킬</strong></summary>
+<summary><strong>9. Claude Code 전용 스킬</strong></summary>
 
 ### Codex에는 없는 Claude Code 스킬
 
@@ -368,7 +411,7 @@ commands-creator 스킬로 /release-note 명령을 만들어줘.
 </details>
 
 <details>
-<summary><strong>9. Codex agent</strong></summary>
+<summary><strong>10. Codex agent</strong></summary>
 
 ### 사용 가능한 agent
 
@@ -392,7 +435,7 @@ songcopy agent로 B2B SaaS 랜딩 페이지 헤드라인 5개를 뽑아줘.
 </details>
 
 <details>
-<summary><strong>10. Claude Code agent</strong></summary>
+<summary><strong>11. Claude Code agent</strong></summary>
 
 ### 사용 가능한 agent
 
@@ -434,6 +477,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `frontend-slides`
 - `gpt-55-prompt-architect`
 - `install-skill`
+- `irasutoya-search`
 - `kill-process`
 - `landing-page-builder`
 - `landing-page-upgrader`
@@ -480,6 +524,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `gpt-55-prompt-architect`
 - `imagine`
 - `install-skill`
+- `irasutoya-search`
 - `landing-page-builder`
 - `landing-page-upgrader`
 - `make-design-md`

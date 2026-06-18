@@ -1,0 +1,4 @@
+interface:
+  display_name: "Irasutoya CLI"
+  short_description: "Use and troubleshoot irasutoya-cli"
+  default_prompt: "Use $irasutoya-cli to find and preview Irasutoya images from the command line."
