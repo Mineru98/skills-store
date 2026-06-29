@@ -1,4 +1,0 @@
-interface:
-  display_name: "Make DESIGN.md"
-  short_description: "Create DESIGN.md from a webpage URL"
-  default_prompt: "Use $make-design-md to analyze this webpage URL and generate a validated DESIGN.md."
