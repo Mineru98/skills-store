@@ -4,7 +4,7 @@
 
 Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
 
-자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, 디자인 계열 스킬, 문서/데이터/프롬프트/agent 순입니다.
+자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, E2E 계열 스킬, 문서/프롬프트/agent 순입니다.
 
 ## 빠른 사용 순서
 
@@ -13,9 +13,9 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 3. 외부 GitHub 스킬을 가져와야 하면 `install-skill`을 씁니다.
 4. 이 저장소의 특정 skill이나 agent를 홈 또는 현재 프로젝트로 동기화해야 하면 `migrate-skill-agent`를 씁니다.
 5. 발표자료나 문서에 넣을 이라스토야 일러스트가 필요하면 `irasutoya-search`를 씁니다.
-6. UI, 랜딩, DESIGN.md, 슬라이드 작업은 디자인 그룹에서 고릅니다.
+6. E2E 계획, 생성, 치유, 하네스 작업은 E2E 그룹에서 고릅니다.
 7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
-8. 문서 AI-feel 점검, Excel 분석, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
+8. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 
 ## 저장소 구조
 
@@ -155,8 +155,8 @@ https://github.com/Mineru98/skills-store/tree/main/.claude/skills/visual-compani
 ```
 
 ```text
-GitHub의 .claude/skills/frontend-design 폴더를 현재 프로젝트 Claude 스킬로 설치해줘.
-https://github.com/Mineru98/skills-store/tree/main/.claude/skills/frontend-design
+GitHub의 .claude/skills/premium-korean-aesthetic 폴더를 현재 프로젝트 Claude 스킬로 설치해줘.
+https://github.com/Mineru98/skills-store/tree/main/.claude/skills/premium-korean-aesthetic
 ```
 
 ### 포함 파일
@@ -256,54 +256,47 @@ irasutoya search "困った 会社員"
 </details>
 
 <details>
-<summary><strong>6. 디자인 관련 스킬 그룹</strong></summary>
+<summary><strong>6. E2E 관련 스킬 그룹</strong></summary>
 
 ### 추천 순서
 
-1. `make-design-md` - URL에서 DESIGN.md와 디자인 토큰 추출
-2. `design-md-validator` - DESIGN.md 검증과 회귀 확인
-3. `frontend-design` - UI, 컴포넌트, 앱 화면 작성
-4. `landing-page-builder` - 한국어 랜딩 페이지 신규 작성
-5. `landing-page-upgrader` - 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
-6. `premium-korean-aesthetic` - 한국어 랜딩의 폰트, 여백, 카드, 모션 기준 적용
-7. `complete-html-output` - 랜딩 페이지 산출물의 omission, TODO, skeleton code 방지
-8. `playwright-cli` - 브라우저 확인, 스크린샷, 폼 입력, UI 검증
+1. `e2e-flow-planner` - Critical User Flow 기반 E2E 계획서 작성
+2. `e2e-harness-setup` - E2E 테스트 하네스와 운영 규칙 부트스트랩
+3. `e2e-test-generator` - 검토된 계획서를 Playwright 테스트로 구현
+4. `e2e-test-hardener` - 생성된 테스트의 독립성, 모킹, 플래키 예방 보강
+5. `e2e-test-healer` - 실패한 Playwright 테스트를 trace 기반으로 진단하고 수정
+6. `e2e-ci-trace-debug` - GitHub Actions E2E 실패 trace를 내려받아 원인 추적
 
 ### Codex 호출 예시
 
 ```text
-$make-design-md
-https://example.com 을 분석해서 DESIGN.md를 만들고, design-md-validator까지 통과시켜줘.
+$e2e-flow-planner
+결제 플로우의 Critical User Flow를 기준으로 E2E 테스트 계획서를 작성해줘.
 ```
 
 ```text
-$frontend-design
-한국어 SaaS 관리자 대시보드 첫 화면을 React 컴포넌트로 만들어줘.
-기존 DESIGN.md가 있으면 맞추고, 없으면 절제된 업무용 UI로 구현해줘.
+$e2e-test-healer
+실패한 Playwright 테스트 trace를 보고 원인을 찾아 통과하게 수정해줘.
 ```
 
 ### Claude Code 호출 예시
 
 ```text
-make-design-md 스킬을 사용해서 https://example.com 의 디자인 토큰과 컴포넌트 규칙을 DESIGN.md로 추출해줘.
-완성 후 design-md-validator로 검증해줘.
+e2e-harness-setup 스킬로 이 프로젝트의 Playwright 테스트 하네스를 온보딩해줘.
 ```
 
 ```text
-frontend-design과 premium-korean-aesthetic를 사용해서 한국어 랜딩 페이지의 문체와 여백을 다듬어줘.
-기존 HTML 구조는 최대한 유지하고 타이포그래피, 여백, 모션, CTA만 정교하게 다듬어줘.
+e2e-ci-trace-debug 스킬로 PR의 실패한 E2E 체크 trace를 받아 원인을 찾아줘.
 ```
 
 ### 스킬별 요약
 
-- `make-design-md`: Playwright 캡처, HTML/CSS 확인, 스크린샷 근거를 묶어 DESIGN.md 작성
-- `design-md-validator`: Google `@google/design.md` 기준의 오류, 경고, 회귀 확인
-- `frontend-design`: 웹 페이지, 컴포넌트, 앱 UI 코드 작성
-- `landing-page-builder`: Tailwind CDN 기반 단일 HTML 랜딩 페이지 작성
-- `landing-page-upgrader`: 기존 랜딩 페이지의 AI스러운 패턴과 한국어 문체 정리
-- `premium-korean-aesthetic`: Pretendard, Solar Icon, 한국어 줄바꿈, 카드/모션 기준 적용
-- `complete-html-output`: HTML 산출물의 omission, TODO, skeleton code 출력 차단
-- `playwright-cli`: 브라우저 자동화, 스크린샷, 폼 입력, UI 확인
+- `e2e-flow-planner`: 코드베이스와 요구사항을 읽고 E2E 테스트 계획서 작성
+- `e2e-harness-setup`: AGENTS.md 안내, E2E 운영 규칙, fixture/helper, MCP 배선 준비
+- `e2e-test-generator`: 계획서를 Playwright 코드로 구현하고 실제 브라우저로 확인
+- `e2e-test-hardener`: 테스트 독립성, 외부 의존성 모킹, 플래키 예방 원칙 적용
+- `e2e-test-healer`: 실패한 Playwright 테스트의 trace를 근거로 자동 치유 루프 수행
+- `e2e-ci-trace-debug`: PR 또는 GitHub Actions 실패에서 trace와 로그를 추적해 수정
 
 </details>
 
@@ -356,7 +349,7 @@ LLM_CLI=gemini .codex/skills/slide-ko-polish/polish-loop.sh slides.html
 </details>
 
 <details>
-<summary><strong>8. 문서, 데이터, 프롬프트 스킬</strong></summary>
+<summary><strong>8. 문서, 프롬프트, 커밋 스킬</strong></summary>
 
 ### Codex 호출 예시
 
@@ -371,6 +364,11 @@ $gpt-55-prompt-architect
 목표, 검증 루프, 도구 사용 규칙을 명확히 정리해줘.
 ```
 
+```text
+$commit
+현재 변경 파일을 기능별로 묶어 커밋해줘.
+```
+
 ### Claude Code 호출 예시
 
 ```text
@@ -379,13 +377,12 @@ ai-slop-document-auditor 스킬로 deck.pptx의 제목, bullet, CTA에서 AI-fee
 ```
 
 ```text
-excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 구조를 분석하고 정리 보고서를 만들어줘.
+gpt-55-prompt-architect 스킬로 기존 프롬프트를 GPT-5.5용으로 재설계해줘.
 ```
 
 ### 스킬별 요약
 
 - `ai-slop-document-auditor`: PDF, Markdown, TXT, PPT/PPTX, HTML, DOCX 한국어 문서의 AI-feel 점검
-- `excel-data-analyzer`: Excel 구조, 누락값, 혼합 타입, 통계 요약 분석
 - `gpt-55-prompt-architect`: GPT-5.5용 프롬프트 설계, 마이그레이션, 리뷰
 - `commit`: 변경 파일을 기능별로 묶어 커밋 작성
 
@@ -399,6 +396,8 @@ excel-data-analyzer 스킬로 sales.xlsx의 누락값, 이상한 형식, 시트 
 - `commands-creator`: Claude Code slash command 작성과 관리 가이드
 - `imagine`: Claude Code 이미지 생성/편집
 - `mcp-builder`: Python 또는 Node/TypeScript MCP 서버 설계와 구현
+- `premium-korean-aesthetic`: 한국어 랜딩의 폰트, 여백, 카드, 모션 기준 적용
+- `pyautogui-helper`: PyAutoGUI 기반 로컬 UI 자동화 도우미
 - `subagents-creator`: Claude subagent 정의, 위임 패턴, 디버깅
 
 ### Claude Code 호출 예시
@@ -470,21 +469,18 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 
 - `ai-slop-document-auditor`
 - `commit`
-- `complete-html-output`
 - `design-md-validator`
-- `excel-data-analyzer`
-- `frontend-design`
-- `frontend-slides`
+- `e2e-ci-trace-debug`
+- `e2e-flow-planner`
+- `e2e-harness-setup`
+- `e2e-test-generator`
+- `e2e-test-hardener`
+- `e2e-test-healer`
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `irasutoya-search`
 - `kill-process`
-- `landing-page-builder`
-- `landing-page-upgrader`
-- `make-design-md`
 - `migrate-skill-agent`
-- `playwright-cli`
-- `premium-korean-aesthetic`
 - `slide-ko-polish`
 - `visual-companion`
 
@@ -517,21 +513,20 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 
 - `ai-slop-document-auditor`
 - `commands-creator`
-- `complete-html-output`
-- `design-md-validator`
-- `excel-data-analyzer`
-- `frontend-design`
+- `e2e-ci-trace-debug`
+- `e2e-flow-planner`
+- `e2e-harness-setup`
+- `e2e-test-generator`
+- `e2e-test-hardener`
+- `e2e-test-healer`
 - `gpt-55-prompt-architect`
 - `imagine`
 - `install-skill`
 - `irasutoya-search`
-- `landing-page-builder`
-- `landing-page-upgrader`
-- `make-design-md`
 - `mcp-builder`
 - `migrate-skill-agent`
-- `playwright-cli`
 - `premium-korean-aesthetic`
+- `pyautogui-helper`
 - `subagents-creator`
 - `slide-ko-polish`
 - `visual-companion`
@@ -543,6 +538,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 
 - `commit`
 - `kill-process`
+- `audit`
 
 </details>
 
