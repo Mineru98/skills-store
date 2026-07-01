@@ -50,6 +50,12 @@ function fakeSuccess(captureFile) {
 function fakeFail() {
   return `#!/usr/bin/env bash\necho "boom fail happened" >&2\ncat > /dev/null\nexit 42\n`;
 }
+function fakeTmux(logFile) {
+  return `#!/usr/bin/env bash\nprintf '%s\\n' "$*" >> ${JSON.stringify(logFile)}\nif [ "$1" = "show-buffer" ]; then\n  printf 'tmux prompt'\nfi\nexit 0\n`;
+}
+function fakeResume(captureFile) {
+  return `#!/usr/bin/env bash\nprintf 'argv:%s\\n' "$*" > ${JSON.stringify(captureFile)}\nprintf 'stdin:' >> ${JSON.stringify(captureFile)}\ncat >> ${JSON.stringify(captureFile)}\nexit 0\n`;
+}
 
 function readTasksFile(sr) {
   return JSON.parse(fs.readFileSync(path.join(sr, 'tasks.json'), 'utf8'));
@@ -361,6 +367,90 @@ test('run-due once: one-shot task transitions to cancelled after running', () =>
   assert.equal(t.runs[0].status, 'succeeded');
   assert.equal(t.status, 'cancelled', 'once task becomes cancelled after it runs');
   assert.equal(fs.readFileSync(capture, 'utf8').trim(), 'once please');
+});
+
+test('run-due tmux runner: injects prompt into target pane without codex exec', () => {
+  const sr = mkTmp();
+  const work = mkTmp();
+  const log = path.join(work, 'tmux.log');
+  const fake = writeFake(work, fakeTmux(log), 'tmux');
+  const add = runCli(['add', '--state-root', sr, '--at', EPOCH, '--prompt', 'tmux prompt', '--cwd', work]);
+  assert.equal(add.status, 0, add.stderr);
+
+  const rd = runCli(['run-due', '--state-root', sr, '--runner', 'tmux-send',
+    '--tmux-bin', fake, '--tmux-target', '%7']);
+  assert.equal(rd.status, 0, rd.stderr);
+  assert.match(rd.stdout, /succeeded/);
+
+  const calls = fs.readFileSync(log, 'utf8').trim().split('\n');
+  assert.match(calls[0], /^set-buffer -b codex-schedule-/);
+  assert.match(calls[0], / -- tmux prompt$/);
+  assert.match(calls[1], /^show-buffer -b codex-schedule-/);
+  assert.equal(calls[2], 'send-keys -t %7 C-u');
+  assert.match(calls[3], /^paste-buffer -t %7 -b codex-schedule-/);
+  assert.equal(calls[4], 'send-keys -t %7 Enter');
+
+  const t = readTasksFile(sr).tasks[0];
+  assert.equal(t.runs.length, 1);
+  assert.equal(t.runs[0].status, 'succeeded');
+  assert.equal(t.status, 'cancelled');
+  assert.match(fs.readFileSync(t.runs[0].lastMessagePath, 'utf8'), /tmux-send injected prompt into %7/);
+});
+
+test('run-due resume-command runner: passes prompt on stdin to external command', () => {
+  const sr = mkTmp();
+  const work = mkTmp();
+  const capture = path.join(work, 'resume.txt');
+  const fake = writeFake(work, fakeResume(capture), 'resume.sh');
+  const add = runCli(['add', '--state-root', sr, '--at', EPOCH, '--prompt', 'resume prompt', '--cwd', work]);
+  assert.equal(add.status, 0, add.stderr);
+
+  const rd = runCli(['run-due', '--state-root', sr, '--runner', 'resume-command',
+    '--resume-command', fake]);
+  assert.equal(rd.status, 0, rd.stderr);
+  assert.match(rd.stdout, /succeeded/);
+
+  assert.equal(fs.readFileSync(capture, 'utf8'), 'argv:\nstdin:resume prompt');
+  const t = readTasksFile(sr).tasks[0];
+  assert.equal(t.runs[0].status, 'succeeded');
+  assert.match(fs.readFileSync(t.runs[0].lastMessagePath, 'utf8'), /resume-command completed/);
+});
+
+test('run-due auto runner: prefers tmux-send when a tmux target is available', () => {
+  const sr = mkTmp();
+  const work = mkTmp();
+  const log = path.join(work, 'tmux-auto.log');
+  const fake = writeFake(work, fakeTmux(log), 'tmux');
+  const add = runCli(['add', '--state-root', sr, '--at', EPOCH, '--prompt', 'tmux prompt', '--cwd', work]);
+  assert.equal(add.status, 0, add.stderr);
+
+  const rd = runCli(['run-due', '--state-root', sr, '--runner', 'auto',
+    '--tmux-bin', fake, '--tmux-target', '%auto']);
+  assert.equal(rd.status, 0, rd.stderr);
+  assert.match(rd.stdout, /succeeded/);
+
+  const calls = fs.readFileSync(log, 'utf8').trim().split('\n');
+  assert.equal(calls[2], 'send-keys -t %auto C-u');
+  const t = readTasksFile(sr).tasks[0];
+  assert.match(fs.readFileSync(t.runs[0].lastMessagePath, 'utf8'), /tmux-send injected prompt into %auto/);
+});
+
+test('run-due auto runner: falls back to resume-command when no tmux target exists', () => {
+  const sr = mkTmp();
+  const work = mkTmp();
+  const capture = path.join(work, 'resume-auto.txt');
+  const fake = writeFake(work, fakeResume(capture), 'resume-auto.sh');
+  const add = runCli(['add', '--state-root', sr, '--at', EPOCH, '--prompt', 'resume prompt', '--cwd', work]);
+  assert.equal(add.status, 0, add.stderr);
+
+  const rd = runCli(['run-due', '--state-root', sr, '--runner', 'auto',
+    '--resume-command', fake], { env: { TMUX_PANE: '' } });
+  assert.equal(rd.status, 0, rd.stderr);
+  assert.match(rd.stdout, /succeeded/);
+
+  assert.equal(fs.readFileSync(capture, 'utf8'), 'argv:\nstdin:resume prompt');
+  const t = readTasksFile(sr).tasks[0];
+  assert.match(fs.readFileSync(t.runs[0].lastMessagePath, 'utf8'), /resume-command completed/);
 });
 
 test('run-due FAILURE: non-zero codex records failed, tasks.json valid', () => {

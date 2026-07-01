@@ -28,8 +28,8 @@ default; conventionally `.codex/schedule/` relative to the project root).
 │   └── owner.json
 └── runs/
     └── <taskId>/
-        ├── <fs-timestamp>.jsonl       # full codex exec stdout (JSON Lines)
-        ├── <fs-timestamp>.last.txt    # last message written by codex
+        ├── <fs-timestamp>.jsonl       # runner output/evidence
+        ├── <fs-timestamp>.last.txt    # last runner message
         └── <fs-timestamp>.stderr.txt  # stderr capture (written when non-empty)
 ```
 
@@ -62,7 +62,7 @@ Field         Type             Notes
 id            string           Format: t_<base36-ts+counter>_<hex-rand>
 kind          "schedule"       Cron-based recurring schedule
               "once"           One-shot at an absolute time
-prompt        string           Sent on stdin to codex exec
+prompt        string           Delivered by the selected runner
 cwd           string           Absolute path (resolved at add time)
 status        "active"         Will be run when due
               "cancelled"      Will not be run; terminal state
@@ -107,11 +107,15 @@ backoffMs         number?        Failure only; exponential cap at 3 600 000 ms
 nextRetryAt       string (ISO)?  Failure only; finishedAt + backoffMs
 ```
 
-The child's stdout is streamed directly to `<fs-timestamp>.jsonl` through a file
-descriptor, so there is **no buffer limit** — `codex exec --json` output larger
-than Node's 1 MB `spawnSync` default is written verbatim and never truncated or
-killed mid-run. A genuine >1 MB success therefore records `exitCode 0 /
-succeeded` with a complete jsonl; only a true `ENOENT` records `127`.
+For the `codex-exec` runner, the child's stdout is streamed directly to
+`<fs-timestamp>.jsonl` through a file descriptor, so there is **no buffer
+limit** — `codex exec --json` output larger than Node's 1 MB `spawnSync`
+default is written verbatim and never truncated or killed mid-run. A genuine
+>1 MB success therefore records `exitCode 0 / succeeded` with a complete
+jsonl; only a true `ENOENT` records `127`.
+
+For `tmux-send`, `.jsonl` contains JSON-line evidence for each tmux command
+step. For `resume-command`, `.jsonl` contains the resume command stdout.
 
 **Backoff formula (failure only):**
 ```
@@ -322,7 +326,8 @@ node schedule.mjs <subcommand> [flags] [positional...]
 ```
 
 Flags use `--key value` or `--key=value`. Multi-value flags use repeated
-`--codex-arg value`. Boolean flags: `--json`, `--all`, `--once`, `--help`.
+`--codex-arg value` or `--resume-arg value`. Boolean flags: `--json`, `--all`,
+`--once`, `--help`.
 
 ### 4.1 `parse-schedule`
 
@@ -440,12 +445,17 @@ detection as acquisition (ESRCH check).
 
 **Optional flags:**
 ```
+--runner <name>        auto (default), tmux-send, resume-command, or codex-exec
 --codex-bin <path>     default: "codex" (resolved via PATH)
 --codex-arg <arg>      repeatable; appended after fixed codex args
+--tmux-bin <path>      default: "tmux" (tmux-send only)
+--tmux-target <pane>   tmux target pane; defaults to TMUX_PANE (tmux-send only)
+--resume-command <p>   executable to run (resume-command only)
+--resume-arg <arg>     repeatable argv for resume-command
 --now <ISO>            override current time (testing/backfill)
 ```
 
-**Codex invocation (exact):**
+**`codex-exec` invocation (exact):**
 ```sh
 <codexBin> exec --cd <cwd> --json --output-last-message <p> [allowlisted --codex-arg ...] -
 ```
@@ -454,6 +464,29 @@ are inserted **before** the `-` stdin sentinel so codex parses them as flags.
 The child's stdout is streamed straight into `<p>`'s sibling `.jsonl`
 file via a file descriptor — unbounded, never truncated by a buffer limit.
 
+**`auto` runner selection:**
+1. use `tmux-send` when `--tmux-target` is supplied or `TMUX_PANE` is set
+2. otherwise use `resume-command` when `--resume-command` is supplied
+3. otherwise use `codex-exec`
+
+**`tmux-send` invocation sequence:**
+```sh
+tmux set-buffer -b <unique-buffer> -- <prompt>
+tmux show-buffer -b <unique-buffer>
+tmux send-keys -t <target> C-u
+tmux paste-buffer -t <target> -b <unique-buffer> -p -d
+tmux send-keys -t <target> Enter
+```
+The `show-buffer` output must match the prompt (allowing one trailing newline
+from tmux output). `--tmux-target` is required unless `TMUX_PANE` is set.
+
+**`resume-command` invocation:**
+```sh
+<resumeCommand> [--resume-arg ...]
+```
+The task prompt is written to stdin and the command runs with `cwd` set to the
+task's stored `cwd`.
+
 **Output (stdout):**
 ```
 run <id> succeeded
@@ -461,9 +494,9 @@ run <id> failed exit=<n>
 run-due: no due tasks      (when none were due)
 ```
 
-**Effect:** acquires lock; for each due task runs codex, writes run files
-under `runs/<taskId>/`, updates task in `tasks.json`; releases lock. A due
-`schedule` task recomputes its `nextRunAt`; a due `once` task becomes
+**Effect:** acquires lock; for each due task runs the selected runner, writes
+run files under `runs/<taskId>/`, updates task in `tasks.json`; releases lock.
+A due `schedule` task recomputes its `nextRunAt`; a due `once` task becomes
 `cancelled`.
 
 ### 4.7 `daemon`
@@ -474,8 +507,13 @@ under `runs/<taskId>/`, updates task in `tasks.json`; releases lock. A due
 
 **Optional flags:**
 ```
+--runner <name>        auto (default), tmux-send, resume-command, or codex-exec
 --codex-bin <path>     default: "codex"
 --codex-arg <arg>      repeatable
+--tmux-bin <path>      default: "tmux" (tmux-send only)
+--tmux-target <pane>   tmux target pane; defaults to TMUX_PANE (tmux-send only)
+--resume-command <p>   executable to run (resume-command only)
+--resume-arg <arg>     repeatable argv for resume-command
 --poll-ms <n>          poll interval in ms (default: 5000)
 --once                 fire one poll pass then exit
 --max-runs <n>         exit after N total runs (across all tasks)
@@ -537,6 +575,10 @@ codex exec --cd <cwd> --json --output-last-message <path> [allowlisted args] -
 
 No `--dangerously-bypass-approvals-and-sandbox` or equivalent flags are added
 automatically, and none can be smuggled in via `--codex-arg` (see §5.2).
+
+`tmux-send` does not invoke `codex exec`; it only injects the prompt into the
+target tmux pane. `resume-command` is an explicit local hook and receives the
+prompt on stdin; choose a trusted local executable.
 
 ### 5.2 `--codex-arg` pass-through validation (default-deny ALLOWLIST)
 

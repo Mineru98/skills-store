@@ -5,7 +5,7 @@ description: Run a Codex prompt on a cron schedule or at a specific future time.
 
 ## Overview
 
-`schedule.mjs` is a dependency-free Node ESM scheduler that registers and fires `codex exec` jobs on a cron schedule or at a one-shot future time. It keeps task state under `.codex/schedule/` and exposes 8 subcommands: `parse-schedule`, `add`, `list`, `cancel`, `status`, `run-due`, `daemon`, `doctor`.
+`schedule.mjs` is a dependency-free Node ESM scheduler that registers and fires Codex prompts on a cron schedule or at a one-shot future time. Its default `auto` runner checks for an existing tmux Codex pane first, then a custom resume command, then falls back to `codex exec`. It keeps task state under `.codex/schedule/` and exposes 8 subcommands: `parse-schedule`, `add`, `list`, `cancel`, `status`, `run-due`, `daemon`, `doctor`.
 
 For fixed-interval repeats (`/loop 10m ...`), use the separate `loop` skill — this skill is cron/one-shot only.
 
@@ -79,6 +79,51 @@ node scripts/schedule.mjs daemon \
 The daemon holds a **single-runner lock** (`scheduled_tasks.lock/`). A second daemon against the same state root fails while the first is alive and reclaims only a provably stale lock (dead PID).
 
 `run-due --state-root .codex/schedule` does one on-demand due-check pass without occupying the daemon lock continuously — useful for CI triggers or manual testing.
+
+### Choose how due prompts are delivered
+
+Default mode is `--runner auto`, which chooses the first available delivery path:
+
+1. `tmux-send` when `--tmux-target` or `TMUX_PANE` is present
+2. `resume-command` when `--resume-command` is present
+3. `codex-exec` as the compatibility fallback
+
+```sh
+node scripts/schedule.mjs daemon \
+  --state-root .codex/schedule \
+  --runner auto \
+  --tmux-target "$TMUX_PANE" \
+  --resume-command /path/to/resume-codex-session
+```
+
+To force a fresh `codex exec` run:
+
+```sh
+node scripts/schedule.mjs daemon \
+  --state-root .codex/schedule \
+  --runner codex-exec
+```
+
+To type the prompt into an already-running Codex pane in tmux, use `tmux-send`:
+
+```sh
+node scripts/schedule.mjs daemon \
+  --state-root .codex/schedule \
+  --runner tmux-send \
+  --tmux-target "$TMUX_PANE"
+```
+
+`tmux-send` uses a named tmux buffer, verifies the buffer content, clears the pane composer with `C-u`, pastes with bracketed paste, then presses Enter. Pass `--tmux-bin /path/to/tmux` if `tmux` is not on `PATH`.
+
+When there is no tmux pane, use `resume-command` as a local hook. The command receives the prompt on stdin and runs in the scheduled task's `--cwd`:
+
+```sh
+node scripts/schedule.mjs daemon \
+  --state-root .codex/schedule \
+  --runner resume-command \
+  --resume-command /path/to/resume-codex-session \
+  --resume-arg optional-arg
+```
 
 ### Verify setup
 

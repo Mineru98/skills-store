@@ -456,17 +456,35 @@ function buildTask({ kind, prompt, cwd, cron, at, forcedNextRun }) {
 }
 
 // ---------------------------------------------------------------------------
-// Running a task via codex exec
+// Running a task
 // ---------------------------------------------------------------------------
-function runTaskOnce(stateRoot, task, codexBin, codexArgs) {
+function createRunFiles(stateRoot, task) {
   const startedAt = new Date();
   const ts = fsSafeTimestamp(startedAt);
   const runDir = path.join(stateRoot, 'runs', task.id);
   fs.mkdirSync(runDir, { recursive: true });
-  const jsonlPath = path.join(runDir, `${ts}.jsonl`);
-  const lastPath = path.join(runDir, `${ts}.last.txt`);
-  const stderrPath = path.join(runDir, `${ts}.stderr.txt`);
+  return {
+    startedAt,
+    jsonlPath: path.join(runDir, `${ts}.jsonl`),
+    lastPath: path.join(runDir, `${ts}.last.txt`),
+    stderrPath: path.join(runDir, `${ts}.stderr.txt`),
+  };
+}
 
+function removeEmptyFile(filePath) {
+  try {
+    if (fs.statSync(filePath).size === 0) fs.rmSync(filePath, { force: true });
+  } catch { /* ignore */ }
+}
+
+function resultFromExit(startedAt, jsonlPath, lastPath, exitCode, spawnErrorCode = null) {
+  const finishedAt = new Date();
+  const status = exitCode === 0 ? 'succeeded' : 'failed';
+  return { startedAt, finishedAt, exitCode, status, jsonlPath, lastPath, spawnErrorCode };
+}
+
+function runTaskViaCodexExec(stateRoot, task, codexBin, codexArgs) {
+  const { startedAt, jsonlPath, lastPath, stderrPath } = createRunFiles(stateRoot, task);
   // Allowlisted pass-through args go BEFORE the `-` stdin sentinel so codex
   // reads the prompt from stdin and the extra flags are parsed as flags.
   const preArgs = ['exec', '--cd', task.cwd, '--json', '--output-last-message', lastPath];
@@ -499,9 +517,7 @@ function runTaskOnce(stateRoot, task, codexBin, codexArgs) {
   }
 
   // Preserve the historical contract: keep .stderr.txt only when non-empty.
-  try {
-    if (fs.statSync(stderrPath).size === 0) fs.rmSync(stderrPath, { force: true });
-  } catch { /* ignore */ }
+  removeEmptyFile(stderrPath);
   // codex writes the last message file; ensure it exists for a faithful contract.
   if (!fs.existsSync(lastPath)) fs.writeFileSync(lastPath, '');
 
@@ -523,9 +539,125 @@ function runTaskOnce(stateRoot, task, codexBin, codexArgs) {
     exitCode = res.status; // real codex exit code (0 on success, else the actual code)
   }
 
-  const finishedAt = new Date();
-  const status = exitCode === 0 ? 'succeeded' : 'failed';
-  return { startedAt, finishedAt, exitCode, status, jsonlPath, lastPath, spawnErrorCode };
+  return resultFromExit(startedAt, jsonlPath, lastPath, exitCode, spawnErrorCode);
+}
+
+function runSpawnStep(bin, args, { input, cwd } = {}) {
+  const res = spawnSync(bin, args, { encoding: 'utf8', input, cwd });
+  if (res.error && res.error.code === 'ENOENT') {
+    return { ok: false, exitCode: 127, errorCode: 'ENOENT', stderr: `${bin} not found (ENOENT)` };
+  }
+  if (res.error) {
+    return { ok: false, exitCode: 1, errorCode: res.error.code || 'SPAWN_ERROR', stderr: res.error.message };
+  }
+  const exitCode = res.status == null ? 1 : res.status;
+  return {
+    ok: exitCode === 0,
+    exitCode,
+    errorCode: null,
+    stdout: res.stdout || '',
+    stderr: res.stderr || '',
+  };
+}
+
+function runTaskViaTmuxSend(stateRoot, task, { tmuxBin, tmuxTarget }) {
+  if (!tmuxTarget) throw new ValidationError('tmux-send runner requires --tmux-target or TMUX_PANE');
+  const { startedAt, jsonlPath, lastPath, stderrPath } = createRunFiles(stateRoot, task);
+  const bufferName = `codex-schedule-${task.id}-${fsSafeTimestamp(startedAt)}`;
+  const steps = [
+    ['set-buffer', '-b', bufferName, '--', task.prompt],
+    ['show-buffer', '-b', bufferName],
+    ['send-keys', '-t', tmuxTarget, 'C-u'],
+    ['paste-buffer', '-t', tmuxTarget, '-b', bufferName, '-p', '-d'],
+    ['send-keys', '-t', tmuxTarget, 'Enter'],
+  ];
+  const evidence = [];
+  for (const args of steps) {
+    const res = runSpawnStep(tmuxBin, args);
+    evidence.push({ command: [tmuxBin, ...args], exitCode: res.exitCode, stdout: res.stdout, stderr: res.stderr });
+    if (!res.ok) {
+      fs.writeFileSync(jsonlPath, evidence.map((e) => JSON.stringify(e)).join('\n') + '\n');
+      fs.writeFileSync(lastPath, `tmux-send failed while running: ${args[0]}\n`);
+      fs.writeFileSync(stderrPath, res.stderr || `tmux step failed: ${args[0]}\n`);
+      return resultFromExit(startedAt, jsonlPath, lastPath, res.exitCode, res.errorCode);
+    }
+    if (args[0] === 'show-buffer' && res.stdout.replace(/\n$/, '') !== task.prompt) {
+      fs.writeFileSync(jsonlPath, evidence.map((e) => JSON.stringify(e)).join('\n') + '\n');
+      fs.writeFileSync(lastPath, 'tmux-send failed: buffer verification mismatch\n');
+      fs.writeFileSync(stderrPath, 'tmux buffer verification mismatch\n');
+      return resultFromExit(startedAt, jsonlPath, lastPath, 1);
+    }
+  }
+  fs.writeFileSync(jsonlPath, evidence.map((e) => JSON.stringify(e)).join('\n') + '\n');
+  fs.writeFileSync(lastPath, `tmux-send injected prompt into ${tmuxTarget}\n`);
+  removeEmptyFile(stderrPath);
+  return resultFromExit(startedAt, jsonlPath, lastPath, 0);
+}
+
+function runTaskViaResumeCommand(stateRoot, task, { resumeCommand, resumeArgs }) {
+  if (!resumeCommand) throw new ValidationError('resume-command runner requires --resume-command');
+  const { startedAt, jsonlPath, lastPath, stderrPath } = createRunFiles(stateRoot, task);
+  const stdoutFd = fs.openSync(jsonlPath, 'w');
+  let stderrFd;
+  try {
+    stderrFd = fs.openSync(stderrPath, 'w');
+  } catch (err) {
+    try { fs.closeSync(stdoutFd); } catch { /* ignore */ }
+    throw err;
+  }
+  let res;
+  try {
+    res = spawnSync(resumeCommand, resumeArgs, {
+      input: task.prompt,
+      cwd: task.cwd,
+      stdio: ['pipe', stdoutFd, stderrFd],
+    });
+  } finally {
+    try { fs.closeSync(stdoutFd); } catch { /* ignore */ }
+    try { fs.closeSync(stderrFd); } catch { /* ignore */ }
+  }
+  removeEmptyFile(stderrPath);
+  let exitCode;
+  let spawnErrorCode = null;
+  if (res.error && res.error.code === 'ENOENT') {
+    spawnErrorCode = 'ENOENT';
+    exitCode = 127;
+  } else if (res.error) {
+    spawnErrorCode = res.error.code || 'SPAWN_ERROR';
+    exitCode = 1;
+  } else if (res.status == null) {
+    exitCode = 1;
+  } else {
+    exitCode = res.status;
+  }
+  if (!fs.existsSync(lastPath)) {
+    const message = exitCode === 0 ? 'resume-command completed\n' : `resume-command failed exit=${exitCode}\n`;
+    fs.writeFileSync(lastPath, message);
+  }
+  return resultFromExit(startedAt, jsonlPath, lastPath, exitCode, spawnErrorCode);
+}
+
+function runTaskOnce(stateRoot, task, runnerOptions) {
+  let runner = runnerOptions.runner;
+  if (runner === 'auto') {
+    if (runnerOptions.tmuxTarget) {
+      runner = 'tmux-send';
+    } else if (runnerOptions.resumeCommand) {
+      runner = 'resume-command';
+    } else {
+      runner = 'codex-exec';
+    }
+  }
+  switch (runner) {
+    case 'codex-exec':
+      return runTaskViaCodexExec(stateRoot, task, runnerOptions.codexBin, runnerOptions.codexArgs);
+    case 'tmux-send':
+      return runTaskViaTmuxSend(stateRoot, task, runnerOptions);
+    case 'resume-command':
+      return runTaskViaResumeCommand(stateRoot, task, runnerOptions);
+    default:
+      throw new ValidationError(`unknown runner: ${runnerOptions.runner}`);
+  }
 }
 
 function applyRunResult(task, result) {
@@ -558,7 +690,16 @@ function applyRunResult(task, result) {
 }
 
 // Core due-check pass. `alreadyLocked` => caller holds the lock (daemon).
-function runDuePass(stateRoot, { codexBin = 'codex', codexArgs = [], now = new Date() } = {}, alreadyLocked = false) {
+function runDuePass(stateRoot, {
+  runner = 'auto',
+  codexBin = 'codex',
+  codexArgs = [],
+  tmuxBin = 'tmux',
+  tmuxTarget = process.env.TMUX_PANE || '',
+  resumeCommand = '',
+  resumeArgs = [],
+  now = new Date(),
+} = {}, alreadyLocked = false) {
   const doPass = () => {
     const data = readTasks(stateRoot);
     const nowMs = now.getTime();
@@ -567,7 +708,15 @@ function runDuePass(stateRoot, { codexBin = 'codex', codexArgs = [], now = new D
     );
     const summaries = [];
     for (const task of due) {
-      const result = runTaskOnce(stateRoot, task, codexBin, codexArgs);
+      const result = runTaskOnce(stateRoot, task, {
+        runner,
+        codexBin,
+        codexArgs,
+        tmuxBin,
+        tmuxTarget,
+        resumeCommand,
+        resumeArgs,
+      });
       applyRunResult(task, result);
       if (result.status === 'succeeded') {
         summaries.push(`run ${task.id} succeeded`);
@@ -618,7 +767,7 @@ function resolveCodexBin(bin) {
 // Argument parsing
 // ---------------------------------------------------------------------------
 const BOOL_FLAGS = new Set(['json', 'all', 'once', 'help']);
-const MULTI_FLAGS = new Set(['codex-arg']);
+const MULTI_FLAGS = new Set(['codex-arg', 'resume-arg']);
 
 function parseArgv(argv) {
   const flags = {};
@@ -787,15 +936,29 @@ function cmdStatus(args) {
 
 function cmdRunDue(args) {
   const stateRoot = requireFlag(args, 'state-root');
+  const runner = getFlag(args, 'runner') || 'auto';
   const codexBin = getFlag(args, 'codex-bin') || 'codex';
   const codexArgs = args.multi['codex-arg'] || [];
+  const tmuxBin = getFlag(args, 'tmux-bin') || 'tmux';
+  const tmuxTarget = getFlag(args, 'tmux-target') || process.env.TMUX_PANE || '';
+  const resumeCommand = getFlag(args, 'resume-command') || '';
+  const resumeArgs = args.multi['resume-arg'] || [];
   const nowFlag = getFlag(args, 'now');
   let now = new Date();
   if (nowFlag) {
     now = new Date(nowFlag);
     if (isNaN(now.getTime())) throw new ValidationError(`invalid --now: ${nowFlag}`);
   }
-  const summaries = runDuePass(stateRoot, { codexBin, codexArgs, now });
+  const summaries = runDuePass(stateRoot, {
+    runner,
+    codexBin,
+    codexArgs,
+    tmuxBin,
+    tmuxTarget,
+    resumeCommand,
+    resumeArgs,
+    now,
+  });
   if (summaries.length === 0) {
     process.stdout.write('run-due: no due tasks\n');
   } else {
@@ -805,8 +968,13 @@ function cmdRunDue(args) {
 
 function cmdDaemon(args) {
   const stateRoot = requireFlag(args, 'state-root');
+  const runner = getFlag(args, 'runner') || 'auto';
   const codexBin = getFlag(args, 'codex-bin') || 'codex';
   const codexArgs = args.multi['codex-arg'] || [];
+  const tmuxBin = getFlag(args, 'tmux-bin') || 'tmux';
+  const tmuxTarget = getFlag(args, 'tmux-target') || process.env.TMUX_PANE || '';
+  const resumeCommand = getFlag(args, 'resume-command') || '';
+  const resumeArgs = args.multi['resume-arg'] || [];
   const pollMs = getFlag(args, 'poll-ms') ? parseInt(getFlag(args, 'poll-ms'), 10) : 5000;
   const once = hasFlag(args, 'once');
   const maxRuns = getFlag(args, 'max-runs') ? parseInt(getFlag(args, 'max-runs'), 10) : Infinity;
@@ -822,7 +990,16 @@ function cmdDaemon(args) {
   try {
     process.stdout.write(`daemon: started (poll-ms=${pollMs}${once ? ' once' : ''})\n`);
     for (;;) {
-      const summaries = runDuePass(stateRoot, { codexBin, codexArgs, now: new Date() }, true);
+      const summaries = runDuePass(stateRoot, {
+        runner,
+        codexBin,
+        codexArgs,
+        tmuxBin,
+        tmuxTarget,
+        resumeCommand,
+        resumeArgs,
+        now: new Date(),
+      }, true);
       for (const s of summaries) process.stdout.write(s + '\n');
       fired += summaries.length;
       if (once) break;

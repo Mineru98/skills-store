@@ -361,6 +361,12 @@ Codex 프롬프트를 정해진 주기로 반복하거나(`loop`) cron·특정 �
 
 상시 durable 스케줄이 필요하면 Codex 앱 Automations를 먼저 권장하고, 이 스킬은 터미널 로컬 폴백입니다. `daemon`이 떠 있어야만 작업이 발화됩니다.
 
+`schedule`은 기본적으로 `auto` runner를 사용해 due 프롬프트를 다음 순서로 전달합니다.
+
+1. `tmux-send` - `--tmux-target` 또는 `TMUX_PANE`이 실행 중인 Codex pane을 가리키면 그 pane에 붙여넣고 Enter를 입력합니다.
+2. `resume-command` - `--resume-command`가 있으면 해당 로컬 hook을 실행하고 프롬프트를 stdin으로 전달합니다.
+3. `codex-exec` - 둘 다 없으면 호환성을 위해 새 `codex exec` 실행으로 fallback합니다.
+
 ### Codex 호출 예시
 
 ```text
@@ -378,12 +384,13 @@ node .codex/skills/loop/scripts/loop.mjs daemon --state-root .codex/loop
 
 # schedule: cron 작업 등록 후 데몬 실행
 node .codex/skills/schedule/scripts/schedule.mjs add --state-root .codex/schedule --cron "0 9 * * 1" --prompt "summarize open PRs" --cwd "$PWD"
-node .codex/skills/schedule/scripts/schedule.mjs daemon --state-root .codex/schedule
+node .codex/skills/schedule/scripts/schedule.mjs daemon --state-root .codex/schedule --runner auto --tmux-target "$TMUX_PANE"
 ```
 
 ### 안전 기본값
 
 - `--codex-arg` 통과는 기본 거부 화이트리스트로, 샌드박스·승인·설정 우회 인자를 차단합니다.
+- `schedule`은 tmux 입력 주입, 로컬 resume hook, `codex exec` 순서로 선택합니다. 필요하면 `--runner tmux-send`, `--runner resume-command`, `--runner codex-exec`로 특정 모드를 강제할 수 있습니다.
 - Codex 승인/샌드박스 기본값을 약화하지 않고 OS cron/launchd도 설치하지 않습니다.
 - 실행 증거는 `.codex/{loop,schedule}/runs/`에 남습니다. 상태·락·runs는 로컬 전용이라 커밋하지 않습니다.
 
