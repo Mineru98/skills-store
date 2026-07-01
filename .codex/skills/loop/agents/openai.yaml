@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop"
+  short_description: "Repeat a Codex prompt on a fixed interval loop"
+  default_prompt: "/loop 5m check CI status and summarize failures"

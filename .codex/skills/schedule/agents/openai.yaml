@@ -1,0 +1,4 @@
+interface:
+  display_name: "Schedule"
+  short_description: "Schedule a Codex prompt on cron or at a set time"
+  default_prompt: "Schedule a recurring Codex prompt (e.g. /schedule --cron '0 9 * * 1' summarize open PRs)"
