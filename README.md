@@ -4,7 +4,7 @@
 
 Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
 
-자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, E2E 계열 스킬, 문서/프롬프트/agent 순입니다.
+자주 쓰는 순서는 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, E2E 계열 스킬, `loop`/`schedule`, 문서/프롬프트/agent 순입니다.
 
 ## 빠른 사용 순서
 
@@ -16,6 +16,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 6. E2E 계획, 생성, 치유, 하네스 작업은 E2E 그룹에서 고릅니다.
 7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
 8. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
+9. Codex 프롬프트를 정해진 간격으로 반복하려면 `loop`, cron이나 특정 시각에 예약하려면 `schedule`을 씁니다.
 
 ## 저장소 구조
 
@@ -349,7 +350,56 @@ LLM_CLI=gemini .codex/skills/slide-ko-polish/polish-loop.sh slides.html
 </details>
 
 <details>
-<summary><strong>8. 문서, 프롬프트, 커밋 스킬</strong></summary>
+<summary><strong>8. loop / schedule</strong> - Codex 프롬프트 반복·예약 실행</summary>
+
+### Best use case
+
+Codex 프롬프트를 정해진 주기로 반복하거나(`loop`) cron·특정 시각에 예약해서(`schedule`) 비대화식으로 실행할 때 씁니다. 두 스킬은 서로 독립이며 상태·데몬·락을 각자 관리합니다.
+
+- `loop` - 고정 간격 반복. 예: `/loop 10m check CI status`. 상태는 `.codex/loop/`.
+- `schedule` - cron 또는 특정 시각 1회. 예: `/schedule --cron "0 9 * * 1" summarize open PRs`, `--at <ISO-8601>`. 상태는 `.codex/schedule/`.
+
+상시 durable 스케줄이 필요하면 Codex 앱 Automations를 먼저 권장하고, 이 스킬은 터미널 로컬 폴백입니다. `daemon`이 떠 있어야만 작업이 발화됩니다.
+
+### Codex 호출 예시
+
+```text
+$loop 5분마다 CI 상태를 확인해줘.
+```
+
+```text
+$schedule 매주 월요일 오전 9시에 열린 PR을 요약해줘.
+```
+
+```bash
+# loop: 간격 작업 등록 후 데몬 실행
+node .codex/skills/loop/scripts/loop.mjs add --state-root .codex/loop --interval 10m --prompt "check CI status" --cwd "$PWD"
+node .codex/skills/loop/scripts/loop.mjs daemon --state-root .codex/loop
+
+# schedule: cron 작업 등록 후 데몬 실행
+node .codex/skills/schedule/scripts/schedule.mjs add --state-root .codex/schedule --cron "0 9 * * 1" --prompt "summarize open PRs" --cwd "$PWD"
+node .codex/skills/schedule/scripts/schedule.mjs daemon --state-root .codex/schedule
+```
+
+### 안전 기본값
+
+- `--codex-arg` 통과는 기본 거부 화이트리스트로, 샌드박스·승인·설정 우회 인자를 차단합니다.
+- Codex 승인/샌드박스 기본값을 약화하지 않고 OS cron/launchd도 설치하지 않습니다.
+- 실행 증거는 `.codex/{loop,schedule}/runs/`에 남습니다. 상태·락·runs는 로컬 전용이라 커밋하지 않습니다.
+
+### 포함 파일
+
+```text
+.codex/skills/loop/scripts/loop.mjs
+.codex/skills/loop/references/loop-contract.md
+.codex/skills/schedule/scripts/schedule.mjs
+.codex/skills/schedule/references/schedule-contract.md
+```
+
+</details>
+
+<details>
+<summary><strong>9. 문서, 프롬프트, 커밋 스킬</strong></summary>
 
 ### Codex 호출 예시
 
@@ -389,7 +439,7 @@ gpt-55-prompt-architect 스킬로 기존 프롬프트를 GPT-5.5용으로 재설
 </details>
 
 <details>
-<summary><strong>9. Claude Code 전용 스킬</strong></summary>
+<summary><strong>10. Claude Code 전용 스킬</strong></summary>
 
 ### Codex에는 없는 Claude Code 스킬
 
@@ -410,7 +460,7 @@ commands-creator 스킬로 /release-note 명령을 만들어줘.
 </details>
 
 <details>
-<summary><strong>10. Codex agent</strong></summary>
+<summary><strong>11. Codex agent</strong></summary>
 
 ### 사용 가능한 agent
 
@@ -434,7 +484,7 @@ songcopy agent로 B2B SaaS 랜딩 페이지 헤드라인 5개를 뽑아줘.
 </details>
 
 <details>
-<summary><strong>11. Claude Code agent</strong></summary>
+<summary><strong>12. Claude Code agent</strong></summary>
 
 ### 사용 가능한 agent
 
@@ -480,7 +530,9 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `install-skill`
 - `irasutoya-search`
 - `kill-process`
+- `loop`
 - `migrate-skill-agent`
+- `schedule`
 - `slide-ko-polish`
 - `visual-companion`
 
