@@ -1,4 +1,0 @@
-interface:
-  display_name: "AI-Slop Document Auditor"
-  short_description: "Audit Korean documents for AI-feel"
-  default_prompt: "Use $ai-slop-document-auditor to audit this Korean document for AI-feel signals."
