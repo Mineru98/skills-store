@@ -17,6 +17,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
 8. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 9. Codex 프롬프트를 정해진 간격으로 반복하려면 `loop`, cron이나 특정 시각에 예약하려면 `schedule`을 씁니다.
+10. GitHub 이슈를 착수할 때는 `issue-start`로 이슈 분석부터 워크트리 생성까지 한 번에 처리합니다.
 
 ## 저장소 구조
 
@@ -519,6 +520,64 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 
 </details>
 
+<details>
+<summary><strong>13. issue-start</strong> - GitHub 이슈 분석과 워크트리 준비</summary>
+
+### Best use case
+
+`issue-start`는 GitHub 이슈 하나를 착수하기 직전에 씁니다.
+
+이슈 본문만 훑고 바로 브랜치를 파면 스크린샷에 있던 조건이나 라벨이 가리키는 영역을 놓치기 쉽습니다. 브랜치 이름과 워크트리 경로도 사람마다 갈립니다.
+
+이 스킬은 `gh`로 이슈 본문, 코멘트, 라벨을 받아오고 첨부 이미지까지 내려받아 실제로 열어봅니다. 그 내용을 코드베이스와 대조해 원인 가설과 작업 계획을 만든 뒤, 이슈 번호 기반 브랜치와 워크트리를 같은 규칙으로 만듭니다.
+
+적합한 작업:
+
+- 스크린샷이 붙은 버그 이슈 착수
+- 이슈 하나당 워크트리 하나로 병렬 작업하는 흐름
+- 착수 전에 원인 가설과 검증 방법을 먼저 정리하고 싶을 때
+
+부적합한 작업:
+
+- 이슈 없이 바로 시작하는 작업
+- 이미 워크트리가 있고 구현만 남은 상태
+
+### Codex 호출 예시
+
+```text
+$issue-start #59
+```
+
+### Claude Code 호출 예시
+
+```text
+/issue-start #59
+```
+
+### 동작
+
+1. `gh issue view`로 본문, 코멘트, 라벨, 첨부 이미지를 `.issue-start/<번호>/`에 수집
+2. 라벨과 본문 키워드로 관련 코드를 찾아 대조 분석
+3. 원인 가설, 작업 계획, 검증 방법을 `plan.md`로 저장
+4. `<prefix>/<번호>-<slug>` 브랜치를 기본 브랜치에서 분기하고 `<repo>-issue-<번호>` 워크트리 생성
+
+### 하지 않는 일
+
+- 코드 수정. 분석, 계획, 워크트리 준비까지만 합니다
+- 이슈 상태 변경, 코멘트 작성, PR 생성
+
+### 관련 파일
+
+```text
+.codex/skills/issue-start/SKILL.md
+.codex/skills/issue-start/scripts/issue-start.mjs
+.claude/commands/issue-start.md
+```
+
+요구사항은 `git`, 로그인된 `gh`, `curl`, Node 18 이상입니다.
+
+</details>
+
 ## Codex 자산 목록
 
 <details>
@@ -536,6 +595,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `irasutoya-search`
+- `issue-start`
 - `kill-process`
 - `loop`
 - `migrate-skill-agent`
@@ -598,6 +658,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 - `commit`
 - `kill-process`
 - `audit`
+- `issue-start`
 
 </details>
 

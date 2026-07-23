@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Start"
+  short_description: "Analyze a GitHub issue and prepare its worktree"
+  default_prompt: "Use $issue-start to analyze GitHub issue #<number>, including its screenshots, and prepare a branch and worktree for it."
