@@ -17,7 +17,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
 8. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 9. Codex 프롬프트를 정해진 간격으로 반복하려면 `loop`, cron이나 특정 시각에 예약하려면 `schedule`을 씁니다.
-10. GitHub 이슈를 착수할 때는 `issue-start`로 이슈 분석부터 워크트리 생성까지 한 번에 처리합니다.
+10. GitHub 이슈를 착수할 때는 `issue-start`로 이슈 분석부터 워크트리 생성까지 한 번에 처리하고, 마무리는 `issue-end`로 증거 캡처부터 PR·정리까지 이어갑니다.
 
 ## 저장소 구조
 
@@ -569,12 +569,66 @@ $issue-start #59
 ### 관련 파일
 
 ```text
-.codex/skills/issue-start/SKILL.md
-.codex/skills/issue-start/scripts/issue-start.mjs
-.claude/commands/issue-start.md
+.claude/skills/issue-start/SKILL.md
+.claude/skills/issue-start/references/{issue-collection,frontend-analysis,backend-analysis,worktree}.md
+.claude/skills/issue-start/scripts/issue-start.mjs
+.codex/skills/issue-start/  (같은 구성)
 ```
 
+SKILL.md는 라우팅만 하고, 이슈 성격(frontend/backend)에 따라 references 문서로 분기합니다.
+
 요구사항은 `git`, 로그인된 `gh`, `curl`, Node 18 이상입니다.
+
+</details>
+
+<details>
+<summary><strong>14. issue-end</strong> - 증거 캡처와 이슈 마무리</summary>
+
+### Best use case
+
+`issue-end`는 작업이 끝난 시점부터 브랜치 정리까지를 맡습니다. 핵심은 "말로 끝났다고 하지 않고 증거로 끝낸다"입니다.
+
+프론트엔드 작업이면 Playwright로 전/후 화면을 webp로 찍고, 백엔드 작업이면 성능 지표를 전/후 비교표로 만듭니다. 그 증거를 이슈 코멘트에 붙이고, 이미지가 `.gitignore`에 걸려 커밋되지 않는 문제와 브랜치 삭제로 이미지 링크가 깨지는 문제를 함께 해결합니다.
+
+### Codex 호출 예시
+
+```text
+$issue-end
+```
+
+### Claude Code 호출 예시
+
+```text
+/issue-end
+```
+
+### 동작
+
+1. `context`로 워크트리 여부, 브랜치, 이슈, 기존 PR을 판단하고 애매하면 사용자에게 의도를 확인
+2. 변경 파일로 frontend / backend / both를 판정해 해당 references로 분기
+3. 전/후 증거 생성 (webp 캡처 또는 성능 비교표)
+4. `.gitignore` 예외 + `git add -f`로 증거를 작업 브랜치에 커밋
+5. 기본 브랜치에도 증거만 담긴 커밋을 미러링. 브랜치 보호로 막히면 `evidence/issue-<번호>`로 폴백
+6. 이슈 코멘트에 브랜치 기준 URL과 미러 기준 URL을 모두 삽입해 둘 중 하나는 항상 렌더링
+7. 이슈 링크 확인 → PR 생성 → merge → 브랜치·워크트리 정리를 각각 사용자 확인 후 진행
+
+### 워크트리가 아니거나 이슈가 없어도 동작
+
+- 워크트리가 아니면 현재 브랜치에서 진행할지 먼저 묻습니다
+- 이슈가 없으면 `no-issue-<브랜치>` 키로 로컬 증거만 만들고 코멘트 단계를 건너뜁니다
+- 이슈는 있는데 현재 작업 트리와 무관해 보이면 어느 이슈에 붙일지 묻습니다
+
+### 관련 파일
+
+```text
+.claude/skills/issue-end/SKILL.md
+.claude/skills/issue-end/references/{context-triage,frontend-evidence,backend-evidence,evidence-commit,wrapup-flow}.md
+.claude/skills/issue-end/scripts/issue-end.mjs   # context / init / commit / mirror / urls
+.claude/skills/issue-end/scripts/capture.mjs     # Playwright → webp 캡처
+.codex/skills/issue-end/  (같은 구성)
+```
+
+요구사항은 `git`, 로그인된 `gh`, Node 18 이상이고, 프론트 캡처에는 Playwright와 webp 변환 도구(sharp / cwebp / ffmpeg 중 하나)가 필요합니다.
 
 </details>
 
@@ -595,6 +649,7 @@ $issue-start #59
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `irasutoya-search`
+- `issue-end`
 - `issue-start`
 - `kill-process`
 - `loop`
@@ -642,6 +697,8 @@ $issue-start #59
 - `imagine`
 - `install-skill`
 - `irasutoya-search`
+- `issue-end`
+- `issue-start`
 - `mcp-builder`
 - `migrate-skill-agent`
 - `premium-korean-aesthetic`
@@ -658,7 +715,6 @@ $issue-start #59
 - `commit`
 - `kill-process`
 - `audit`
-- `issue-start`
 
 </details>
 

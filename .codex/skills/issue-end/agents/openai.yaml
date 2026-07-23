@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue End"
+  short_description: "Capture before/after evidence, comment on the issue, then PR and clean up"
+  default_prompt: "Use $issue-end to wrap up the current work: capture before/after evidence, comment on the issue, commit the evidence, and guide PR and cleanup."
