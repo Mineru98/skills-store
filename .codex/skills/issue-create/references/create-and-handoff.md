@@ -23,11 +23,24 @@ node <skill>/scripts/issue-create.mjs create \
 ## 산출물
 
 ```text
-.issue-start/<번호>/request.md    원본 요청 + 이슈 링크
+.issue/<번호>/request.md    원본 요청 + 이슈 링크
 ```
 
 `issue-start` 가 같은 디렉터리를 쓰기 때문에 4단계 대조 분석에서 이 파일을 바로 읽는다.
-`.issue-start/` 가 `.gitignore` 에 없으면 스크립트가 경고한다. 추가를 제안한다(커밋 대상이 아니다).
+
+`create` 는 `.gitignore` 에 `.issue` 블록이 없으면 **직접 추가한다.** 경고만 하고 넘어가지 않는다.
+
+```gitignore
+# issue-* workspace — evidence only stays committed so issue comments render
+.issue/**
+!.issue/*/
+!.issue/*/evidence/
+!.issue/*/evidence/**
+.issue/**/.auth.json
+.issue/**/storage-state.json
+```
+
+`request.md` 와 `plan.md` 는 무시되고, 나중에 `issue-start` 가 만드는 `.issue/<번호>/evidence/` 만 커밋된다. 이슈 코멘트의 이미지가 raw URL 로 렌더링되려면 증거는 커밋돼야 하기 때문이다.
 
 ## 인라인 방식 (스크립트가 없을 때)
 
@@ -35,8 +48,9 @@ node <skill>/scripts/issue-create.mjs create \
 gh issue create --title "<제목>" --body-file /tmp/issue-draft.md --label bug
 # 출력 URL 끝의 숫자가 이슈 번호
 
-mkdir -p .issue-start/<번호>
-cp /tmp/issue-draft.md .issue-start/<번호>/request.md
+mkdir -p .issue/<번호>
+cp /tmp/issue-draft.md .issue/<번호>/request.md
+# 위 .gitignore 블록도 직접 추가한다
 ```
 
 ## 인계

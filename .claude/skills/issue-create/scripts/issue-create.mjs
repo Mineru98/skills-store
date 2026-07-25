@@ -27,8 +27,11 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import {
+  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR,
+} from './issue-common.mjs';
 
-const DEFAULT_OUT = '.issue-start';
+export { parseIssueNumber };
 
 /** 성숙도 판정 임계값 */
 const THRESHOLD = {
@@ -75,8 +78,9 @@ create options:
   --label <name>       라벨 (여러 번 지정 가능, 저장소에 있는 것만)
   --assignee <login>   담당자 (@me 가능)
   --request-file <f>   원본 요청 기록. 생략 시 --body-file 을 복사
-  --out <dir>          request.md 저장 위치 (기본: ${DEFAULT_OUT})
   --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin)
+
+request.md 는 ${WORKSPACE_DIR}/<번호>/ 에 남고, ${WORKSPACE_DIR} 는 .gitignore 에 자동 등록된다.
   --dry-run            gh 를 호출하지 않고 실행 계획만 출력
   -h, --help           이 도움말
 `);
@@ -96,15 +100,6 @@ function must(cmd, args, opts = {}) {
     process.exit(res.status ?? 1);
   }
   return (res.stdout ?? '').trim();
-}
-
-function repoRoot() {
-  const res = run('git', ['rev-parse', '--show-toplevel']);
-  if (res.status !== 0) {
-    console.error('✗ git 저장소가 아니다. 저장소 안에서 실행하라.');
-    process.exit(1);
-  }
-  return res.stdout.trim();
 }
 
 function quoteArgs(args) {
@@ -336,11 +331,6 @@ function cmdEnsureLabel(name, root, opts) {
 
 /* ----------------------------------------------------------------- create */
 
-export function parseIssueNumber(urlOrText) {
-  const m = String(urlOrText ?? '').match(/\/issues\/(\d+)/) ?? String(urlOrText ?? '').match(/(\d+)\s*$/);
-  return m ? Number(m[1]) : null;
-}
-
 function cmdCreate(root, opts) {
   if (!opts.title || !opts.bodyFile) {
     console.error('✗ --title 과 --body-file 이 모두 필요하다.');
@@ -370,7 +360,7 @@ function cmdCreate(root, opts) {
     process.exit(1);
   }
 
-  const dir = path.resolve(root, opts.out, String(number));
+  const dir = issueDir(root, number);
   mkdirSync(dir, { recursive: true });
   const requestSrc = path.resolve(opts.requestFile ?? bodyPath);
   const request = existsSync(requestSrc) ? readFileSync(requestSrc, 'utf8') : '';
@@ -379,9 +369,8 @@ function cmdCreate(root, opts) {
     `# #${number} 착수 요청 기록\n\n- 이슈: ${url}\n- 생성: issue-create\n\n---\n\n${request.trim()}\n`,
   );
 
-  const gitignore = path.join(root, '.gitignore');
-  const ignored = existsSync(gitignore) && readFileSync(gitignore, 'utf8').includes(opts.out);
-  if (!ignored) console.log(`! ${opts.out}/ 이 .gitignore 에 없다. 추가를 권한다.`);
+  // 경고만 하지 않고 직접 등록한다. 사용자가 손댈 일을 남기지 않는다.
+  if (ensureIgnoreBlock(root)) console.log(`  .gitignore 에 ${WORKSPACE_DIR} 블록을 추가했다.`);
 
   console.log(`✓ 이슈 생성 완료 — #${number} ${opts.title}`);
   console.log(`  요청 기록: ${path.relative(root, path.join(dir, 'request.md'))}`);
@@ -403,7 +392,7 @@ function main() {
     usage();
   }
 
-  const opts = { dryRun: false, out: DEFAULT_OUT, labels: [] };
+  const opts = { dryRun: false, labels: [] };
   let positional = null;
   for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -417,7 +406,6 @@ function main() {
     else if (arg === '--state') opts.state = argv[++i];
     else if (arg === '--color') opts.color = argv[++i];
     else if (arg === '--desc') opts.desc = argv[++i];
-    else if (arg === '--out') opts.out = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
     else if (arg.startsWith('-')) {
       console.error(`✗ 알 수 없는 옵션: ${arg}`);

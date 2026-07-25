@@ -1,4 +1,4 @@
 interface:
   display_name: "Issue Create"
-  short_description: "Draft and register a GitHub issue before starting work"
-  default_prompt: "Use $issue-create to turn this change request into a GitHub issue that $issue-start can pick up."
+  short_description: "Register a GitHub issue before any code change begins"
+  default_prompt: "Use $issue-create to turn this change request into a GitHub issue: check repo maturity, search for duplicates, draft the issue, and register it with labels after approval."

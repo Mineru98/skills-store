@@ -5,10 +5,10 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
 
 <skill>
   <purpose>
-    `issue-start` 앞단을 채운다.
-    이슈 없이 시작된 변경 요청을 받아, 등록할 만한 프로젝트인지 판정하고 중복을 확인한 뒤
+    사용자의 변경 요청이 기본 브랜치에서 바로 시작되지 않게 막고, 먼저 이슈로 등록한다.
+    등록할 만한 프로젝트인지 판정하고 중복을 확인한 뒤,
     착수 분석에 바로 쓸 수 있는 이슈를 만들어 번호를 넘긴다.
-    구현은 하지 않는다.
+    이슈 등록이 유일한 목표다. 계획·구현·증거는 전부 `issue-start` 의 몫이다.
   </purpose>
 
   <inputs>
@@ -28,6 +28,12 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
     <always>references/create-and-handoff.md — 등록과 issue-start 인계</always>
   </routing>
 
+  <subagents>
+    <agent name="issue-verifier" claude-model="haiku" codex-model="gpt-5.6-luna">
+      전제 확인 · 유사 이슈 중복 검사 · 작업 성격 판정
+    </agent>
+  </subagents>
+
   <hard-rules>
     <rule>코드를 수정하지 않는다. 이슈 생성까지만 한다.</rule>
     <rule>초안을 보여주고 승인받기 전에는 이슈를 등록하지 않는다.</rule>
@@ -41,8 +47,9 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
 
   <handoff>
     이슈를 만든 뒤 착수 여부를 묻고, 예면 같은 번호로 `issue-start` 를 이어서 실행한다.
-    `.issue-start/<번호>/request.md` 에 원본 요청을 남겨 `issue-start` 의 대조 분석이 재사용한다.
-    흐름은 `issue-create` → `issue-start` → `issue-end`.
+    `.issue/<번호>/request.md` 에 원본 요청을 남겨 `issue-start` 의 대조 분석이 재사용한다.
+    `.gitignore` 의 `.issue` 블록은 등록 시 자동으로 들어간다.
+    흐름은 `issue-create` → `issue-start` → `issue-end` → `issue-merge`.
   </handoff>
 </skill>
 
@@ -98,6 +105,20 @@ flowchart TD
 ~/.claude/skills/issue-create    # 홈 설치
 ~/.codex/skills/issue-create     # 홈 설치
 ```
+
+`<skill>` 이 `.claude/` 밑이면 실행 계열은 **claude**, `.codex/` 밑이면 **codex** 다. 이 판별로 서브에이전트 모델을 고른다.
+
+# 서브에이전트
+
+전제 확인 · 중복 검사 · 성격 판정은 판정성 작업이라 값싼 모델에 맡긴다.
+
+```text
+claude  .claude/agents/issue-verifier.md   (model: haiku)
+codex   .codex/agents/issue-verifier.toml  (model = "gpt-5.6-luna")
+```
+
+없으면 `migrate-skill-agent.sh --agent issue-verifier --target home --link --clone` 으로 설치한다.
+실패하면 기본 서브에이전트로 진행하고 "모델 고정 실패"를 한 줄 보고한다.
 
 # 실행 순서
 
@@ -176,6 +197,6 @@ AskUserQuestion 으로 한 번에 승인받아 붙인다. 세부는 `references/
 이슈      #{issue_number} <제목>
 라벨      <붙인 라벨>
 라벨 점검  <n>건 확인 / <m>건 보정
-요청 기록  .issue-start/{issue_number}/request.md
+요청 기록  .issue/{issue_number}/request.md
 다음      /issue-start #{issue_number}
 ```
