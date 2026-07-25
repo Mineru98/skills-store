@@ -4,16 +4,22 @@
  *
  * 네 가지 모드로 나뉜다.
  *
- *   1) gate   : "이슈를 만들 만큼 자리 잡은 프로젝트인가"를 신호로 판정한다.
- *   2) search : 같은 내용의 이슈가 이미 있는지 찾는다.
- *   3) labels : 저장소에 실제로 존재하는 라벨만 쓰기 위해 목록을 뽑는다.
- *   4) create : 이슈를 만들고 issue-start 가 이어받을 request.md 를 남긴다.
+ *   1) gate      : "이슈를 만들 만큼 자리 잡은 프로젝트인가"를 신호로 판정한다.
+ *   2) search    : 같은 내용의 이슈가 이미 있는지 찾는다.
+ *   3) labels    : 저장소에 실제로 존재하는 라벨만 쓰기 위해 목록을 뽑는다.
+ *   4) create    : 이슈를 만들고 issue-start 가 이어받을 request.md 를 남긴다.
+ *   5) unlabeled : 라벨이 하나도 없는 기존 이슈를 찾는다.
+ *   6) label     : 기존 이슈에 라벨을 붙인다.
+ *   7) ensure-label : 표준 라벨이 없을 때 만든다 (사용자 승인 후에만 호출).
  *
  * 사용:
  *   node issue-create.mjs gate
  *   node issue-create.mjs search "탭 활성 상태"
  *   node issue-create.mjs labels
  *   node issue-create.mjs create --title "..." --body-file draft.md --label bug
+ *   node issue-create.mjs unlabeled --state open
+ *   node issue-create.mjs label 59 --label bug
+ *   node issue-create.mjs ensure-label enhancement
  *
  * 요구사항: git, gh(로그인 상태), Node 18+
  */
@@ -55,6 +61,9 @@ function usage(exitCode = 1) {
   node issue-create.mjs search "<질의>" [--repo <owner/name>] [--limit <n>]
   node issue-create.mjs labels [--repo <owner/name>]
   node issue-create.mjs create --title <제목> --body-file <파일> [options]
+  node issue-create.mjs unlabeled [--state open|all] [--limit <n>] [--repo <o/n>]
+  node issue-create.mjs label <issue-number> --label <name> [--label <name>...]
+  node issue-create.mjs ensure-label <name> [--color <hex>] [--desc <설명>]
 
 gate:
   커밋 수·원격·이슈 이력·빌드 설정·소스 규모를 확인해
@@ -96,6 +105,10 @@ function repoRoot() {
     process.exit(1);
   }
   return res.stdout.trim();
+}
+
+function quoteArgs(args) {
+  return args.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(' ');
 }
 
 function ghArgs(base, opts) {
@@ -210,6 +223,117 @@ function cmdLabels(root, opts) {
   console.log(`LABELS=${list.map((l) => l.name).join(',')}`);
 }
 
+/* -------------------------------------------------------- label 점검·부착 */
+
+/** 표준 라벨과 GitHub 기본 색상. ensure-label 이 만들 때 쓴다. */
+const STANDARD_LABELS = {
+  bug: { color: 'd73a4a', description: "Something isn't working" },
+  enhancement: { color: 'a2eeef', description: 'New feature or request' },
+  documentation: { color: '0075ca', description: 'Improvements or additions to documentation' },
+  chore: { color: 'cfd3d7', description: 'Maintenance and cleanup' },
+};
+
+function cmdUnlabeled(root, opts) {
+  const args = ghArgs(
+    [
+      'issue', 'list',
+      '--state', opts.state ?? 'open',
+      '--limit', String(opts.limit ?? 50),
+      '--json', 'number,title,labels,url,createdAt',
+    ],
+    opts,
+  );
+  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
+  if (res.status !== 0) {
+    console.log('UNLABELED=0');
+    console.log('LIST_FAILED=1');
+    return;
+  }
+  let list = [];
+  try {
+    list = JSON.parse(res.stdout || '[]');
+  } catch {
+    list = [];
+  }
+  const bare = list.filter((it) => !(it.labels ?? []).length);
+  for (const it of bare) {
+    console.log(`  #${it.number} ${it.title}`);
+    console.log(`     ${it.url}`);
+  }
+  if (!bare.length) console.log('  (라벨 없는 이슈 없음)');
+  console.log('');
+  console.log(`SCANNED=${list.length}`);
+  console.log(`UNLABELED=${bare.length}`);
+  console.log(`UNLABELED_NUMBERS=${bare.map((i) => i.number).join(' ')}`);
+}
+
+function cmdLabel(number, root, opts) {
+  if (!number) {
+    console.error('✗ 이슈 번호가 필요하다 (예: label 59 --label bug)');
+    usage();
+  }
+  if (!opts.labels.length) {
+    console.error('✗ --label 이 하나 이상 필요하다.');
+    usage();
+  }
+  const args = ghArgs(['issue', 'edit', String(number)], opts);
+  for (const label of opts.labels) args.push('--add-label', label);
+
+  if (opts.dryRun) {
+    console.log(`(dry-run) gh ${quoteArgs(args)}`);
+    return;
+  }
+  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
+  if (res.status !== 0) {
+    console.log(`LABELED=0`);
+    console.log(`FAILED_ISSUE=${number}`);
+    return;
+  }
+  console.log(`✓ #${number} ← ${opts.labels.join(', ')}`);
+  console.log('');
+  console.log('LABELED=1');
+  console.log(`ISSUE_NUMBER=${number}`);
+}
+
+function cmdEnsureLabel(name, root, opts) {
+  if (!name) {
+    console.error('✗ 라벨 이름이 필요하다 (예: ensure-label enhancement)');
+    usage();
+  }
+  const listed = run('gh', ghArgs(['label', 'list', '--limit', '100', '--json', 'name'], opts), {
+    cwd: root,
+    stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  let existing = [];
+  try {
+    existing = JSON.parse(listed.stdout || '[]').map((l) => l.name);
+  } catch {
+    existing = [];
+  }
+  if (existing.includes(name)) {
+    console.log(`✓ 이미 있다: ${name}`);
+    console.log('');
+    console.log('CREATED=0');
+    console.log(`LABEL=${name}`);
+    return;
+  }
+
+  const preset = STANDARD_LABELS[name] ?? {};
+  const args = ghArgs(['label', 'create', name], opts);
+  args.push('--color', opts.color ?? preset.color ?? 'ededed');
+  if (opts.desc ?? preset.description) args.push('--description', opts.desc ?? preset.description);
+
+  if (opts.dryRun) {
+    console.log(`(dry-run) gh ${quoteArgs(args)}`);
+    return;
+  }
+  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
+  console.log(res.status === 0 ? `✓ 라벨 생성: ${name}` : `✗ 라벨 생성 실패: ${name}`);
+  console.log('');
+  console.log(`CREATED=${res.status === 0 ? 1 : 0}`);
+  console.log(`LABEL=${name}`);
+}
+
 /* ----------------------------------------------------------------- create */
 
 export function parseIssueNumber(urlOrText) {
@@ -233,7 +357,7 @@ function cmdCreate(root, opts) {
   if (opts.assignee) args.push('--assignee', opts.assignee);
 
   if (opts.dryRun) {
-    console.log(`(dry-run) gh ${args.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(' ')}`);
+    console.log(`(dry-run) gh ${quoteArgs(args)}`);
     console.log('\n아무것도 생성하지 않았다.');
     return;
   }
@@ -274,7 +398,7 @@ function main() {
   if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
   const mode = argv[0];
-  if (!['gate', 'search', 'labels', 'create'].includes(mode)) {
+  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label'].includes(mode)) {
     console.error(`✗ 알 수 없는 모드: ${mode}`);
     usage();
   }
@@ -290,6 +414,9 @@ function main() {
     else if (arg === '--label') opts.labels.push(argv[++i]);
     else if (arg === '--assignee') opts.assignee = argv[++i];
     else if (arg === '--limit') opts.limit = argv[++i];
+    else if (arg === '--state') opts.state = argv[++i];
+    else if (arg === '--color') opts.color = argv[++i];
+    else if (arg === '--desc') opts.desc = argv[++i];
     else if (arg === '--out') opts.out = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
     else if (arg.startsWith('-')) {
@@ -302,6 +429,9 @@ function main() {
   if (mode === 'gate') cmdGate(root, opts);
   else if (mode === 'search') cmdSearch(positional, root, opts);
   else if (mode === 'labels') cmdLabels(root, opts);
+  else if (mode === 'unlabeled') cmdUnlabeled(root, opts);
+  else if (mode === 'label') cmdLabel(parseIssueNumber(positional), root, opts);
+  else if (mode === 'ensure-label') cmdEnsureLabel(positional, root, opts);
   else cmdCreate(root, opts);
 }
 

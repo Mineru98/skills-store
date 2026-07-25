@@ -1,6 +1,6 @@
 ---
 name: issue-create
-description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸는 요청을 받았는데 연결된 GitHub 이슈가 없으면, 저장소가 이미 동작하는 단계인지 먼저 판정하고 유사 이슈를 검색한 뒤 issue-start 가 그대로 이어받을 형식의 이슈 초안을 만들어 승인받고 등록합니다. `/issue-create`, "이슈 만들어줘", "이슈부터 등록" 요청과 이슈 없이 시작되는 변경 작업에 사용합니다. 초기 스캐폴딩만 있는 신규 프로젝트나 이미 이슈 번호가 있는 작업에는 사용하지 않습니다.
+description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸는 요청을 받았는데 연결된 GitHub 이슈가 없으면, 저장소가 이미 동작하는 단계인지 먼저 판정하고 유사 이슈를 검색한 뒤 issue-start 가 그대로 이어받을 형식의 이슈 초안을 만들어 승인받고 라벨과 함께 등록하며, 라벨이 빠진 기존 이슈까지 점검해 보정합니다. `/issue-create`, "이슈 만들어줘", "이슈부터 등록" 요청과 이슈 없이 시작되는 변경 작업에 사용합니다. 초기 스캐폴딩만 있는 신규 프로젝트나 이미 이슈 번호가 있는 작업에는 사용하지 않습니다.
 ---
 
 <skill>
@@ -17,13 +17,14 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과</item>
+    <item>`gh auth status` 통과 — 실패하면 `gh-setup` 스킬로 설치·로그인을 먼저 끝낸다</item>
     <item>git, Node 18+</item>
   </preconditions>
 
   <routing>
     <always>references/maturity-gate.md — 이슈를 만들 단계인지 판정</always>
     <always>references/issue-draft.md — 초안 작성과 라벨 선택</always>
+    <always>references/label-audit.md — 라벨 부착과 기존 이슈 라벨 점검</always>
     <always>references/create-and-handoff.md — 등록과 issue-start 인계</always>
   </routing>
 
@@ -33,6 +34,8 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
     <rule>성숙도 게이트가 SKIP 이면 조용히 빠지고 원래 요청을 방해하지 않는다.</rule>
     <rule>사용자가 `/issue-create` 를 직접 호출하면 게이트를 건너뛴다.</rule>
     <rule>유사한 열린 이슈가 있으면 새로 만들지 않고 그 번호를 제시한다.</rule>
+    <rule>만든 이슈에는 라벨을 반드시 하나 이상 붙인다.</rule>
+    <rule>라벨을 새로 만들거나 기존 이슈의 라벨을 바꾸는 것은 사용자 승인 후에만 한다.</rule>
     <rule>이슈 상태 변경, 코멘트 작성, PR 생성을 하지 않는다.</rule>
   </hard-rules>
 
@@ -71,9 +74,16 @@ flowchart TD
     G --> H{초안 승인?}
     H -- 수정 --> G
     H -- 취소 --> Z0
-    H -- 승인 --> I[create: gh issue create + request.md]
+    H -- 승인 --> I[create: gh issue create + 라벨 부착 + request.md]
 
-    I --> J{바로 착수할까요?}
+    I --> M[unlabeled: 라벨 없는 기존 이슈 점검]
+    M -- 없음 --> J
+    M -- 있음 --> M1[제목·본문으로 라벨 제안]
+    M1 --> M2{일괄 적용 승인?}
+    M2 -- 아니오 --> J
+    M2 -- 예 --> M3[label: 이슈별 라벨 부착] --> J
+
+    J{바로 착수할까요?}
     J -- 예 --> K[issue-start 실행]
     J -- 아니오 --> L[이슈 번호와 명령만 안내]
 ```
@@ -98,7 +108,9 @@ git rev-parse --show-toplevel
 gh auth status
 ```
 
-실패하면 그 사실을 알리고, 이슈 본문 초안만 마크다운으로 남긴 뒤 중단한다.
+`gh` 가 없거나 인증에 실패하면 **`gh-setup` 스킬을 실행해** 설치·로그인을 끝낸 뒤 이어서 진행한다.
+`gh-setup` 이 없는 환경이면 그 사실을 알리고, 이슈 본문 초안만 마크다운으로 남긴 뒤 중단한다.
+git 저장소가 아니면 그대로 중단한다.
 
 ## 1단계 — 성숙도 게이트
 
@@ -140,15 +152,30 @@ both            사용자 플로우 전체를 다루거나 API 계약 변경이 
 `references/issue-draft.md` 를 따른다. 저장소에 이슈 템플릿이 있으면 그것을 우선한다.
 초안 전문을 보여주고 AskUserQuestion 으로 승인 / 수정 / 취소를 받는다.
 
-## 5단계 — 등록과 인계
+## 5단계 — 등록
 
-`references/create-and-handoff.md` 를 따른다.
+`references/create-and-handoff.md` 를 따른다. **라벨 없이 등록하지 않는다.**
+쓸 라벨이 저장소에 하나도 없으면 `references/label-audit.md` 의 라벨 생성 절차를 먼저 밟는다.
+
+## 6단계 — 기존 이슈 라벨 점검
+
+```bash
+node <skill>/scripts/issue-create.mjs unlabeled --state open
+```
+
+`UNLABELED` 가 0 이면 그대로 넘어간다. 0 이 아니면 각 이슈의 제목·본문을 읽고 라벨을 제안한 뒤,
+AskUserQuestion 으로 한 번에 승인받아 붙인다. 세부는 `references/label-audit.md`.
+
+## 7단계 — 인계
+
+착수 여부를 묻고, 예면 같은 번호로 `issue-start` 를 이어서 실행한다.
 
 ## 마무리 보고
 
 ```text
 이슈      #{issue_number} <제목>
 라벨      <붙인 라벨>
+라벨 점검  <n>건 확인 / <m>건 보정
 요청 기록  .issue-start/{issue_number}/request.md
 다음      /issue-start #{issue_number}
 ```

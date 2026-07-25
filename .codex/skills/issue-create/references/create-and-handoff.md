@@ -17,6 +17,9 @@ node <skill>/scripts/issue-create.mjs create \
 
 출력 마지막의 `ISSUE_NUMBER` / `ISSUE_URL` / `NEXT` 를 그대로 보고에 쓴다.
 
+`--label` 은 생략하지 않는다. 붙일 라벨을 정하지 못했으면 등록 전에 `references/label-audit.md` 로 돌아간다.
+등록 직후 `unlabeled` 로 기존 이슈의 라벨도 점검한다.
+
 ## 산출물
 
 ```text

@@ -82,7 +82,8 @@ node <skill>/scripts/issue-create.mjs labels
 삭제·정리      chore        → chore/
 ```
 
-해당 라벨이 없으면 붙이지 않는다. 라벨을 새로 만들지 않는다.
+쓸 라벨이 저장소에 하나도 없으면 `label-audit.md` 의 절차대로 **승인을 받고** 만든다. 승인 없이 만들지 않는다.
+등록 후 기존 이슈의 라벨 점검까지가 한 세트다. 세부는 `label-audit.md`.
 
 ## 승인
 
