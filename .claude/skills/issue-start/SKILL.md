@@ -16,7 +16,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과</item>
+    <item>`gh auth status` 통과 — 실패하면 `gh-setup` 스킬로 설치·로그인을 먼저 끝낸다</item>
     <item>git, curl, Node 18+</item>
   </preconditions>
 
@@ -102,7 +102,8 @@ git rev-parse --show-toplevel
 gh auth status
 ```
 
-둘 중 하나라도 실패하면 그 사실을 먼저 알리고 중단한다.
+`gh` 쪽이 실패하면 **`gh-setup` 스킬을 실행해** 설치·로그인을 끝낸 뒤 이어서 진행한다.
+`gh-setup` 이 없거나 git 저장소가 아니면 그 사실을 먼저 알리고 중단한다.
 
 ## 1단계 — 체크리스트 생성
 

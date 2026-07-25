@@ -29,7 +29,7 @@ onBaseBranch = true                      경고 후 확인. main 에 직접 커�
 이슈는 있으나 현재 브랜치와 무관해 보임   AskUserQuestion: 그 이슈에 붙임 / 다른 번호 / 이슈 없이
 openPr 존재                              기존 PR 번호를 알리고 새 PR 대신 코멘트만 추가할지 확인
 dirty > 0                                커밋되지 않은 변경 목록을 먼저 보여주고 어떻게 할지 확인
-ghAuth = false                           이슈 연동 불가를 알리고 로컬 증거 생성만 진행
+ghAuth = false                           `gh-setup` 스킬로 설치·로그인을 제안. 거절하면 로컬 증거 생성만 진행
 ```
 
 ## 질문 규칙

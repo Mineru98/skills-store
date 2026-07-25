@@ -17,7 +17,7 @@ description: 작업을 마무리할 때 프론트엔드는 Playwright webp 전/�
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과 (이슈 연동을 건너뛸 때는 선택)</item>
+    <item>`gh auth status` 통과 (이슈 연동을 건너뛸 때는 선택) — 실패하면 `gh-setup` 스킬로 해결하거나 로컬 증거만 만든다</item>
     <item>Node 18+ / 프론트 캡처 시 Playwright</item>
   </preconditions>
 
