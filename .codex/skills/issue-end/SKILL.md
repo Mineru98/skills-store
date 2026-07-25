@@ -1,54 +1,54 @@
 ---
 name: issue-end
-description: 작업을 마무리할 때 프론트엔드는 Playwright webp 전/후 캡처, 백엔드는 성능 전/후 비교표로 증거를 만들어 GitHub 이슈에 코멘트하고, 증거 이미지를 gitignore 예외로 커밋한 뒤 워크트리 브랜치와 기본 브랜치 양쪽에 남겨 렌더링을 보장하고, push → 이슈 확인 → PR → merge → 워크트리 정리까지 사용자 확인을 받아 진행합니다. `/issue-end`, "이슈 마무리", "작업 종료", "증거 캡처 후 PR" 요청에 사용합니다.
+description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합니다. 증거가 충분한지 재확인하고 부족하면 변경 직전 상태의 워크트리를 만들어 다시 캡처한 뒤, 증거와 리포트를 기본 브랜치에 반드시 커밋하고 이슈에 반드시 코멘트를 남긴 다음 PR 을 만듭니다. merge 는 하지 않고 issue-merge 로 넘깁니다. `/issue-end`, "이슈 마무리", "작업 종료", "증거 확인하고 PR" 요청에 사용합니다.
 ---
 
 <skill>
   <purpose>
-    이슈 하나의 작업이 끝난 시점부터 브랜치 정리까지의 마무리 절차를 한 번에 수행한다.
-    핵심은 "말로 끝났다고 하지 않고 증거로 끝낸다"는 것이다.
-    프론트엔드는 화면 전/후 webp 캡처, 백엔드는 성능/동작 전후 비교표가 그 증거다.
+    구현이 끝난 작업을 남들이 검증할 수 있는 상태로 만든다.
+    증거를 재확인하고, 기본 브랜치에 증거와 리포트를 남기고, 이슈에 코멘트하고, PR 을 만든다.
+    merge 는 하지 않는다. 여러 워크트리를 동시에 굴리는 것이 이 스킬군의 전제이기 때문이다.
   </purpose>
 
   <inputs>
-    <arg name="$ARGUMENTS" optional="true">이슈 번호(`#59`, `59`, URL) 또는 추가 지시. 생략 가능</arg>
-    <detected>현재 워크트리 여부, 브랜치, 브랜치명에서 추론한 이슈 번호, 기존 PR</detected>
+    <arg name="$ARGUMENTS" optional="true">이슈 번호(`#59`, `59`, URL). 생략하면 브랜치 이름에서 추론</arg>
+    <detected>워크트리 여부, 브랜치, 이슈 번호, 기존 PR, 증거 완결성</detected>
   </inputs>
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과 (이슈 연동을 건너뛸 때는 선택) — 실패하면 `gh-setup` 스킬로 해결하거나 로컬 증거만 만든다</item>
-    <item>Node 18+ / 프론트 캡처 시 Playwright</item>
+    <item>`gh auth status` 통과 — 실패하면 `gh-setup` 스킬로 먼저 해결</item>
+    <item>Node 18+. 재캡처가 필요하면 Playwright 와 sharp/cwebp/ffmpeg 중 하나</item>
   </preconditions>
 
   <routing>
-    <branch name="frontend" when="변경 파일이 UI 계층(컴포넌트/페이지/스타일/뷰)이거나 이슈가 화면 동작을 다룸">
-      references/frontend-evidence.md
-    </branch>
-    <branch name="backend" when="변경 파일이 API/쿼리/배치/인프라이거나 이슈가 성능·정확성·부하를 다룸">
-      references/backend-evidence.md
-    </branch>
-    <branch name="both" when="풀스택 변경">두 레퍼런스를 모두 읽고 증거 섹션을 두 개로 나눈다</branch>
-    <branch name="neither" when="문서/설정 변경으로 캡처도 측정도 의미 없음">
-      증거 단계를 건너뛰되 무엇을 왜 건너뛰는지 코멘트에 남긴다
-    </branch>
-    <always>references/context-triage.md — 상황 판단과 사용자 의도 확인</always>
-    <always>references/evidence-commit.md — gitignore 예외, 이중 커밋, 렌더링 URL</always>
-    <always>references/wrapup-flow.md — push / PR / merge / 정리 확인 절차</always>
+    <always>references/context-triage.md — 상황 판단과 확인 질문</always>
+    <always>references/evidence-recheck.md — 증거 완결성 검사와 pure-tree 재캡처</always>
+    <always>references/report-and-pr.md — 기본 브랜치 증거 커밋 · 이슈 코멘트 · PR</always>
+    <always>references/next-actions.md — 다음 행동 4지선다와 issue-merge 위임</always>
   </routing>
 
+  <subagents>
+    <agent name="issue-verifier" claude-model="haiku" codex-model="gpt-5.6-luna">
+      증거 완결성 점검 · 작업 성격 재판정
+    </agent>
+  </subagents>
+
   <hard-rules>
-    <rule>push, PR 생성, merge, 브랜치·워크트리 삭제는 매번 사용자 확인을 받는다. 묶어서 한 번에 승인받지 않는다.</rule>
-    <rule>증거 이미지는 `git add -f` 와 `.gitignore` 예외를 함께 적용한다. 둘 중 하나만 하지 않는다.</rule>
-    <rule>이슈 코멘트에는 작업 브랜치 기준 URL 과 기본 브랜치(또는 evidence 브랜치) 기준 URL 을 모두 넣는다.</rule>
+    <rule>증거와 리포트를 기본 브랜치에 커밋·푸시하는 6단계와 이슈에 코멘트하는 7단계는 필수다. 건너뛰지 않는다.</rule>
+    <rule>증거가 없으면 PR 을 만들지 않는다. 왜 만들 수 없는지 보고하고 멈춘다.</rule>
+    <rule>merge 를 실행하지 않는다. 요청받으면 `issue-merge` 로 위임한다.</rule>
+    <rule>워크트리를 삭제하지 않는다. 정리는 `issue-merge` 가 통합 후에 한다.</rule>
+    <rule>push 와 PR 생성은 각각 따로 확인받는다. 묶어서 승인받지 않는다.</rule>
+    <rule>현재 워크트리에서 브랜치를 갈아타지 않는다. 기본 브랜치 작업은 임시 워크트리에서 한다.</rule>
     <rule>이슈 번호를 확정하지 못한 상태에서 임의의 이슈에 코멘트하지 않는다.</rule>
-    <rule>측정값·캡처를 지어내지 않는다. 실행하지 못했으면 못 했다고 쓴다.</rule>
+    <rule>측정값과 캡처를 지어내지 않는다. 악화된 지표도 그대로 적는다.</rule>
   </hard-rules>
 
   <non-goals>
-    <item>기능 구현. 이 스킬은 이미 끝난 작업의 마무리만 한다</item>
-    <item>merge 후 배포</item>
-    <item>이슈 본문 수정</item>
+    <item>기능 구현 — `issue-start` 의 몫</item>
+    <item>merge 와 워크트리 정리 — `issue-merge` 의 몫</item>
+    <item>이슈 본문 수정 — 코멘트만 단다</item>
   </non-goals>
 </skill>
 
@@ -56,136 +56,106 @@ description: 작업을 마무리할 때 프론트엔드는 Playwright webp 전/�
 
 ```mermaid
 flowchart TD
-    A[/issue-end 호출/] --> B[context: gh + git 으로 상황 판단]
-    B --> C{워크트리인가?}
-    C -- 아니오 --> C1[AskUserQuestion:<br/>현재 브랜치에서 그대로 진행할지 확인]
-    C1 --> D
-    C -- 예 --> D{이슈와 연결되는가?}
+    A[/"/issue-end"/] --> B[context: 워크트리·브랜치·이슈·PR·증거 상태]
+    B --> C{상황 확인}
+    C -- 워크트리 아님 / 이슈 불명확 --> C1[AskUserQuestion] --> D
+    C -- 정상 --> D{evidenceComplete?}
 
-    D -- 브랜치명에서 이슈 추론됨 --> D1[이슈 제목 보여주고 맞는지 확인]
-    D -- 이슈 있으나 현재 트리와 무관 --> D2[AskUserQuestion:<br/>이 이슈에 붙일지 / 다른 번호 / 이슈 없이 진행]
-    D -- 이슈 없음 --> D3[이슈 없이 로컬 증거만 생성]
-    D1 --> E
-    D2 --> E
-    D3 --> E
+    D -- 아니오 --> E1[pure-tree: 변경 직전 워크트리]
+    E1 --> E2[before 재캡처] --> E3[pure-tree --remove] --> F
+    D -- 예 --> F[현재 커밋 상태로 after 재캡처·보강]
 
-    E{작업 성격 판정} -->|UI 변경| F1[references/frontend-evidence.md<br/>Playwright webp 전/후 캡처]
-    E -->|서버 변경| F2[references/backend-evidence.md<br/>성능 전/후 비교표]
-    E -->|둘 다| F3[두 레퍼런스 모두]
-    E -->|해당 없음| F4[증거 생략 + 사유 기록]
-
-    F1 --> G[증거 코멘트 초안 작성]
-    F2 --> G
-    F3 --> G
-    F4 --> G
-
-    G --> H[issue-end commit:<br/>gitignore 예외 + add -f + 커밋]
-    H --> I{push 할까요?}
-    I -- 예 --> J[작업 브랜치 push]
-    I -- 아니오 --> K
-    J --> J2[issue-end mirror --push:<br/>기본 브랜치 시도 → 실패 시 evidence/issue-N]
-    J2 --> K[gh issue comment 작성]
-    K --> L[이슈 링크 반환 → 사용자 확인 요청]
-    L --> M{렌더링·내용 문제 없나요?}
-    M -- 수정 필요 --> G
-    M -- 문제 없음 --> N{PR 올릴까요?}
-    N -- 아니오 --> Z[여기서 종료 보고]
-    N -- 예 --> O[gh pr create]
-    O --> P{merge 할까요?}
-    P -- 아니오 --> Z
-    P -- 예 --> Q[gh pr merge]
-    Q --> R{브랜치와 워크트리 정리할까요?}
-    R -- 아니오 --> Z
-    R -- 예 --> S[worktree remove + branch 삭제]
-    S --> Z
+    F --> G[comment.md 작성·보강]
+    G --> H[증거 커밋 + 브랜치 push]
+    H --> I["evidence mirror --push  ← 필수"]
+    I --> J["gh issue comment  ← 필수"]
+    J --> K{코멘트 이미지 렌더링 확인}
+    K -- 깨짐 --> K1[mirrorRef·private 여부 점검] --> I
+    K -- 정상 --> L{PR 만들까?}
+    L -- 예 --> M[gh pr create · Closes #N]
+    L -- 아니오 --> N
+    M --> N[다음 행동 4지선다]
+    N -->|merge| O[/issue-merge 위임/]
+    N -->|다른 이슈| P[/issue-start 위임/]
+    N -->|새 이슈| Q[/issue-create 위임/]
+    N -->|종료| R[보고]
 ```
 
 # 스크립트 경로
 
-아래 중 **존재하는 첫 번째 경로**를 `<skill>` 로 쓴다.
+아래 중 **존재하는 첫 번째 경로**를 `<skill>` 로 쓴다. 하나도 없으면 각 레퍼런스의 인라인 절차를 쓴다.
 
 ```text
-.claude/skills/issue-end        # 현재 프로젝트 (Claude Code)
-.codex/skills/issue-end         # 현재 프로젝트 (Codex)
-~/.claude/skills/issue-end      # 홈 설치
-~/.codex/skills/issue-end       # 홈 설치
+.claude/skills/issue-end      # 현재 프로젝트 (Claude Code)
+.codex/skills/issue-end       # 현재 프로젝트 (Codex)
+~/.claude/skills/issue-end    # 홈 설치
+~/.codex/skills/issue-end     # 홈 설치
 ```
+
+`<skill>` 이 `.claude/` 밑이면 실행 계열은 **claude**, `.codex/` 밑이면 **codex** 다.
+
+# 서브에이전트
+
+```text
+claude  .claude/agents/issue-verifier.md   (model: haiku)
+codex   .codex/agents/issue-verifier.toml  (model = "gpt-5.6-luna")
+```
+
+없으면 `migrate-skill-agent.sh --agent issue-verifier --target home --link --clone` 으로 설치한다.
+실패하면 기본 서브에이전트로 진행하고 "모델 고정 실패"를 한 줄 보고한다.
 
 # 실행 순서
 
 ## 0단계 — 상황 판단
 
-먼저 상태를 읽는다. 추측하지 않는다.
-
 ```bash
 node <skill>/scripts/issue-end.mjs context
 ```
 
-출력의 `isLinkedWorktree`, `branch`, `issue`, `issueTitle`, `openPr`, `baseBranch`, `isPrivate` 를 근거로
-`references/context-triage.md` 의 분기표를 따라 사용자에게 물을 것만 묻는다.
+출력의 `isLinkedWorktree` / `issue` / `evidenceComplete` / `onBaseBranch` / `openPr` 를 읽고 분기한다.
+세부는 `references/context-triage.md`.
 
 ## 1단계 — 체크리스트 생성
 
-상황이 확정되면 TodoWrite 로 아래 체크리스트를 **그대로** 만든다. 해당 없는 항목은 만들지 않는다.
+TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
 
 ```text
-1. 상황 판단 및 이슈 확정
-2. 변경 성격 판정 (frontend / backend / both)
-3. 증거 수집 - before
-4. 증거 수집 - after
-5. 증거 코멘트 초안 작성
-6. 증거 커밋 (작업 브랜치)
-7. 작업 브랜치 push (확인 필요)
-8. 기본 브랜치 미러 커밋/푸시 (확인 필요)
-9. 이슈 코멘트 등록
-10. 이슈 링크 사용자 확인
-11. PR 생성 (확인 필요)
-12. merge (확인 필요)
-13. 브랜치·워크트리 정리 (확인 필요)
+1.  상황 판단 (context)
+2.  증거 존재·완결성 확인
+3.  누락 시 pure-tree 로 before 재캡처
+4.  현재 커밋 상태로 after 재캡처·보강
+5.  리포트 작성·보강 (comment.md)
+6.  증거·리포트를 기본 브랜치에 커밋·푸시   [필수]
+7.  이슈에 증거 기반 코멘트                [필수]
+8.  코멘트 렌더링 확인
+9.  PR 생성
+10. 다음 행동 선택
 ```
 
-각 단계를 끝낼 때마다 즉시 완료 처리한다. 한 번에 여러 개를 완료로 바꾸지 않는다.
+6번과 7번의 `[필수]` 표시를 그대로 남긴다. 사용자가 진행 상황을 볼 때 이 둘이 선택이 아님이 드러나야 한다.
 
-## 2단계 — 변경 성격 판정
+## 2~4단계 — 증거 재확인
 
-```bash
-git diff --stat "origin/$(node <skill>/scripts/issue-end.mjs context | grep -o '"baseBranch": "[^"]*"' | cut -d'"' -f4)"...HEAD
+`issue-start` 가 이미 증거를 만들어 뒀다면 여기서는 **재확인과 보강**만 한다.
+`evidenceComplete: false` 면 `pure-tree` 로 변경 직전 상태를 만들어 before 를 다시 찍는다.
+세부는 `references/evidence-recheck.md`.
+
+## 5~9단계 — 리포트·미러 커밋·코멘트·PR
+
+`references/report-and-pr.md` 를 따른다. 6·7단계는 조건부가 아니다.
+
+## 10단계 — 다음 행동
+
+`references/next-actions.md` 의 4지선다를 그대로 제시한다.
+
+## 마무리 보고
+
+```text
+이슈      #{issue_number} <제목>
+브랜치    <이름>
+증거      before <n>장 / after <n>장 (박스 <n>개)
+미러      <mirrorRef> (fallback 이면 그 사실 명시)
+코멘트    <이슈 코멘트 URL>
+PR        <PR URL 또는 "만들지 않음 — 사유">
+다음      <사용자가 고른 행동>
 ```
-
-판정 기준:
-
-- 프론트엔드 — `*.tsx`, `*.vue`, `*.svelte`, `styles*`, `components/`, `pages/`, `app/`, css/scss
-- 백엔드 — `api/`, `server/`, `service*`, `repository*`, `*.sql`, 마이그레이션, 핸들러, 배치, 워커
-- 둘 다 걸리면 both
-
-판정 결과와 근거 파일을 사용자에게 한 줄로 보고한 뒤 해당 레퍼런스를 읽는다.
-
-## 3단계 이후
-
-- 증거 수집: 판정된 레퍼런스를 따른다.
-- 커밋과 URL: `references/evidence-commit.md`.
-- push 이후 마무리: `references/wrapup-flow.md`.
-
-# 이슈 코멘트 형식
-
-```markdown
-## 작업 요약
-<무엇을 왜 바꿨는지 3줄 이내>
-
-## 변경 파일
-- `path/to/file` — 한 줄 설명
-
-## 증거
-<frontend: 전/후 캡처 표 · backend: 성능 비교표>
-
-## 검증
-```bash
-<실제로 실행한 명령>
-```
-<결과 요약>
-
-## 남은 이슈
-- 없음 / 후속 필요 항목
-```
-
-증거 이미지 링크는 반드시 두 벌을 넣는다. 자세한 형식은 `references/evidence-commit.md` 참고.
