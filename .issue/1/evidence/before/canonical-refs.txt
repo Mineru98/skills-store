@@ -1,0 +1,14 @@
+$ grep -rn 'shared/issue-common' --include='*.sh' --include='*.mjs' .
+.claude/skills/issue-create/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.claude/skills/issue-end/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.claude/skills/issue-merge/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.claude/skills/issue-start/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.codex/skills/issue-create/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.codex/skills/issue-end/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.codex/skills/issue-merge/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+.codex/skills/issue-start/scripts/issue-common.mjs:2:// canonical: shared/issue-common.mjs
+scripts/sync-shared.sh:13:SRC="$ROOT/shared/issue-common.mjs"
+scripts/sync-shared.sh:2:# shared/issue-common.mjs 정본을 각 스킬의 scripts/ 아래로 복사한다.
+scripts/sync-shared.sh:23:// canonical: shared/issue-common.mjs
+scripts/test-common.mjs:12:import * as C from '../shared/issue-common.mjs';
+scripts/test-common.mjs:3: * shared/issue-common.mjs 스모크 테스트.
