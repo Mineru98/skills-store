@@ -1,0 +1,20 @@
+# before — 변경 직전 (main / 6e980ca)
+
+## 1. status 서브커맨드가 존재하지 않는다
+$ node issue-start.mjs status 5 plan
+✗ 알 수 없는 모드: status
+Usage:
+(exit=1)
+
+## 2. unlabeled 는 단일 축 — 성격/상태 구분이 없다
+$ node issue-create.mjs unlabeled --state all --limit 20
+
+SCANNED=3
+UNLABELED=0
+UNLABELED_NUMBERS=
+
+## 3. label 에 --remove-label 이 없다
+$ node issue-create.mjs label 5 --remove-label status:open
+✗ 알 수 없는 옵션: --remove-label
+Usage:
+(exit=1)

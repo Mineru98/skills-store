@@ -1,0 +1,19 @@
+# 검증 — 테스트와 실제 라벨 왕복
+
+## 1. 단위 테스트 (라벨 순수함수 12건 신규)
+$ node scripts/test-common.mjs
+test-common: 통과
+
+## 2. 정본-사본 드리프트 (8벌 + .claude/.codex)
+$ sh scripts/check-shared.sh
+check-shared: 통과
+
+## 3. 이슈 #5 로 5단계 실제 왕복 — status 는 항상 1개, 성격 라벨 보존
+  open         → enhancement, status:open
+  plan         → enhancement, status:plan
+  in-process   → enhancement, status:in-process
+  review       → enhancement, status:review
+  close        → enhancement, status:close
+
+  (원래 자리로 복귀)
+  in-process   → enhancement, status:in-process
