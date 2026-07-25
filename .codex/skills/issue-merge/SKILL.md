@@ -41,6 +41,7 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <rule>증거로 해결이 확인되지 않은 이슈는 merge 후보에서 뺀다. 커밋 메시지는 근거가 아니다.</rule>
     <rule>비판 서브에이전트가 `block` 을 내면 계획을 고치기 전에는 merge 하지 않는다.</rule>
     <rule>이슈 close 는 통합 테스트 뒤에 한다. 순서를 바꾸지 않는다.</rule>
+    <rule>merge 전에 PR 본문의 `Closes/Fixes/Resolves #N` 을 제거한다. 두면 merge 순간 자동 close 되어 위 순서가 깨진다. 제거 실패 시 merge 하지 않는다.</rule>
     <rule>CI 가 실패한 PR 은 merge 하지 않는다.</rule>
     <rule>`evidence/issue-*` 브랜치는 삭제하지 않는다. 증거 URL 이 의존한다.</rule>
     <rule>merge 는 사용자 승인 후에 한다. 여러 PR 을 묶어서 한 번에 승인받지 않는다.</rule>
@@ -72,7 +73,8 @@ flowchart TD
     I -- proceed --> J{사용자 승인}
 
     J -- 거부 --> Z[중단]
-    J -- 승인 --> K[PR 순서대로 merge]
+    J -- 승인 --> K0[PR 본문 Closes/Fixes/Resolves 제거]
+    K0 --> K[PR 순서대로 merge]
     K --> L[통합 테스트: 각 이슈 증거 기준 재현]
     L -- 실패 --> L1[원인 보고 · 후속 이슈 제안] --> M
     L -- 통과 --> M[통과분 이슈 close]

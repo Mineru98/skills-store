@@ -72,7 +72,7 @@ flowchart TD
     J --> K{코멘트 이미지 렌더링 확인}
     K -- 깨짐 --> K1[mirrorRef·private 여부 점검] --> I
     K -- 정상 --> L{PR 만들까?}
-    L -- 예 --> M[gh pr create · Closes #N]
+    L -- 예 --> M["gh pr create · 관련 이슈 #N (Closes 금지)"]
     L -- 아니오 --> N
     M --> N[다음 행동 4지선다]
     N -->|merge| O[/issue-merge 위임/]
@@ -155,7 +155,8 @@ TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완
 브랜치    <이름>
 증거      before <n>장 / after <n>장 (박스 <n>개)
 미러      <mirrorRef> (fallback 이면 그 사실 명시)
-코멘트    <이슈 코멘트 URL>
+코멘트    <이슈 코멘트 URL> (신규 / 기존 갱신)
 PR        <PR URL 또는 "만들지 않음 — 사유">
+동기화    기본 브랜치 체크아웃에서 `git pull --rebase origin <base>` 필요
 다음      <사용자가 고른 행동>
 ```

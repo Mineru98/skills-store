@@ -7,6 +7,10 @@
 
 `.issue/<번호>/evidence/comment.md` 를 만든다. `issue-start` 가 이미 썼으면 최신 증거 기준으로 고친다.
 
+**여기서 리포트를 완전히 확정한다.** 재확인 결과·검증 요약·주의사항까지 이 단계에서 다 쓴다.
+6단계 이후에 `comment.md` 를 한 글자라도 고치면 기본 브랜치 사본이 낡아서 이슈 코멘트와 어긋난다.
+이미 고쳤다면 6단계를 다시 돌려야 한다.
+
 ### 프론트엔드
 
 ```markdown
@@ -85,6 +89,16 @@ node <skill>/scripts/issue-end.mjs mirror --issue 59 --push
 | `fallback: true` | 기본 브랜치가 보호돼 `evidence/issue-<번호>` 로 밀렸다. `mirrorRef` 가 그 브랜치다 |
 | `noChange: true` | 이미 같은 증거가 올라가 있다. 정상 |
 
+### 로컬 기본 브랜치는 뒤처진다
+
+미러는 임시 워크트리에서 `origin/<base>` 로 **직접** push 한다. 사용자의 기본 브랜치 체크아웃은 그 커밋을 모른 채 남는다. 이슈를 여러 번 돌리면 로컬 `main` 이 원격보다 몇 커밋씩 뒤처지고, 그 사이 로컬에 커밋이 하나라도 생기면 갈라져서 `git pull --ff-only` 가 실패한다.
+
+정상 동작이다. 마무리 보고에 한 줄로 알린다.
+
+```text
+기본 브랜치 체크아웃에서 `git pull --rebase origin <base>` 로 증거 커밋을 받아가세요.
+```
+
 `fallback: true` 면 **그 사실을 코멘트 하단에 명시한다.**
 
 ```markdown
@@ -105,13 +119,23 @@ node <skill>/scripts/issue-end.mjs urls --issue 59 --mirrorRef <mirror 출력의
 
 ## 7단계 — 이슈 코멘트 [필수]
 
+`issue-start` 가 이미 같은 이슈에 리포트를 달았을 수 있다. 먼저 확인한다.
+
 ```bash
-gh issue comment 59 --body-file .issue/59/evidence/comment.md
+gh issue view 59 --json comments \
+  --jq '.comments[] | select(.author.login == "'"$(gh api user --jq .login)"'") | .url'
 ```
+
+| 상황 | 명령 |
+| --- | --- |
+| 내가 단 리포트 코멘트가 이미 있다 | `gh issue comment 59 --edit-last --body-file .issue/59/evidence/comment.md` |
+| 없다 | `gh issue comment 59 --body-file .issue/59/evidence/comment.md` |
+
+**같은 내용을 새 코멘트로 또 달지 않는다.** `issue-start` → `issue-end` 를 이어서 돌리면 거의 항상 이미 있는 상태이고, 중복 코멘트는 이슈를 읽기 어렵게 만든다.
 
 - 인라인 문자열(`--body "..."`)로 넘기지 않는다. 줄바꿈과 마크다운이 깨진다.
 - `comment.md` 도 증거와 함께 커밋된 상태여야 한다. 6단계가 이미 포함한다.
-- 이전 코멘트를 고칠 때는 `gh issue comment 59 --edit-last --body-file ...`.
+- **이 단계에서 `comment.md` 를 고치지 않는다.** 고쳐야 할 것이 보이면 5단계로 돌아가 고치고 6단계를 다시 돌린 뒤 여기로 온다.
 - 이슈 번호가 확정되지 않았으면 **코멘트하지 않는다.** 남의 이슈에 다는 사고가 난다.
 
 ## 8단계 — 렌더링 확인
@@ -135,10 +159,12 @@ gh pr create --base "$BASE" --head "$(git branch --show-current)" \
   --body-file .issue/59/evidence/pr-body.md
 ```
 
-`pr-body.md` 첫 줄은 `Closes #59` 로 시작한다. merge 시 이슈가 자동으로 닫힌다.
+`pr-body.md` 첫 줄에 **`Closes` / `Fixes` / `Resolves` 를 쓰지 않는다.** 그 키워드가 있으면 merge 되는 순간 GitHub 이 이슈를 닫는데, 통합 테스트는 그 뒤에 돌아간다. 검증되지 않은 이슈가 닫혀 버린다.
+
+이슈는 `issue-merge` 가 통합 테스트를 통과시킨 뒤 명시적으로 닫는다. 추적을 잃지 않도록 참조만 남긴다.
 
 ```markdown
-Closes #59
+관련 이슈: #59 (통합 테스트 뒤 close)
 
 ## 변경 내용
 - <파일 단위 요약>
