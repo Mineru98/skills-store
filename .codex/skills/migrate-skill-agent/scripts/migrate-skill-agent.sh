@@ -4,12 +4,19 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  migrate-skill-agent.sh [--skill|--agent] <name> [--target home|project]
+  migrate-skill-agent.sh [--skill|--agent] <name> [--target home|project] [--clone] [--link] [--flavor claude|codex]
 
 Options:
   --skill <name>       Install a skill only.
   --agent <name>       Install an agent only.
   --target <target>    Target scope: home or project.
+  --clone              Clone skills-store when no local checkout is found.
+                       Clones into the first candidate whose parent exists
+                       ($HOME/SourceCode/skills-store, then $HOME/skills-store).
+                       Never uses a temporary directory.
+  --link               Symlink into the target instead of copying.
+                       Keeps the install in sync with `git pull` in the store.
+  --flavor <flavor>    Install only the claude or codex variant (default: both).
   -h, --help           Show this help.
 
 Environment for tests:
@@ -17,9 +24,14 @@ Environment for tests:
 EOF
 }
 
+STORE_URL="https://github.com/Mineru98/skills-store"
+
 TYPE=""
 NAME=""
 TARGET="${MIGRATE_TARGET:-}"
+CLONE=0
+LINK=0
+FLAVOR=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,6 +63,17 @@ while [[ $# -gt 0 ]]; do
       shift
       [[ $# -gt 0 ]] || { echo "error: --target requires home or project" >&2; exit 2; }
       TARGET="$1"
+      ;;
+    --clone)
+      CLONE=1
+      ;;
+    --link)
+      LINK=1
+      ;;
+    --flavor)
+      shift
+      [[ $# -gt 0 ]] || { echo "error: --flavor requires claude or codex" >&2; exit 2; }
+      FLAVOR="$1"
       ;;
     -h|--help)
       usage
@@ -88,6 +111,11 @@ if [[ -n "$TARGET" && "$TARGET" != "home" && "$TARGET" != "project" ]]; then
   exit 2
 fi
 
+if [[ -n "$FLAVOR" && "$FLAVOR" != "claude" && "$FLAVOR" != "codex" ]]; then
+  echo "error: --flavor must be claude or codex" >&2
+  exit 2
+fi
+
 is_skills_store_repo() {
   local dir="$1"
   [[ -d "$dir/.git" ]] || return 1
@@ -108,6 +136,24 @@ is_skills_store_repo() {
   return 1
 }
 
+# 임시 디렉터리를 쓰지 않는다. 사용자가 평소 소스를 두는 위치에 clone 해야
+# 이후 git pull 로 계속 최신을 유지할 수 있고, --link 설치가 의미를 갖는다.
+clone_store() {
+  local dest
+  for dest in "$HOME/SourceCode/skills-store" "$HOME/skills-store"; do
+    local parent
+    parent="$(dirname "$dest")"
+    [[ -d "$parent" ]] || continue
+    echo "cloning: $STORE_URL -> $dest" >&2
+    if git clone "$STORE_URL" "$dest" >&2; then
+      (cd "$dest" && pwd)
+      return 0
+    fi
+    echo "warn: clone into $dest failed" >&2
+  done
+  return 1
+}
+
 find_store() {
   local candidates=()
   if [[ -n "${MIGRATE_SKILLS_STORE_PATH:-}" ]]; then
@@ -123,7 +169,17 @@ find_store() {
     fi
   done
 
-  echo "error: skills-store repository not found" >&2
+  if [[ "$CLONE" -eq 1 ]]; then
+    local cloned
+    if cloned="$(clone_store)"; then
+      printf '%s\n' "$cloned"
+      return 0
+    fi
+    echo "error: skills-store not found and clone failed" >&2
+    exit 1
+  fi
+
+  echo "error: skills-store repository not found (pass --clone to fetch it)" >&2
   exit 1
 }
 
@@ -148,16 +204,20 @@ add_source() {
   VERIFY_REL_PATHS+=("$4")
 }
 
+want_flavor() {
+  [[ -z "$FLAVOR" || "$FLAVOR" == "$1" ]]
+}
+
 if [[ "$TYPE" != "agent" ]]; then
-  [[ -f "$STORE/.claude/skills/$NAME/SKILL.md" ]] && add_source "dir" "$STORE/.claude/skills/$NAME" ".claude/skills/$NAME" ".claude/skills/$NAME/SKILL.md"
-  [[ -f "$STORE/.codex/skills/$NAME/SKILL.md" ]] && add_source "dir" "$STORE/.codex/skills/$NAME" ".codex/skills/$NAME" ".codex/skills/$NAME/SKILL.md"
+  want_flavor claude && [[ -f "$STORE/.claude/skills/$NAME/SKILL.md" ]] && add_source "dir" "$STORE/.claude/skills/$NAME" ".claude/skills/$NAME" ".claude/skills/$NAME/SKILL.md"
+  want_flavor codex && [[ -f "$STORE/.codex/skills/$NAME/SKILL.md" ]] && add_source "dir" "$STORE/.codex/skills/$NAME" ".codex/skills/$NAME" ".codex/skills/$NAME/SKILL.md"
 fi
 
 SKILL_MATCHES="${#SOURCE_PATHS[@]}"
 
 if [[ "$TYPE" != "skill" ]]; then
-  [[ -f "$STORE/.claude/agents/$NAME.md" ]] && add_source "file" "$STORE/.claude/agents/$NAME.md" ".claude/agents/$NAME.md" ".claude/agents/$NAME.md"
-  [[ -f "$STORE/.codex/agents/$NAME.toml" ]] && add_source "file" "$STORE/.codex/agents/$NAME.toml" ".codex/agents/$NAME.toml" ".codex/agents/$NAME.toml"
+  want_flavor claude && [[ -f "$STORE/.claude/agents/$NAME.md" ]] && add_source "file" "$STORE/.claude/agents/$NAME.md" ".claude/agents/$NAME.md" ".claude/agents/$NAME.md"
+  want_flavor codex && [[ -f "$STORE/.codex/agents/$NAME.toml" ]] && add_source "file" "$STORE/.codex/agents/$NAME.toml" ".codex/agents/$NAME.toml" ".codex/agents/$NAME.toml"
 fi
 
 if [[ -z "$TYPE" && "$SKILL_MATCHES" -gt 0 && "${#SOURCE_PATHS[@]}" -gt "$SKILL_MATCHES" ]]; then
@@ -194,18 +254,36 @@ if [[ "$TARGET" == "project" && "$STORE_REAL" == "$TARGET_ROOT_REAL" ]]; then
   exit 1
 fi
 
+# --link 은 심볼릭 링크로 설치한다. 저장소에서 git pull 하면 설치본이 함께 갱신된다.
+# 기존 대상이 심볼릭 링크면 -e 가 깨진 링크에서 false 라서 -L 로도 확인해야 한다.
+link_path() {
+  local source="$1"
+  local target="$2"
+  mkdir -p "$(dirname "$target")"
+  if [[ -L "$target" ]]; then
+    rm -f "$target"
+  elif [[ -e "$target" ]]; then
+    rm -rf "$target"
+  fi
+  ln -s "$source" "$target"
+}
+
 copy_dir() {
   local source="$1"
   local target="$2"
   local source_real target_real
   mkdir -p "$(dirname "$target")"
   source_real="$(cd "$source" && pwd -P)"
-  if [[ -e "$target" ]]; then
+  if [[ -e "$target" && ! -L "$target" ]]; then
     target_real="$(cd "$target" && pwd -P)"
     if [[ "$source_real" == "$target_real" ]]; then
       echo "error: source and target are the same path: $target" >&2
       exit 1
     fi
+  fi
+  if [[ "$LINK" -eq 1 ]]; then
+    link_path "$source_real" "$target"
+    return
   fi
   rm -rf "$target"
   mkdir -p "$target"
@@ -218,12 +296,16 @@ copy_file() {
   local source_real target_real
   mkdir -p "$(dirname "$target")"
   source_real="$(cd "$(dirname "$source")" && pwd -P)/$(basename "$source")"
-  if [[ -e "$target" ]]; then
+  if [[ -e "$target" && ! -L "$target" ]]; then
     target_real="$(cd "$(dirname "$target")" && pwd -P)/$(basename "$target")"
     if [[ "$source_real" == "$target_real" ]]; then
       echo "error: source and target are the same path: $target" >&2
       exit 1
     fi
+  fi
+  if [[ "$LINK" -eq 1 ]]; then
+    link_path "$source_real" "$target"
+    return
   fi
   cp "$source" "$target"
 }
