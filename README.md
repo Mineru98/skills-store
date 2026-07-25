@@ -613,13 +613,49 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 명시적으로 부르지 않아도, 이슈 없이 변경 요청이 들어오면 스스로 발동합니다.
 
+### 라벨 체계
+
+라벨은 두 축입니다. 한 이슈에 성격 라벨 하나와 진행 상태 라벨 하나가 함께 붙습니다.
+
+```text
+성격 라벨         의미                issue-start 브랜치 prefix
+bug              동작이 잘못됨        fix/
+enhancement      기능 추가·개선       feat/
+documentation    문서                docs/
+chore            정리·설정·의존성      chore/
+```
+
+```text
+진행 상태 라벨      전환 시점                              전환 주체
+status:open        이슈 등록 직후                          issue-create  (자동)
+status:plan        이슈 수집 직후 — 분석·계획 시작           issue-start   (자동)
+status:in-process  워크트리 생성 직후 — 구현 시작            issue-start   (자동)
+status:review      PR 생성 직후                            issue-end     (수동 호출)
+status:close       이슈 close 직전                         issue-merge   (자동)
+```
+
+```text
+issue-create        issue-start              issue-end     issue-merge
+    │                   │        │                │             │
+  open ──────────────► plan ► in-process ─────► review ──────► close
+```
+
+진행 상태 라벨은 상호배타입니다. 전환은 항상 "기존 `status:*` 제거 + 새 것 추가"가 한 번에 일어나며,
+네 스킬 모두 같은 `status` 서브커맨드를 노출합니다.
+
+```bash
+node <skill>/scripts/issue-start.mjs status 59 in-process   # 접두사 생략 가능
+```
+
+전환 실패는 흐름을 막지 않습니다(`STATUS_FAILED=1`). 라벨은 메타데이터이지 게이트가 아닙니다.
+
 ### 동작
 
 1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
 2. `search`로 유사한 열린 이슈를 찾고, 있으면 새로 만들지 않고 그 번호를 제시
 3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정
-4. 초안 전문을 보여주고 승인받은 뒤 라벨과 함께 `gh issue create`
-5. `unlabeled`로 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
+4. 초안 전문을 보여주고 승인받은 뒤 성격 라벨과 함께 `gh issue create`, 이어서 `status:open` 자동 부착
+5. `unlabeled`로 성격 라벨 / 진행 상태 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
 6. `.issue/<번호>/request.md`에 원본 요청을 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 `issue-start`로 인계
 
 전제 확인·중복 검사·성격 판정은 `issue-verifier` 서브에이전트에 맡깁니다 (Claude는 `haiku`, Codex는 `gpt-5.6-luna`).
@@ -628,7 +664,7 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 - 코드 수정. 이슈 생성까지만 합니다
 - 승인 없는 등록, 승인 없는 라벨 생성, 이슈 상태 변경·코멘트·PR 생성
-- 이미 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다)
+- 이미 성격 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다. `status:*`는 상호배타라 예외적으로 교체합니다)
 - 게이트가 SKIP이면 아무 말 없이 빠집니다
 
 ### 관련 파일
@@ -636,7 +672,7 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 ```text
 .claude/skills/issue-create/SKILL.md
 .claude/skills/issue-create/references/{maturity-gate,issue-draft,label-audit,create-and-handoff}.md
-.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label
+.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label / status
 .claude/skills/issue-create/scripts/issue-common.mjs   # 공용 모듈 (vendored)
 .codex/skills/issue-create/  (같은 구성 + agents/openai.yaml)
 ```

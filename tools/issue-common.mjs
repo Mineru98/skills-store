@@ -55,6 +55,36 @@ export const LABEL_PREFIX = [
   [/^(chore|maintenance)$/i, 'chore'],
 ];
 
+/** 성격 라벨의 색·설명 프리셋. ensureLabel 이 만들 때 쓴다. */
+export const STANDARD_LABELS = {
+  bug: { color: 'd73a4a', description: "Something isn't working" },
+  enhancement: { color: 'a2eeef', description: 'New feature or request' },
+  documentation: { color: '0075ca', description: 'Improvements or additions to documentation' },
+  chore: { color: 'cfd3d7', description: 'Maintenance and cleanup' },
+};
+
+/**
+ * 진행 상태 라벨. 파이프라인 순서대로.
+ *
+ * 성격 라벨(bug 등)과 축이 다르다. 한 이슈에 성격 라벨 하나 + status 하나가 공존하고,
+ * status 끼리는 상호배타다 — 전환은 항상 "기존 status 전부 제거 + 새 것 하나 추가".
+ */
+export const STATUS_ORDER = [
+  'status:open',
+  'status:plan',
+  'status:in-process',
+  'status:review',
+  'status:close',
+];
+
+export const STATUS_LABELS = {
+  'status:open': { color: 'ededed', description: '등록됨 — 아직 착수 전' },
+  'status:plan': { color: 'fbca04', description: 'issue-start 가 분석·계획 중' },
+  'status:in-process': { color: '0e8a16', description: '워크트리에서 구현 중' },
+  'status:review': { color: '5319e7', description: 'PR 이 열려 리뷰·merge 대기 중' },
+  'status:close': { color: '6a737d', description: 'merge 되어 종료됨' },
+};
+
 export const WORKTREE_LAYOUTS = ['sibling', 'nested'];
 
 /* ------------------------------------------------------------- 프로세스 */
@@ -194,10 +224,147 @@ export function slugify(value) {
 }
 
 export function prefixFromLabels(labels = []) {
+  // status 라벨은 브랜치 prefix 결정에 관여하지 않는다. 두 축은 직교다.
+  const types = typeLabels(labels);
   for (const [re, prefix] of LABEL_PREFIX) {
-    if (labels.some((l) => re.test(l))) return prefix;
+    if (types.some((l) => re.test(l))) return prefix;
   }
   return 'fix';
+}
+
+/* ----------------------------------------------------------------- 라벨 */
+
+export function isStatusLabel(name) {
+  return /^status:/i.test(String(name ?? ''));
+}
+
+/** status 를 걸러낸 성격 라벨만 남긴다. */
+export function typeLabels(labels = []) {
+  return labels.filter((l) => !isStatusLabel(l));
+}
+
+/** "plan", "status:plan", "STATUS:PLAN" 을 모두 정규 이름으로 바꾼다. 모르면 null. */
+export function resolveStatus(raw) {
+  const s = String(raw ?? '').trim().toLowerCase();
+  if (!s) return null;
+  const full = s.startsWith('status:') ? s : `status:${s}`;
+  return STATUS_ORDER.includes(full) ? full : null;
+}
+
+function ghArgs(base, opts = {}) {
+  return opts.repo ? [...base, '--repo', opts.repo] : base;
+}
+
+/** 이슈에 실제로 붙어 있는 라벨 이름 배열. 조회 실패는 null (빈 배열과 구분한다). */
+export function issueLabels(root, number, opts = {}) {
+  const r = run('gh', ghArgs(['issue', 'view', String(number), '--json', 'labels'], opts), { cwd: root });
+  if (r.code !== 0) return null;
+  try {
+    return (JSON.parse(r.out || '{}').labels ?? []).map((l) => l.name);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 라벨이 없으면 만든다. 이미 있으면 아무것도 하지 않는다.
+ * 색·설명은 STANDARD_LABELS / STATUS_LABELS 프리셋에서 찾고, 없으면 gh 기본값에 맡긴다.
+ * 반환: 'exists' | 'created' | 'failed'
+ */
+export function ensureLabel(root, name, opts = {}) {
+  const listed = run('gh', ghArgs(['label', 'list', '--limit', '200', '--json', 'name'], opts), { cwd: root });
+  if (listed.code === 0) {
+    let existing = [];
+    try {
+      existing = JSON.parse(listed.out || '[]').map((l) => l.name);
+    } catch {
+      existing = [];
+    }
+    if (existing.includes(name)) return 'exists';
+  }
+  const preset = STATUS_LABELS[name] ?? STANDARD_LABELS[name] ?? {};
+  const args = ghArgs(['label', 'create', name], opts);
+  const color = opts.color ?? preset.color;
+  const description = opts.description ?? preset.description;
+  if (color) args.push('--color', color);
+  if (description) args.push('--description', description);
+  return run('gh', args, { cwd: root }).code === 0 ? 'created' : 'failed';
+}
+
+/**
+ * 진행 상태 라벨을 원자적으로 교체한다 — 기존 status:* 전부 제거 + 새 것 하나 추가.
+ *
+ * 라벨은 메타데이터이지 게이트가 아니다. 실패해도 흐름을 막지 않고 경고만 남긴다.
+ * 출력 계약: STATUS= / PREV_STATUS= / CHANGED=0|1, 실패 시 STATUS_FAILED=1 + FAILED_ISSUE=.
+ *
+ * opts.quiet 이면 아무것도 찍지 않고 결과만 돌려준다 — JSON 만 뱉는 호출부에서 쓴다.
+ */
+export function setStatus(root, number, status, opts = {}) {
+  const say = opts.quiet ? () => {} : (m) => console.log(m);
+  const warn = opts.quiet ? () => {} : (m) => console.warn(m);
+  const target = resolveStatus(status);
+  if (!target) {
+    console.error(`✗ 모르는 상태: ${status}`);
+    console.error(`  쓸 수 있는 값: ${STATUS_ORDER.join(', ')} (접두사 생략 가능)`);
+    process.exit(2);
+  }
+  const n = parseIssueNumber(number);
+  if (!n) {
+    console.error(`✗ 이슈 번호가 필요하다 (예: status 59 plan)`);
+    process.exit(2);
+  }
+
+  const current = issueLabels(root, n, opts);
+  if (current === null) {
+    warn(`  ! #${n} 라벨을 읽지 못해 상태 전환을 건너뛴다.`);
+    say('STATUS_FAILED=1');
+    say(`FAILED_ISSUE=${n}`);
+    return { ok: false, changed: false, status: target, previous: null };
+  }
+
+  const stale = current.filter((l) => isStatusLabel(l) && l !== target);
+  const previous = stale[0] ?? (current.includes(target) ? target : null);
+
+  if (current.includes(target) && !stale.length) {
+    say(`✓ #${n} 이미 ${target}`);
+    say(`STATUS=${target}`);
+    say(`PREV_STATUS=${previous ?? ''}`);
+    say('CHANGED=0');
+    return { ok: true, changed: false, status: target, previous };
+  }
+
+  const args = ghArgs(['issue', 'edit', String(n)], opts);
+  if (!current.includes(target)) args.push('--add-label', target);
+  for (const l of stale) args.push('--remove-label', l);
+
+  if (opts.dryRun) {
+    say(`(dry-run) gh ${args.join(' ')}`);
+    say(`STATUS=${target}`);
+    say(`PREV_STATUS=${previous ?? ''}`);
+    say('CHANGED=0');
+    return { ok: true, changed: false, status: target, previous };
+  }
+
+  if (!current.includes(target) && ensureLabel(root, target, opts) === 'failed') {
+    warn(`  ! ${target} 라벨을 만들지 못했다. 상태 전환을 건너뛴다.`);
+    say('STATUS_FAILED=1');
+    say(`FAILED_ISSUE=${n}`);
+    return { ok: false, changed: false, status: target, previous };
+  }
+
+  const res = run('gh', args, { cwd: root });
+  if (res.code !== 0) {
+    warn(`  ! #${n} 상태 전환 실패: ${res.err || res.out}`);
+    say('STATUS_FAILED=1');
+    say(`FAILED_ISSUE=${n}`);
+    return { ok: false, changed: false, status: target, previous };
+  }
+
+  say(`✓ #${n} ${previous ?? '(없음)'} → ${target}`);
+  say(`STATUS=${target}`);
+  say(`PREV_STATUS=${previous ?? ''}`);
+  say('CHANGED=1');
+  return { ok: true, changed: true, status: target, previous };
 }
 
 /** "59", "#59", 이슈 URL 에서 번호를 뽑는다. */

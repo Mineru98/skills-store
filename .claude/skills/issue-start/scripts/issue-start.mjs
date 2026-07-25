@@ -11,6 +11,10 @@
  *   evidence-mirror <n>  기본 브랜치에 증거만 커밋 (코멘트 이미지가 렌더링되게)
  *   evidence-urls <n>    코멘트에 붙일 raw 이미지 URL 출력
  *   migrate              .issue-start / .issue-evidence 를 .issue 로 이관
+ *   status <n> <상태>    진행 상태 라벨을 교체 (open|plan|in-process|review|close)
+ *
+ * fetch 는 성공 시 status:plan 으로, worktree 는 status:in-process 로 자동 전환한다.
+ * 전환을 막으려면 --no-status 를 준다.
  *
  * 사용:
  *   node issue-start.mjs fetch 59
@@ -36,9 +40,20 @@ import {
   branchExists, remoteBranchExists, existingWorktreeFor, isIgnored,
   slugify, prefixFromLabels, parseIssueNumber, inferIssue,
   issueDir, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, evidenceUrls, resolveWorktreePath, getWorktreeLayout,
-  WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
+  mirrorEvidence, evidenceUrls, resolveWorktreePath, getWorktreeLayout, setStatus,
+  WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS, STATUS_ORDER,
 } from './issue-common.mjs';
+
+/**
+ * 진행 상태 라벨을 옮긴다. 실패해도 흐름을 막지 않는다.
+ * SKILL.md 지시문에만 맡기면 빠뜨리므로, 그 시점에 어차피 도는 스크립트가 직접 부른다.
+ */
+function advanceStatus(root, number, status, opts) {
+  if (opts.noStatus || opts.dryRun) return;
+  // 원격이 GitHub 이 아니면 이슈도 라벨도 없다. gh 를 부르지 않고 조용히 넘어간다.
+  if (!opts.repo && !/github\.com/i.test(git(['remote', '-v'], { cwd: root }).out)) return;
+  setStatus(root, number, status, { repo: opts.repo });
+}
 
 function usage(exitCode = 1) {
   console.error(`Usage:
@@ -46,6 +61,7 @@ function usage(exitCode = 1) {
   node issue-start.mjs worktree <issue-number> [options]
   node issue-start.mjs guard [--issue <n>]
   node issue-start.mjs evidence-init|evidence-commit|evidence-mirror|evidence-urls <issue-number> [options]
+  node issue-start.mjs status <issue-number> <${STATUS_ORDER.map((s) => s.slice(7)).join('|')}>
   node issue-start.mjs migrate [--dry-run]
 
 fetch:
@@ -177,6 +193,9 @@ function cmdFetch(number, root, opts) {
   console.log(`SUGGESTED_PREFIX=${prefixFromLabels(labels)}`);
   console.log(`ISSUE_DIR=${rel(dir)}`);
   console.log(`IMAGE_FILES=${downloads.filter((d) => d.ok).map((d) => rel(d.path)).join(' ')}`);
+
+  // 수집에 성공했다는 건 이 이슈를 실제로 잡았다는 뜻이다. 여기서 계획 단계로 넘긴다.
+  advanceStatus(root, number, 'plan', opts);
 }
 
 /* --------------------------------------------------------------- worktree */
@@ -248,6 +267,7 @@ function cmdWorktree(number, root, opts) {
     console.log(`\n✓ 이미 워크트리가 있다: ${existing}`);
     console.log(`WORKTREE_PATH=${existing}`);
     console.log(`BRANCH=${branch}`);
+    advanceStatus(root, number, 'in-process', opts);
     return;
   }
   if (existsSync(wtPath)) {
@@ -275,6 +295,9 @@ function cmdWorktree(number, root, opts) {
   if (copied) console.log(`  ${WORKSPACE_DIR}/${number}/ 를 워크트리로 복사했다 (${copied}개 항목)`);
   console.log(`WORKTREE_PATH=${wtPath}`);
   console.log(`BRANCH=${branch}`);
+
+  // 워크트리가 섰다 = 코드가 돌아가기 시작했다.
+  advanceStatus(root, number, 'in-process', opts);
 }
 
 /**
@@ -422,6 +445,7 @@ function cmdMigrate(root, opts) {
 
 const NEEDS_NUMBER = new Set([
   'fetch', 'worktree', 'evidence-init', 'evidence-commit', 'evidence-mirror', 'evidence-urls',
+  'status',
 ]);
 const MODES = new Set([...NEEDS_NUMBER, 'guard', 'migrate']);
 
@@ -440,6 +464,7 @@ function main() {
   for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--dry-run') opts.dryRun = true;
+    else if (arg === '--no-status') opts.noStatus = true;
     else if (arg === '--push') opts.push = true;
     else if (arg === '--slug') opts.slug = argv[++i];
     else if (arg === '--prefix') opts.prefix = argv[++i];
@@ -453,7 +478,8 @@ function main() {
     else if (arg.startsWith('-')) {
       console.error(`✗ 알 수 없는 옵션: ${arg}`);
       usage();
-    } else number = parseIssueNumber(arg);
+    } else if (number === null) number = parseIssueNumber(arg);
+    else opts.extra = arg; // status 모드의 상태 이름 같은 두 번째 위치 인자
   }
 
   if (opts.layout && !WORKTREE_LAYOUTS.includes(opts.layout)) {
@@ -468,6 +494,7 @@ function main() {
   switch (mode) {
     case 'fetch': cmdFetch(number, root, opts); break;
     case 'worktree': cmdWorktree(number, root, opts); break;
+    case 'status': setStatus(root, number, opts.extra, { repo: opts.repo, dryRun: opts.dryRun }); break;
     case 'guard': cmdGuard(root, { ...opts, issue: number }); break;
     case 'evidence-init': cmdEvidenceInit(number, root); break;
     case 'evidence-commit': cmdEvidenceCommit(number, root); break;

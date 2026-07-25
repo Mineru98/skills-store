@@ -224,6 +224,8 @@ node <skill>/scripts/issue-merge.mjs plan-dir 16 21 53 64
 
 `references/verify-and-close.md` 를 따른다.
 
+`close` 는 이슈를 닫기 직전에 진행 상태 라벨을 `status:close` 로 교체한다(자동). 별도 호출이 필요 없다.
+
 ## 마무리 보고
 
 ```text
@@ -231,7 +233,7 @@ node <skill>/scripts/issue-merge.mjs plan-dir 16 21 53 64
 merge 됨    #16 #21 #53
 보류        #64 — <사유>
 통합 테스트  <통과/실패 요약>
-close 됨    #16 #21 #53
+close 됨    #16 #21 #53 (status:close)
 정리        워크트리 <n>개 제거 / base-tree 제거
 남은 것     <다음에 해야 할 것>
 ```

@@ -126,6 +126,9 @@ git -C .issue/merge/base revert <merge commit>
 node <skill>/scripts/issue-merge.mjs close --issue 53 --comment-file .issue/merge/16-21-53-64/verify/53-result.md
 ```
 
+`close` 는 닫기 **직전에** 진행 상태를 `status:close` 로 옮긴다. 출력 JSON 의 `status` / `statusChanged` 로 확인한다.
+닫힌 뒤에 붙이면 실패 여지가 늘어나므로 순서를 바꾸지 않는다. 라벨 전환을 건너뛰려면 `--no-status`.
+
 close 코멘트에는 통합 재검증 결과를 넣는다.
 
 ```markdown

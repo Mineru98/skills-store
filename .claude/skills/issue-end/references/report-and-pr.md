@@ -159,6 +159,14 @@ gh pr create --base "$BASE" --head "$(git branch --show-current)" \
   --body-file .issue/59/evidence/pr-body.md
 ```
 
+PR 생성에 성공하면 **곧바로** 진행 상태를 옮긴다. 이 저장소에서 유일하게 수동으로 불러야 하는 상태 전환이다.
+
+```bash
+node <skill>/scripts/issue-end.mjs status 59 review
+```
+
+`STATUS=status:review` / `CHANGED=1` 을 확인한다. `STATUS_FAILED=1` 이면 흐름은 계속하되 마무리 보고에 적는다.
+
 `pr-body.md` 첫 줄에 **`Closes` / `Fixes` / `Resolves` 를 쓰지 않는다.** 그 키워드가 있으면 merge 되는 순간 GitHub 이 이슈를 닫는데, 통합 테스트는 그 뒤에 돌아간다. 검증되지 않은 이슈가 닫혀 버린다.
 
 이슈는 `issue-merge` 가 통합 테스트를 통과시킨 뒤 명시적으로 닫는다. 추적을 잃지 않도록 참조만 남긴다.

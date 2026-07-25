@@ -197,6 +197,12 @@ TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완
 
 `references/report-and-pr.md` 를 따른다. 6·7단계는 조건부가 아니다.
 
+9단계에서 PR 을 만든 직후 진행 상태를 `status:review` 로 옮긴다. 다른 전환과 달리 이건 자동이 아니다.
+
+```bash
+node <skill>/scripts/issue-end.mjs status {issue_number} review
+```
+
 ## 10단계 — 다음 행동
 
 `references/next-actions.md` 의 4지선다를 그대로 제시한다.
@@ -210,6 +216,7 @@ TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완
 미러      <mirrorRef> (fallback 이면 그 사실 명시)
 코멘트    <이슈 코멘트 URL> (신규 / 기존 갱신)
 PR        <PR URL 또는 "만들지 않음 — 사유">
+상태      status:review (실패했으면 그 사실)
 동기화    기본 브랜치 체크아웃에서 `git pull --rebase origin <base>` 필요
 다음      <사용자가 고른 행동>
 ```

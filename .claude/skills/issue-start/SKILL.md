@@ -233,6 +233,9 @@ node <skill>/scripts/issue-start.mjs fetch {issue_number}
 
 세부는 `references/issue-collection.md`.
 
+수집에 성공하면 스크립트가 진행 상태 라벨을 `status:plan` 으로 옮긴다(출력의 `STATUS=`).
+이슈를 잡았다는 신호이므로 별도 호출이 필요 없다. 막으려면 `--no-status`.
+
 ## 3단계 — 작업 성격 판정
 
 `issue-verifier` 에 위임한다. 라벨, 본문 키워드, 첨부 스크린샷 유무를 근거로 삼는다.
@@ -265,6 +268,8 @@ neither         문서·설정만 바뀜 — 캡처 대신 변경 근거를 글�
 ## 5단계 — 워크트리 생성
 
 `references/worktree.md` 를 따른다. 배치 방식이 정해지지 않았으면 여기서 딱 한 번 묻고 고정한다.
+
+워크트리가 서면 스크립트가 진행 상태를 `status:in-process` 로 옮긴다. 코드가 돌아가기 시작했다는 뜻이다.
 
 ## 6단계 — before 캡처
 
@@ -312,6 +317,7 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 핵심 발견  <3줄 이내>
 계획      .issue/{issue_number}/plan.md
 워크트리   <경로> (<layout>)
+상태      status:in-process
 브랜치    <이름>
 커밋      <구현 커밋> + <증거 커밋>
 증거      before <n>장 / after <n>장 (박스 <n>개)
