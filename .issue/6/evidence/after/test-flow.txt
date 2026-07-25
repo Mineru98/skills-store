@@ -1,0 +1,45 @@
+# 변경 후 (bda2448 rebase) — test-flow 검사 결과
+
+ok    .issue/59/plan.md 로 이관
+ok    .issue/59/evidence/before 로 이관
+ok    구 .issue-start 제거
+ok    구 .issue-evidence 제거
+ok    .gitignore 에서 구 줄 제거
+ok    .gitignore 에 블록 추가
+ok    plan.md 는 스테이징되지 않음
+ok    evidence 는 스테이징됨
+ok    layout 미결정 시 exit 2
+ok    WORKTREE_LAYOUT_UNSET 출력
+ok    sibling 경로
+ok    브랜치 이름
+ok    children 안전장치가 생성을 막음
+ok    안전장치가 이유를 알림
+ok    막힌 워크트리는 안 생김
+ok    children 표시 경로는 상대
+ok    children 워크트리 생성
+ok    children 워크트리가 무시됨
+ok    부모 저장소 status 에 워크트리 미노출
+ok    워크트리에서 guard 통과
+ok    base 브랜치에서 guard 차단
+ok    증거 커밋됨
+ok    미러 push 성공
+ok    미러 대상이 main
+ok    origin/main 에 증거 존재
+ok    내용이 다른 파일은 덮어쓰지 않음
+ok    무엇이 막았는지 알려줌
+ok    막혔어도 파일은 그대로
+ok    sync-base 성공
+ok    주 체크아웃이 증거 커밋을 받음
+ok    주 체크아웃은 여전히 main
+ok    증거가 주 체크아웃에도 있음
+ok    저장 안 된 변경이 있으면 건너뜀
+ok    건너뛰어도 변경은 그대로
+ok    context: 워크트리 인식
+ok    context: 이슈 추론
+ok    context: 증거 완결
+ok    context: evidenceDir 경로
+ok    pure-tree 생성
+ok    pure-tree 는 변경 전 내용
+ok    pure-tree 정리
+
+test-flow: 통과

@@ -1,0 +1,35 @@
+# 변경 후 (bda2448) — 기능 유무 확인
+
+## 1. sync-base 서브커맨드
+{
+  "ok": false,
+  "base": "main",
+  "path": "/Users/mineru/Documents/Github/skills-store",
+  "branch": "main",
+  "skipped": "dirty",
+  "reason": "주 체크아웃에 저장하지 않은 변경이 있습니다.",
+  "received": 0,
+
+## 2. 워크트리 배치 이름
+67:export const WORKTREE_LAYOUTS = ['sibling', 'children'];
+
+## 3. children 안전장치가 검사하는 값
+227:    if (layout === 'children') {
+
+## 4. 워크트리 표시 경로 계산 함수
+1
+
+## 5. 프로젝트 기본 브랜치 설정
+10
+
+## 6. 다음 행동 안내 문서
+.claude/skills/issue-create/references/next-actions.md
+.claude/skills/issue-end/references/next-actions.md
+.claude/skills/issue-merge/references/next-actions.md
+.claude/skills/issue-start/references/next-actions.md
+
+## 7. 링크·경로 규칙 블록
+.claude/skills/issue-merge/SKILL.md
+.claude/skills/issue-end/SKILL.md
+.claude/skills/issue-create/SKILL.md
+.claude/skills/issue-start/SKILL.md
