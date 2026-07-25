@@ -17,7 +17,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
 8. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 9. Codex 프롬프트를 정해진 간격으로 반복하려면 `loop`, cron이나 특정 시각에 예약하려면 `schedule`을 씁니다.
-10. GitHub 이슈를 착수할 때는 `issue-start`로 이슈 분석부터 워크트리 생성까지 한 번에 처리하고, 마무리는 `issue-end`로 증거 캡처부터 PR·정리까지 이어갑니다.
+10. GitHub 이슈를 착수할 때는 `issue-start`로 이슈 분석부터 워크트리 생성까지 한 번에 처리하고, 마무리는 `issue-end`로 증거 캡처부터 PR·정리까지 이어갑니다. 착수할 이슈 자체가 없으면 `issue-create`로 먼저 등록합니다 (`issue-create` → `issue-start` → `issue-end`).
 
 ## 저장소 구조
 
@@ -521,7 +521,69 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 </details>
 
 <details>
-<summary><strong>13. issue-start</strong> - GitHub 이슈 분석과 워크트리 준비</summary>
+<summary><strong>13. issue-create</strong> - 착수 전에 이슈부터 만들기</summary>
+
+### Best use case
+
+`issue-create`는 `issue-start` 앞단을 채웁니다.
+
+"이거 고쳐줘 / 이 기능 추가해줘 / 이거 지워줘"로 작업이 시작되면 이슈 없이 바로 코드로 들어가기 쉽습니다. 그러면 착수 분석도, 이슈 번호 기반 브랜치도, `issue-end`의 증거 코멘트도 붙일 곳이 없어집니다.
+
+이 스킬은 변경성 요청을 받았는데 연결된 이슈가 없을 때 발동합니다. 먼저 저장소가 이슈를 만들 만큼 자리 잡았는지 신호로 판정하고, 유사한 열린 이슈를 검색한 뒤, `issue-start`가 그대로 읽을 수 있는 형식으로 초안을 만들어 승인을 받고 등록합니다.
+
+적합한 작업:
+
+- 이미 동작하는 프로젝트에 기능을 추가·수정·삭제하려는 요청
+- 이슈 트래커를 쓰기는 하는데 이슈 작성이 자꾸 생략되는 팀
+
+부적합한 작업:
+
+- 초기 스캐폴딩만 있는 신규 프로젝트 (게이트가 알아서 걸러 냅니다)
+- 이미 이슈 번호가 있는 작업 (`issue-start`로 바로 갑니다)
+
+### Codex 호출 예시
+
+```text
+$issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
+```
+
+### Claude Code 호출 예시
+
+```text
+/issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
+```
+
+명시적으로 부르지 않아도, 이슈 없이 변경 요청이 들어오면 스스로 발동합니다.
+
+### 동작
+
+1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
+2. `search`로 유사한 열린 이슈를 찾고, 있으면 새로 만들지 않고 그 번호를 제시
+3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정 (`issue-start`의 prefix 추론과 동일한 매핑)
+4. 초안 전문을 보여주고 승인받은 뒤 `gh issue create`
+5. `.issue-start/<번호>/request.md`에 원본 요청을 남기고 `issue-start`로 인계
+
+### 하지 않는 일
+
+- 코드 수정. 이슈 생성까지만 합니다
+- 승인 없는 등록, 라벨 신규 생성, 이슈 상태 변경·코멘트·PR 생성
+- 게이트가 SKIP이면 아무 말 없이 빠집니다
+
+### 관련 파일
+
+```text
+.claude/skills/issue-create/SKILL.md
+.claude/skills/issue-create/references/{maturity-gate,issue-draft,create-and-handoff}.md
+.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create
+.codex/skills/issue-create/  (같은 구성)
+```
+
+요구사항은 `git`, 로그인된 `gh`, Node 18 이상입니다.
+
+</details>
+
+<details>
+<summary><strong>14. issue-start</strong> - GitHub 이슈 분석과 워크트리 준비</summary>
 
 ### Best use case
 
@@ -582,7 +644,7 @@ SKILL.md는 라우팅만 하고, 이슈 성격(frontend/backend)에 따라 refer
 </details>
 
 <details>
-<summary><strong>14. issue-end</strong> - 증거 캡처와 이슈 마무리</summary>
+<summary><strong>15. issue-end</strong> - 증거 캡처와 이슈 마무리</summary>
 
 ### Best use case
 
@@ -649,6 +711,7 @@ $issue-end
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `irasutoya-search`
+- `issue-create`
 - `issue-end`
 - `issue-start`
 - `kill-process`
@@ -697,6 +760,7 @@ $issue-end
 - `imagine`
 - `install-skill`
 - `irasutoya-search`
+- `issue-create`
 - `issue-end`
 - `issue-start`
 - `mcp-builder`
