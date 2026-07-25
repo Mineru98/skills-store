@@ -1,6 +1,6 @@
 # 이슈 수집과 열람
 
-산출물 위치는 `.issue-start/<번호>/` 로 통일한다.
+산출물 위치는 `.issue/<번호>/` 로 통일한다.
 
 ## 스크립트 방식 (권장)
 
@@ -15,16 +15,16 @@ node <skill>/scripts/issue-start.mjs fetch 59
 ## 인라인 방식 (스크립트가 없을 때)
 
 ```bash
-mkdir -p .issue-start/59/images
+mkdir -p .issue/59/images
 gh issue view 59 --json number,title,state,body,labels,assignees,milestone,comments,url \
-  > .issue-start/59/issue.json
+  > .issue/59/issue.json
 ```
 
 본문과 코멘트에서 이미지 URL 을 모두 뽑는다. 마크다운 `![alt](url)` 과 HTML `<img src="url">` 을 **둘 다** 훑고 중복을 제거한다.
 
 ```bash
 curl -sSL --max-time 60 -H "Authorization: Bearer $(gh auth token)" \
-  -o .issue-start/59/images/image-01.png "<이미지 URL>"
+  -o .issue/59/images/image-01.png "<이미지 URL>"
 ```
 
 `https://github.com/user-attachments/assets/...` 는 인증이 필요하고 S3 서명 URL 로 리다이렉트된다.
@@ -50,9 +50,23 @@ curl 은 호스트가 바뀌면 `Authorization` 헤더를 자동으로 떼므로
 에러 메시지      콘솔·토스트·스택트레이스 원문
 ```
 
-이 정보는 `issue-end` 의 before 캡처 조건을 그대로 결정한다. plan.md 에 함께 적어 둔다.
+이 정보는 before 캡처 조건을 그대로 결정한다. plan.md 의 증거 계획에 함께 적어 둔다.
 
 ## gitignore
 
-`.issue-start/` 가 `.gitignore` 에 없으면 추가를 제안한다.
-(`issue-end` 의 `.issue-evidence/` 와 달리 이쪽은 커밋 대상이 아니다.)
+`fetch` 가 `.gitignore` 에 `.issue` 블록을 자동으로 넣는다. 사용자가 손댈 일은 없다.
+
+```gitignore
+# issue-* workspace — evidence only stays committed so issue comments render
+.issue/**
+!.issue/*/
+!.issue/*/evidence/
+!.issue/*/evidence/**
+.issue/**/.auth.json
+.issue/**/storage-state.json
+```
+
+`.issue/<번호>/` 의 계획·이슈 캐시·첨부 이미지는 무시되고, `.issue/<번호>/evidence/` 만 커밋된다.
+이슈 코멘트의 이미지가 raw URL 로 렌더링되려면 증거는 반드시 커밋돼야 하기 때문이다.
+
+`.issue/` 뒤에 `!.issue/` 를 두는 순진한 형태는 동작하지 않는다. `.gitignore` 는 마지막 매치가 이기므로 negation 이 앞줄을 통째로 무효화한다. 위 형태를 그대로 쓴다.

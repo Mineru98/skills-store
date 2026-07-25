@@ -48,9 +48,9 @@ rg -n "from orders|FROM orders" -g '*.{sql,ts,py,go,java,kt}'
 rg -n "bench|k6|locust|autocannon|oha" package.json Makefile 2>/dev/null
 
 # 없으면 단발 측정이라도 남긴다
-mkdir -p .issue-start/59
-oha -z 30s -c 50 http://localhost:8080/api/orders | tee .issue-start/59/baseline.txt
-psql -c 'EXPLAIN (ANALYZE, BUFFERS) SELECT ...' | tee -a .issue-start/59/baseline.txt
+mkdir -p .issue/59
+oha -z 30s -c 50 http://localhost:8080/api/orders | tee .issue/59/baseline.txt
+psql -c 'EXPLAIN (ANALYZE, BUFFERS) SELECT ...' | tee -a .issue/59/baseline.txt
 ```
 
 측정 조건(데이터셋, 동시성, 머신, 커밋 해시)을 함께 기록한다. 조건이 다르면 비교가 의미 없다.
@@ -76,5 +76,5 @@ plan.md 에 아래를 미리 적어 둔다. 그대로 `issue-end` 의 측정 조
 측정 명령      <실제 명령>
 데이터셋       시드 규모와 생성 방법
 반복           3회, 중앙값
-baseline      .issue-start/59/baseline.txt (있으면 before 로 그대로 사용)
+baseline      .issue/59/baseline.txt (있으면 before 로 그대로 사용)
 ```
