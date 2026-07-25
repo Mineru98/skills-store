@@ -1,0 +1,14 @@
+$ sh scripts/check-shared.sh
+sync-shared: 정본과 모든 사본이 동일하다
+
+check-shared: 통과
+
+$ node scripts/test-common.mjs
+! .issue-start/ 는 폐기 예정입니다. `node issue-start.mjs migrate` 를 실행하세요.
+test-common: 통과
+
+$ bash scripts/verify-ignore.sh
+verify-ignore: 통과 (11개 무시, 5개 커밋)
+
+$ bash scripts/test-flow.sh
+test-flow: 통과
