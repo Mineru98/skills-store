@@ -17,7 +17,15 @@ node <skill>/scripts/issue-create.mjs create \
 
 출력 마지막의 `ISSUE_NUMBER` / `ISSUE_URL` / `NEXT` 를 그대로 보고에 쓴다.
 
-`--label` 은 생략하지 않는다. 붙일 라벨을 정하지 못했으면 등록 전에 `references/label-audit.md` 로 돌아간다.
+`--label` 은 생략할 수 없다. **스크립트가 막는다** — 라벨 없이 `create` 를 부르면 exit 2 로 빠지고 이슈를 만들지 않는다.
+
+```text
+✗ --label 이 하나 이상 필요하다. 라벨 없는 이슈는 만들지 않는다.
+```
+
+붙일 라벨을 정하지 못했으면 등록 전에 `references/label-audit.md` 로 돌아간다. 저장소에 쓸 라벨이 하나도 없으면 `ensure-label` 로 만들되 **사용자 승인을 먼저 받는다.**
+
+`--no-label` 이라는 탈출구가 있지만, 규칙을 의도적으로 벗어날 때만 쓰고 그 사유를 보고에 남긴다. 모델이 라벨을 고르기 귀찮아서 쓰는 용도가 아니다.
 등록 직후 `unlabeled` 로 기존 이슈의 라벨도 점검한다.
 
 ## 산출물

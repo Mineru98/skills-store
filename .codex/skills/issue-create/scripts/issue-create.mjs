@@ -75,7 +75,8 @@ gate:
 create options:
   --title <t>          이슈 제목 (필수)
   --body-file <f>      이슈 본문 마크다운 파일 (필수)
-  --label <name>       라벨 (여러 번 지정 가능, 저장소에 있는 것만)
+  --label <name>       라벨 (필수, 여러 번 지정 가능, 저장소에 있는 것만)
+  --no-label           라벨 없이 만든다. 의도적으로 규칙을 벗어날 때만 쓴다
   --assignee <login>   담당자 (@me 가능)
   --request-file <f>   원본 요청 기록. 생략 시 --body-file 을 복사
   --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin)
@@ -336,6 +337,15 @@ function cmdCreate(root, opts) {
     console.error('✗ --title 과 --body-file 이 모두 필요하다.');
     usage();
   }
+  // "만든 이슈에는 라벨을 반드시 하나 이상 붙인다"는 규칙을 문서에만 두면
+  // --label 을 빠뜨린 호출이 조용히 통과한다. 여기서 막는다.
+  if (!opts.labels.length && !opts.noLabel) {
+    console.error('✗ --label 이 하나 이상 필요하다. 라벨 없는 이슈는 만들지 않는다.');
+    console.error('  쓸 수 있는 라벨: node issue-create.mjs labels');
+    console.error('  없으면 만들기:   node issue-create.mjs ensure-label <이름>   (사용자 승인 후)');
+    console.error('  의도적으로 생략하려면 --no-label 을 명시하라.');
+    process.exit(2);
+  }
   const bodyPath = path.resolve(opts.bodyFile);
   if (!existsSync(bodyPath)) {
     console.error(`✗ 본문 파일이 없다: ${bodyPath}`);
@@ -397,6 +407,7 @@ function main() {
   for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--dry-run') opts.dryRun = true;
+    else if (arg === '--no-label') opts.noLabel = true;
     else if (arg === '--title') opts.title = argv[++i];
     else if (arg === '--body-file') opts.bodyFile = argv[++i];
     else if (arg === '--request-file') opts.requestFile = argv[++i];
