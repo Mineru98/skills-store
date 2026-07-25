@@ -521,7 +521,74 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 </details>
 
 <details>
-<summary><strong>13. issue-create</strong> - 착수 전에 이슈부터 만들기</summary>
+<summary><strong>13. gh-setup</strong> - gh 설치와 로그인 부트스트랩</summary>
+
+### Best use case
+
+`gh-setup`은 `issue-create` / `issue-start` / `issue-end`가 공통으로 요구하는 `gh`를 준비합니다.
+
+`gh`는 OS마다 설치 방법이 다르고, 로그인은 대화형이라 에이전트가 대신 해 줄 수 없습니다. 그래서 "gh auth status 실패"에서 멈추는 일이 잦습니다.
+
+이 스킬은 Windows / WSL / Linux / macOS와 배포판, 터미널, 다운로드 도구(curl·wget), 패키지 매니저를 감지해 `~/.issue-plugin/settings.json`에 남기고, 그 조합에 맞는 설치 명령을 만듭니다. 권한이 필요 없는 명령은 자동 실행하고, sudo가 필요한 명령은 프롬프트에 그대로 붙여 쓸 수 있는 형태로 안내합니다.
+
+### Codex 호출 예시
+
+```text
+$gh-setup
+```
+
+### Claude Code 호출 예시
+
+```text
+/gh-setup
+```
+
+### 동작
+
+1. `detect`로 OS·배포판·터미널·다운로더·패키지 매니저를 감지해 `~/.issue-plugin/settings.json` 생성·갱신
+2. `status`로 gh 설치·인증 상태 확인
+3. `plan`으로 설치 명령 목록 생성 (`[auto]` / `[user]` / `[guide]` 표시)
+4. `install`은 `[auto]` 명령만 실행. sudo 필요한 건 `! sudo ...` 형태로 사용자에게 전달
+5. `login`으로 브라우저 / 토큰 / 헤드리스 상황에 맞는 로그인 명령 안내
+
+### 런타임 라우팅
+
+진입점은 항상 `gh-env.sh`(POSIX) 또는 `gh-env.ps1`(Windows)입니다. 라우터가 node → python 순으로 찾아 넘기고, 둘 다 없으면 자체 폴백으로 감지와 안내까지 처리합니다. 어느 구현이 돌았는지는 출력의 `RUNTIME=`으로 확인합니다.
+
+### 설정 파일
+
+```json
+{
+  "platform": { "os": "macos", "family": "macos", "arch": "arm64" },
+  "terminals": ["zsh", "tmux"],
+  "downloaders": ["curl", "wget"],
+  "gh": { "installed": true, "authenticated": true }
+}
+```
+
+배열은 0번이 우선입니다. 재감지해도 기존 순서를 덮어쓰지 않고 새 값만 뒤에 붙입니다. 순서 변경은 `config set downloaders wget,curl`로 합니다.
+
+### 하지 않는 일
+
+- sudo·관리자 권한이 필요한 명령의 대리 실행 (비밀번호 프롬프트에서 멈춥니다)
+- `gh auth login` 대리 실행, 토큰 값 출력·저장
+
+### 관련 파일
+
+```text
+.claude/skills/gh-setup/SKILL.md
+.claude/skills/gh-setup/references/{settings,install-matrix,auth-login}.md
+.claude/skills/gh-setup/scripts/gh-env.mjs    # 주 구현 (Node 18+)
+.claude/skills/gh-setup/scripts/gh_env.py     # 동등 구현 (Python 3.8+)
+.claude/skills/gh-setup/scripts/gh-env.sh     # POSIX 라우터 + 폴백
+.claude/skills/gh-setup/scripts/gh-env.ps1    # Windows 라우터 + 폴백
+.codex/skills/gh-setup/  (같은 구성)
+```
+
+</details>
+
+<details>
+<summary><strong>14. issue-create</strong> - 착수 전에 이슈부터 만들기</summary>
 
 ### Best use case
 
@@ -560,21 +627,23 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
 2. `search`로 유사한 열린 이슈를 찾고, 있으면 새로 만들지 않고 그 번호를 제시
 3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정 (`issue-start`의 prefix 추론과 동일한 매핑)
-4. 초안 전문을 보여주고 승인받은 뒤 `gh issue create`
-5. `.issue-start/<번호>/request.md`에 원본 요청을 남기고 `issue-start`로 인계
+4. 초안 전문을 보여주고 승인받은 뒤 라벨과 함께 `gh issue create`
+5. `unlabeled`로 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
+6. `.issue-start/<번호>/request.md`에 원본 요청을 남기고 `issue-start`로 인계
 
 ### 하지 않는 일
 
 - 코드 수정. 이슈 생성까지만 합니다
-- 승인 없는 등록, 라벨 신규 생성, 이슈 상태 변경·코멘트·PR 생성
+- 승인 없는 등록, 승인 없는 라벨 생성, 이슈 상태 변경·코멘트·PR 생성
+- 이미 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다)
 - 게이트가 SKIP이면 아무 말 없이 빠집니다
 
 ### 관련 파일
 
 ```text
 .claude/skills/issue-create/SKILL.md
-.claude/skills/issue-create/references/{maturity-gate,issue-draft,create-and-handoff}.md
-.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create
+.claude/skills/issue-create/references/{maturity-gate,issue-draft,label-audit,create-and-handoff}.md
+.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label
 .codex/skills/issue-create/  (같은 구성)
 ```
 
@@ -583,7 +652,7 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 </details>
 
 <details>
-<summary><strong>14. issue-start</strong> - GitHub 이슈 분석과 워크트리 준비</summary>
+<summary><strong>15. issue-start</strong> - GitHub 이슈 분석과 워크트리 준비</summary>
 
 ### Best use case
 
@@ -644,7 +713,7 @@ SKILL.md는 라우팅만 하고, 이슈 성격(frontend/backend)에 따라 refer
 </details>
 
 <details>
-<summary><strong>15. issue-end</strong> - 증거 캡처와 이슈 마무리</summary>
+<summary><strong>16. issue-end</strong> - 증거 캡처와 이슈 마무리</summary>
 
 ### Best use case
 
