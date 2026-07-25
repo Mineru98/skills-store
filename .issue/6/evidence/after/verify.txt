@@ -1,0 +1,19 @@
+# 변경 후 — 전체 검증
+
+$ sh scripts/sync-shared.sh --check
+sync-shared: 정본과 모든 사본이 동일하다
+
+$ sh scripts/check-shared.sh
+check-shared: 통과
+
+$ node scripts/test-common.mjs
+test-common: 통과
+
+$ sh scripts/test-flow.sh
+test-flow: 통과
+
+$ sh scripts/verify-ignore.sh
+verify-ignore: 통과 (11개 무시, 5개 커밋)
+
+$ node --check (17개 스크립트)
+전부 통과
