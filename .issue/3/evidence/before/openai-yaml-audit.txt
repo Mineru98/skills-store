@@ -1,0 +1,13 @@
+Before implementation audit
+
+MISSING commit
+MISSING install-skill
+MISSING kill-process
+MISSING migrate-skill-agent
+MISSING visual-companion
+PROMPT_MISMATCH irasutoya-search
+PROMPT_MISMATCH loop
+PROMPT_MISMATCH schedule
+
+Summary: 5 missing metadata files, 3 default_prompt mismatches.
+Capture type: textual evidence because this issue changes configuration metadata only.

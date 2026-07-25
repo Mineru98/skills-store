@@ -1,0 +1,25 @@
+After implementation audit
+
+SKILLS=14
+YAML=14
+MISSING=0
+PROMPT_MISMATCH=0
+
+Changed metadata validation:
+PASS commit
+PASS install-skill
+PASS kill-process
+PASS migrate-skill-agent
+PASS visual-companion
+PASS irasutoya-search
+PASS loop
+PASS schedule
+
+git diff --check: PASS
+
+Repository-wide pre-existing validation findings outside this issue:
+- issue-end short_description is 75 characters (limit: 64).
+- issue-merge short_description is 67 characters (limit: 64).
+- install-skill and migrate-skill-agent SKILL.md files use the pre-existing argument-hint frontmatter key rejected by quick_validate.py.
+
+Capture type: textual evidence because this issue changes configuration metadata only.
