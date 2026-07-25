@@ -1,0 +1,31 @@
+# after — 현재 커밋 (feat/5-status-labels / 8c7213c)
+
+## 1. status 서브커맨드가 4스킬 모두에 있다
+$ node issue-create.mjs status 5 plan --dry-run
+(dry-run) gh issue edit 5 --add-label status:plan --remove-label status:in-process
+$ node issue-start.mjs status 5 plan --dry-run
+(dry-run) gh issue edit 5 --add-label status:plan --remove-label status:in-process
+$ node issue-end.mjs status 5 plan --dry-run
+(dry-run) gh issue edit 5 --add-label status:plan --remove-label status:in-process
+$ node issue-merge.mjs status 5 plan --dry-run
+(dry-run) gh issue edit 5 --add-label status:plan --remove-label status:in-process
+
+## 2. unlabeled 가 두 축으로 분리됐다
+$ node issue-create.mjs unlabeled --state all --limit 20
+
+SCANNED=3
+UNLABELED=0
+UNLABELED_NUMBERS=
+NO_STATUS=1
+NO_STATUS_NUMBERS=1
+
+## 3. --remove-label 이 동작한다
+$ node issue-create.mjs label 5 --remove-label status:open --dry-run
+(dry-run) gh issue edit 5 --remove-label status:open
+(exit=0)
+
+## 4. 잘못된 상태 이름은 exit 2 로 거부한다
+$ node issue-end.mjs status 5 bogus
+✗ 모르는 상태: bogus
+  쓸 수 있는 값: status:open, status:plan, status:in-process, status:review, status:close (접두사 생략 가능)
+(exit=2)
