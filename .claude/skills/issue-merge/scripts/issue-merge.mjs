@@ -21,6 +21,7 @@ import process from 'node:process';
 import {
   run, git, fail, parseArgs, repoRoot, currentBranch, detectBase,
   inferIssue, listWorktrees, listEvidence, evidenceRel, WORKSPACE_DIR,
+  worktreeDisplayPath,
 } from './issue-common.mjs';
 
 const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|merge|close|cleanup> [options]
@@ -82,6 +83,7 @@ function cmdInventory(args) {
     .filter((w) => w.ahead === 0)
     .map((w) => ({
       path: w.path,
+      display: worktreeDisplayPath(root, w.path),
       branch: w.branch,
       reason: `기본 브랜치(${base})보다 앞선 커밋이 없음 — 합칠 변경이 없다`,
     }));
@@ -97,6 +99,8 @@ function cmdInventory(args) {
 
       const item = {
         path: w.path,
+        // 보고에 쓸 형태. children 이면 상대, sibling 이면 절대 — 그래야 ctrl+클릭이 열린다.
+        display: worktreeDisplayPath(root, w.path),
         branch: w.branch,
         detached: w.detached,
         issue,

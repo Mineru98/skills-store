@@ -24,7 +24,8 @@ excluded        제외 목록 — { path, branch, reason }
 후보 하나하나는 이렇게 생겼다.
 
 ```text
-path            워크트리 경로
+path            워크트리 경로 (실제 절대 경로)
+display         보고에 쓸 경로 — children 이면 상대, sibling 이면 절대
 branch          브랜치 이름
 issue           브랜치에서 추론한 이슈 번호 (null 이면 연결 불명)
 issueState      OPEN / CLOSED
@@ -92,6 +93,15 @@ gh issue view <번호> --json number,title,state,body,labels,comments
 #53   fix/53-n-plus-one      b1/a1 ✓    #103  pass   해결 — merge 후보
 #64   feat/64-export-csv     b0/a1 ✗    #104  pass   보류 — before 없음
 ```
+
+표는 폭이 좁아야 읽히므로 번호만 쓴다. **표 아래에 링크 목록을 따로 붙인다.**
+
+```text
+- [#16 로그인 후 리디렉트 실패](https://github.com/owner/repo/issues/16) · [PR #101](https://github.com/owner/repo/pull/101) · `.issue/worktrees/16-login-redirect`
+- [#64 CSV 내보내기](https://github.com/owner/repo/issues/64) · [PR #104](https://github.com/owner/repo/pull/104) · `/Users/me/work/repo-issue-64`
+```
+
+주소는 `issueUrl` / `pr.url` 을, 경로는 `display` 를 그대로 쓴다.
 
 `resolved: false` 인 것은 후보에서 뺀다. 사유를 반드시 남긴다. 사용자가 "그래도 넣자"고 하면 넣되, 계획 문서에 예외임을 기록한다.
 

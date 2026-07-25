@@ -171,7 +171,17 @@ node <skill>/scripts/issue-merge.mjs base-tree --remove
 - **통합되지 않은 워크트리** — 보류된 것은 다음 회차 대상이다.
 - **`.issue/<번호>/evidence/`** — 기본 브랜치에 커밋된 증거는 영구 보존이다.
 
-정리 전에 무엇을 지울지 목록으로 보여주고 확인받는다.
+정리 전에 무엇을 지울지 목록으로 보여주고 확인받는다. 경로는 `inventory` 의 `display` 값을 쓴다 — 그래야 사용자가 `ctrl+클릭` 으로 열어 내용을 확인한 뒤 결정할 수 있다.
+
+```text
+지울 것
+- `.issue/worktrees/16-login-redirect`      [#16](url) — close 됨
+- `/Users/me/work/repo-issue-53`            [#53](url) — close 됨
+
+남길 것
+- `/Users/me/work/repo-issue-64`            [#64](url) — 보류, 다음 회차 대상
+- `evidence/issue-*` 브랜치                  증거 URL 이 의존
+```
 
 ## 7. 남은 것 정리
 
