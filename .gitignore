@@ -1,12 +1,18 @@
 .DS_Store
 .omc
-.omx
 .omo
-.omx
 .venv
 .superpowers
 .brainstorm
 .ouroboros
 .openchrome
 evals
-.issue-start
+.claude/worktrees
+
+# issue-* workspace — evidence only stays committed so issue comments render
+.issue/**
+!.issue/*/
+!.issue/*/evidence/
+!.issue/*/evidence/**
+.issue/**/.auth.json
+.issue/**/storage-state.json
