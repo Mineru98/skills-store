@@ -11,7 +11,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
   </purpose>
 
   <inputs>
-    <arg name="$ARGUMENTS" required="true">이슈 번호 (`#59`, `59`, 이슈 URL) + 선택적 추가 지시</arg>
+    <arg name="$ARGUMENTS" required="true">이슈 번호 (`#{issue_number}`, `{issue_number}`, 이슈 URL) + 선택적 추가 지시</arg>
   </inputs>
 
   <preconditions>
@@ -50,7 +50,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
 
 ```mermaid
 flowchart TD
-    A[/issue-start #59/] --> B{이슈 번호 파싱}
+    A[/"/issue-start #{issue_number}"/] --> B{이슈 번호 파싱}
     B -- 실패 --> B1[AskUserQuestion: 이슈 번호] --> Z0[중단]
     B -- 성공 --> C{git repo + gh auth}
     C -- 실패 --> Z0
@@ -94,7 +94,7 @@ flowchart TD
 
 ## 0단계 — 인자 파싱과 전제 확인
 
-`$ARGUMENTS` 에서 이슈 번호를 뽑는다. `#59`, `59`, `https://github.com/o/r/issues/59` 모두 허용.
+`$ARGUMENTS` 에서 이슈 번호를 뽑는다. `#{issue_number}`, `{issue_number}`, `https://github.com/o/r/issues/{issue_number}` 모두 허용.
 못 찾으면 AskUserQuestion 으로 묻고 중단한다.
 
 ```bash
@@ -121,7 +121,7 @@ TodoWrite 로 아래를 만든다.
 ## 2단계 — 이슈 수집
 
 ```bash
-node <skill>/scripts/issue-start.mjs fetch 59
+node <skill>/scripts/issue-start.mjs fetch {issue_number}
 ```
 
 세부는 `references/issue-collection.md`. 스크립트가 없는 환경이면 같은 문서의 인라인 절차를 쓴다.
@@ -159,9 +159,9 @@ both            사용자 플로우 전체를 다루거나 API 계약 변경이 
 ## 마무리 보고
 
 ```text
-이슈      #59 <제목>
+이슈      #{issue_number} <제목>
 핵심 발견  <3줄 이내>
-계획      .issue-start/59/plan.md
+계획      .issue-start/{issue_number}/plan.md
 워크트리   <경로>
 브랜치    <이름>
 다음      cd <경로> 후 작업, 끝나면 issue-end 실행
