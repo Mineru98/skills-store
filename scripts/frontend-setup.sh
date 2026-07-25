@@ -1,12 +1,11 @@
 find . -name ".DS_Store" -type f -delete
 if [ -f .gitignore ]; then
-    for item in ".omc" ".omx" ".DS_Store" "node_modules" ".sisyphus"; do
+    for item in ".omc" ".DS_Store" "node_modules" ".sisyphus"; do
         grep -qxF "$item" .gitignore || echo "$item" >> .gitignore
     done
 else
     cat > .gitignore << 'EOF'
 .omc
-.omx
 .DS_Store
 node_modules
 .sisyphus
