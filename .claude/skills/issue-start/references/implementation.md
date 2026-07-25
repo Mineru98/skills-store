@@ -45,15 +45,21 @@ branchHasIssueNumber  브랜치에 이슈 번호가 있는가   (임시 브랜�
 가드가 통과하면 바로 커밋한다.
 
 ```bash
-git add -A
+git add -A -- ':!.issue'
 git commit -m "<type>(<scope>): <한 줄 요약>
 
 Refs #{issue_number}"
 ```
 
+- **`':!.issue'` 를 반드시 붙인다.** 6단계에서 만든 before 증거는 `.gitignore` 예외라 `git add -A` 만 쓰면 그대로 스테이징된다. 구현 커밋과 증거 커밋이 섞이면 리뷰에서 diff 가 읽히지 않는다. 증거는 10단계에서 따로 커밋한다.
 - 커밋 메시지는 저장소의 기존 형식을 따른다. `git log --oneline -20` 으로 확인한다.
-- **증거 파일은 이 커밋에 넣지 않는다.** 구현 커밋과 증거 커밋을 분리해야 리뷰에서 diff 가 읽힌다. 증거는 9~10단계에서 따로 커밋한다.
 - 변경이 여러 관심사에 걸치면 커밋을 나눈다.
+
+커밋 후 확인한다. `.issue/` 경로가 하나라도 나오면 잘못 커밋한 것이다.
+
+```bash
+git show --name-only --format= HEAD | grep '^\.issue/' && echo "증거가 섞였다 — reset 후 다시"
+```
 
 ## 5. 왜 묻지 않는가
 

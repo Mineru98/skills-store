@@ -226,9 +226,13 @@ neither         문서·설정만 바뀜 — 캡처 대신 변경 근거를 글�
 
 ```bash
 node <skill>/scripts/issue-start.mjs guard
+git add -A -- ':!.issue'          # 증거는 이 커밋에 넣지 않는다
+git commit -m "<type>(<scope>): <요약>"
 ```
 
 통과하면 **사용자에게 묻지 않고** 커밋한다. 실패하면(exit 3) 이유를 보고하고 확인을 받는다.
+
+`':!.issue'` 를 빼면 6단계에서 만든 before 증거가 구현 커밋에 섞여 리뷰에서 diff 가 읽히지 않는다. 증거는 10단계에서 따로 커밋한다.
 
 ## 9단계 — after 캡처
 

@@ -27,7 +27,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import {
-  mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, renameSync, readdirSync,
+  mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, renameSync, readdirSync, cpSync,
 } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -267,9 +267,37 @@ function cmdWorktree(number, root, opts) {
     must('git', ['worktree', 'add', '-b', branch, wtPath, `${remote}/${base}`], addOpts);
   }
 
+  // .issue/<번호>/ 는 gitignore 대상이라 워크트리로 따라오지 않는다.
+  // 복사하지 않으면 워크트리 안에서 plan.md 도 이슈 본문도 읽을 수 없다.
+  const copied = carryIssueDir(root, wtPath, number);
+
   console.log('\n✓ 워크트리 준비 완료');
+  if (copied) console.log(`  ${WORKSPACE_DIR}/${number}/ 를 워크트리로 복사했다 (${copied}개 항목)`);
   console.log(`WORKTREE_PATH=${wtPath}`);
   console.log(`BRANCH=${branch}`);
+}
+
+/**
+ * 원본 체크아웃의 `.issue/<번호>/` 를 새 워크트리로 옮겨 담는다.
+ *
+ * evidence/ 는 제외한다. 증거는 워크트리 브랜치에서 새로 만들어 커밋해야 하고,
+ * 원본에 남아 있던 이전 회차 증거를 끌고 오면 before/after 가 뒤섞인다.
+ */
+function carryIssueDir(root, wtPath, number) {
+  const src = issueDir(root, number);
+  if (!existsSync(src) || path.resolve(src).startsWith(path.resolve(wtPath))) return 0;
+  const dest = path.join(wtPath, WORKSPACE_DIR, String(number));
+
+  let count = 0;
+  for (const entry of readdirSync(src)) {
+    if (entry === 'evidence' || entry === 'pure-tree') continue;
+    const to = path.join(dest, entry);
+    if (existsSync(to)) continue;
+    mkdirSync(path.dirname(to), { recursive: true });
+    cpSync(path.join(src, entry), to, { recursive: true });
+    count += 1;
+  }
+  return count;
 }
 
 /* ------------------------------------------------------------------ guard */
