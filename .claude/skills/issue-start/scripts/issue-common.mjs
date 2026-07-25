@@ -1,5 +1,5 @@
 // !!! VENDORED FILE — DO NOT EDIT !!!
-// canonical: shared/issue-common.mjs
+// canonical: tools/issue-common.mjs
 // resync   : sh scripts/sync-shared.sh
 /**
  * issue-common.mjs — issue-create / issue-start / issue-end / issue-merge 공용 모듈.

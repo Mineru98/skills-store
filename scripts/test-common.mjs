@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * shared/issue-common.mjs 스모크 테스트.
+ * tools/issue-common.mjs 스모크 테스트.
  *
  *   node scripts/test-common.mjs
  *
@@ -9,7 +9,7 @@
 import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import * as C from '../shared/issue-common.mjs';
+import * as C from '../tools/issue-common.mjs';
 
 let failed = 0;
 const eq = (label, actual, expected) => {
