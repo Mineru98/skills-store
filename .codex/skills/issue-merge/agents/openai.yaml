@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Merge"
+  short_description: "Integrate multiple issue worktrees with evidence-based verification"
+  default_prompt: "Use $issue-merge to review every open worktree, confirm each linked issue is actually resolved by its evidence, plan the merge order, then merge, re-verify, and close."
