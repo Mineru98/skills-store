@@ -55,9 +55,40 @@ function cmdInventory(args) {
   const base = detectBase(root, 'origin', args.base);
   const ghAuth = run('gh', ['auth', 'status']).code === 0;
 
-  const items = listWorktrees(root)
+  const seen = listWorktrees(root)
     // base 워크트리(주 체크아웃)와 이 스크립트가 만든 보조 트리는 통합 대상이 아니다.
     .filter((w) => w.branch !== base && !w.path.includes(`${WORKSPACE_DIR}/merge/`))
+    .map((w) => {
+      const item = { path: w.path, branch: w.branch, detached: w.detached, ahead: null, changedFiles: [] };
+
+      // 이름 있는 브랜치는 저장소 루트에서 조회한다. 워크트리 디렉터리가 이미 사라진
+      // prunable 상태여도 브랜치 ref 는 남아 있어 값을 얻을 수 있다.
+      const [range, diffRange, opts] = w.branch
+        ? [`origin/${base}..${w.branch}`, `origin/${base}...${w.branch}`, { cwd: root }]
+        : [`origin/${base}..HEAD`, `origin/${base}...HEAD`, { cwd: w.path }];
+      if (w.branch || existsSync(w.path)) {
+        const c = git(['rev-list', '--count', range], opts);
+        item.ahead = c.code === 0 ? Number(c.out) : null;
+        const d = git(['diff', '--name-only', diffRange], opts);
+        if (d.code === 0) item.changedFiles = d.out.split('\n').filter(Boolean);
+      }
+      return item;
+    });
+
+  // 기본 브랜치보다 앞선 커밋이 없으면 합칠 것이 없다. 후보에서 자동으로 뺀다.
+  // 조용히 버리지 않고 excluded 로 남겨 호출부가 무엇을 걸렀는지 보고할 수 있게 한다.
+  // ahead 가 null 인 것은 조회 실패라 "0 개"와 다르다. 모르는 것을 제외하지 않는다.
+  const excluded = seen
+    .filter((w) => w.ahead === 0)
+    .map((w) => ({
+      path: w.path,
+      branch: w.branch,
+      reason: `기본 브랜치(${base})보다 앞선 커밋이 없음 — 합칠 변경이 없다`,
+    }));
+  const excludedPaths = new Set(excluded.map((w) => w.path));
+
+  const items = seen
+    .filter((w) => !excludedPaths.has(w.path))
     .map((w) => {
       const issue = w.branch ? inferIssue(w.branch) : null;
       const key = issue ?? null;
@@ -82,16 +113,9 @@ function cmdInventory(args) {
         },
         // "해결됐다"는 판정은 서브에이전트가 이슈 완료 기준과 대조해서 내린다.
         // 여기서는 판정에 필요한 재료만 모은다.
-        ahead: null,
-        changedFiles: [],
+        ahead: w.ahead,
+        changedFiles: w.changedFiles,
       };
-
-      if (w.branch) {
-        const c = git(['rev-list', '--count', `origin/${base}..${w.branch}`], { cwd: root });
-        item.ahead = c.code === 0 ? Number(c.out) : null;
-        const d = git(['diff', '--name-only', `origin/${base}...${w.branch}`], { cwd: root });
-        if (d.code === 0) item.changedFiles = d.out.split('\n').filter(Boolean);
-      }
 
       if (ghAuth && issue) {
         const j = ghJson(['issue', 'view', String(issue), '--json', 'number,title,state,url']);
@@ -140,6 +164,8 @@ function cmdInventory(args) {
     ghAuth,
     count: items.length,
     worktrees: items,
+    excludedCount: excluded.length,
+    excluded,
   }, null, 2));
 }
 

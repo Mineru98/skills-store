@@ -70,7 +70,9 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
 flowchart TD
     A[/"/issue-merge"/] --> B[base 전용 임시 워크트리 생성]
     B --> C[inventory: 워크트리·이슈·PR·증거]
-    C --> D[워크트리별 이슈 내용 확인]
+    C --> C0{후보 0개?}
+    C0 -- 예 --> C1[제외 사유 보고 후 종료] --> Z
+    C0 -- 아니오 --> D[워크트리별 이슈 내용 확인]
     D --> E{증거로 해결 확인?}
     E -- 아니오 --> E1[후보에서 제외 · 사유 기록] --> F
     E -- 예 --> E2[merge 후보 리스트업] --> F
@@ -198,6 +200,10 @@ node <skill>/scripts/issue-merge.mjs base-tree
 ```bash
 node <skill>/scripts/issue-merge.mjs inventory
 ```
+
+기본 브랜치보다 앞선 커밋이 없는 워크트리는 **자동으로 빠진다.** 합칠 변경이 없어 판단할 것도 없기 때문이다. 조용히 버리지 않고 `excluded` 에 사유와 함께 남으므로, 회차 보고에 한 줄로 남긴다.
+
+`count` 가 0 이면 합칠 것이 없다. 그 사실과 제외 사유만 보고하고 끝낸다. 계획을 세우거나 서브에이전트를 띄우지 않는다.
 
 세부는 `references/inventory.md`.
 
