@@ -1,0 +1,4 @@
+interface:
+  display_name: "Migrate Skill or Agent"
+  short_description: "Install skills or agents from the skills-store repository"
+  default_prompt: "Use $migrate-skill-agent to install this skill or agent from skills-store into the selected Codex or Claude location."
