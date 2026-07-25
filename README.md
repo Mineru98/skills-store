@@ -17,7 +17,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 7. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
 8. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 9. Codex 프롬프트를 정해진 간격으로 반복하려면 `loop`, cron이나 특정 시각에 예약하려면 `schedule`을 씁니다.
-10. GitHub 이슈를 착수할 때는 `issue-start`로 이슈 분석부터 워크트리 생성까지 한 번에 처리하고, 마무리는 `issue-end`로 증거 캡처부터 PR·정리까지 이어갑니다. 착수할 이슈 자체가 없으면 `issue-create`로 먼저 등록합니다 (`issue-create` → `issue-start` → `issue-end`).
+10. GitHub 이슈 작업은 네 스킬이 단계를 나눠 맡습니다. `issue-create`로 등록하고, `issue-start`로 계획·구현·커밋·증거·이슈 리포트까지 끝내고, `issue-end`로 증거를 재확인해 기본 브랜치에 커밋하고 이슈에 코멘트한 뒤 PR을 올리고, `issue-merge`로 여러 워크트리를 모아 통합·재검증합니다 (`issue-create` → `issue-start` → `issue-end` → `issue-merge`). `gh`가 준비되지 않았으면 `gh-setup`이 먼저 끼어듭니다.
 
 ## 저장소 구조
 
@@ -58,7 +58,6 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 적합한 작업:
 
 - [ouroboros](https://github.com/Q00/ouroboros) `interview` 중 시각 선택지가 필요한 요구사항 정리
-- [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex) `deep-interview`에서 텍스트 질문만으로 좁히기 어려운 화면/플로우 선택
 - [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) `deep-interview`에서 사용자가 브라우저로 고른 값을 Claude Code가 이어받는 흐름
 - 기획 문서 작성 중 레이아웃, 정보 구조, 사용자 흐름, 다이어그램을 눈으로 보고 골라야 하는 순간
 
@@ -592,21 +591,11 @@ $gh-setup
 
 ### Best use case
 
-`issue-create`는 `issue-start` 앞단을 채웁니다.
+`issue-create`의 목표는 하나입니다. **사용자의 변경 요청이 기본 브랜치에서 바로 시작되지 않게 막고 이슈로 먼저 등록하는 것.**
 
-"이거 고쳐줘 / 이 기능 추가해줘 / 이거 지워줘"로 작업이 시작되면 이슈 없이 바로 코드로 들어가기 쉽습니다. 그러면 착수 분석도, 이슈 번호 기반 브랜치도, `issue-end`의 증거 코멘트도 붙일 곳이 없어집니다.
+"이거 고쳐줘 / 이 기능 추가해줘 / 이거 지워줘"로 작업이 시작되면 이슈 없이 바로 코드로 들어가기 쉽습니다. 그러면 착수 분석도, 이슈 번호 기반 브랜치도, 증거 코멘트도 붙일 곳이 없어집니다.
 
 이 스킬은 변경성 요청을 받았는데 연결된 이슈가 없을 때 발동합니다. 먼저 저장소가 이슈를 만들 만큼 자리 잡았는지 신호로 판정하고, 유사한 열린 이슈를 검색한 뒤, `issue-start`가 그대로 읽을 수 있는 형식으로 초안을 만들어 승인을 받고 등록합니다.
-
-적합한 작업:
-
-- 이미 동작하는 프로젝트에 기능을 추가·수정·삭제하려는 요청
-- 이슈 트래커를 쓰기는 하는데 이슈 작성이 자꾸 생략되는 팀
-
-부적합한 작업:
-
-- 초기 스캐폴딩만 있는 신규 프로젝트 (게이트가 알아서 걸러 냅니다)
-- 이미 이슈 번호가 있는 작업 (`issue-start`로 바로 갑니다)
 
 ### Codex 호출 예시
 
@@ -626,10 +615,12 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
 2. `search`로 유사한 열린 이슈를 찾고, 있으면 새로 만들지 않고 그 번호를 제시
-3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정 (`issue-start`의 prefix 추론과 동일한 매핑)
+3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정
 4. 초안 전문을 보여주고 승인받은 뒤 라벨과 함께 `gh issue create`
 5. `unlabeled`로 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
-6. `.issue-start/<번호>/request.md`에 원본 요청을 남기고 `issue-start`로 인계
+6. `.issue/<번호>/request.md`에 원본 요청을 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 `issue-start`로 인계
+
+전제 확인·중복 검사·성격 판정은 `issue-verifier` 서브에이전트에 맡깁니다 (Claude는 `haiku`, Codex는 `gpt-5.6-luna`).
 
 ### 하지 않는 일
 
@@ -644,7 +635,8 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 .claude/skills/issue-create/SKILL.md
 .claude/skills/issue-create/references/{maturity-gate,issue-draft,label-audit,create-and-handoff}.md
 .claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label
-.codex/skills/issue-create/  (같은 구성)
+.claude/skills/issue-create/scripts/issue-common.mjs   # 공용 모듈 (vendored)
+.codex/skills/issue-create/  (같은 구성 + agents/openai.yaml)
 ```
 
 요구사항은 `git`, 로그인된 `gh`, Node 18 이상입니다.
@@ -652,26 +644,26 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 </details>
 
 <details>
-<summary><strong>15. issue-start</strong> - GitHub 이슈 분석과 워크트리 준비</summary>
+<summary><strong>15. issue-start</strong> - 이슈 분석부터 구현·증거·리포트까지</summary>
 
 ### Best use case
 
-`issue-start`는 GitHub 이슈 하나를 착수하기 직전에 씁니다.
+`issue-start`는 이슈 하나를 받아 **계획 → 워크트리 → 구현 → 커밋 → 증거 → 이슈 리포트**까지 끝냅니다.
 
-이슈 본문만 훑고 바로 브랜치를 파면 스크린샷에 있던 조건이나 라벨이 가리키는 영역을 놓치기 쉽습니다. 브랜치 이름과 워크트리 경로도 사람마다 갈립니다.
+이슈 본문만 훑고 바로 브랜치를 파면 스크린샷에 있던 조건이나 라벨이 가리키는 영역을 놓치기 쉽습니다. 반대로 구현만 하고 끝내면 이슈에는 "고쳤습니다"라는 말만 남아 나중에 누구도 검증할 수 없습니다.
 
-이 스킬은 `gh`로 이슈 본문, 코멘트, 라벨을 받아오고 첨부 이미지까지 내려받아 실제로 열어봅니다. 그 내용을 코드베이스와 대조해 원인 가설과 작업 계획을 만든 뒤, 이슈 번호 기반 브랜치와 워크트리를 같은 규칙으로 만듭니다.
+이 스킬은 `gh`로 이슈 본문·코멘트·라벨을 받아오고 첨부 이미지까지 실제로 열어봅니다. 코드베이스와 대조해 계획을 세우고, 워크트리를 만들고, **파일을 고치기 전에 before를 찍고**, 구현하고, 커밋하고, after를 바운딩 박스와 함께 찍은 뒤, 증거를 기본 브랜치에 먼저 커밋하고 이슈에 렌더링되는 전후 리포트를 남깁니다.
 
 적합한 작업:
 
 - 스크린샷이 붙은 버그 이슈 착수
 - 이슈 하나당 워크트리 하나로 병렬 작업하는 흐름
-- 착수 전에 원인 가설과 검증 방법을 먼저 정리하고 싶을 때
+- 전후 비교가 남아야 하는 UI 변경이나 성능 개선
 
 부적합한 작업:
 
-- 이슈 없이 바로 시작하는 작업
-- 이미 워크트리가 있고 구현만 남은 상태
+- 이미 워크트리가 있고 마무리만 남은 상태 (→ `issue-end`)
+- 여러 워크트리를 합치는 단계 (→ `issue-merge`)
 
 ### Codex 호출 예시
 
@@ -685,41 +677,77 @@ $issue-start #59
 /issue-start #59
 ```
 
+**이슈 번호 대신 작업 설명을 넣어도 됩니다.** 그러면 plan 모드로 전환한 뒤 이슈로 먼저 등록할지 묻고, `issue-create`가 설치돼 있지 않으면 자동으로 설치합니다.
+
+```text
+/issue-start 로그인 후 리디렉트가 안 되는 문제
+```
+
 ### 동작
 
-1. `gh issue view`로 본문, 코멘트, 라벨, 첨부 이미지를 `.issue-start/<번호>/`에 수집
-2. 라벨과 본문 키워드로 관련 코드를 찾아 대조 분석
-3. 원인 가설, 작업 계획, 검증 방법을 `plan.md`로 저장
-4. `<prefix>/<번호>-<slug>` 브랜치를 기본 브랜치에서 분기하고 `<repo>-issue-<번호>` 워크트리 생성
+1. 인자가 이슈 번호인지 작업 설명인지 판별. 설명이면 plan 모드 → `issue-create` 위임
+2. `gh issue view`로 본문·코멘트·라벨·첨부 이미지를 `.issue/<번호>/`에 수집
+3. frontend / backend / both 판정 후 코드베이스와 대조 분석 → `plan.md`
+4. `<prefix>/<번호>-<slug>` 브랜치와 워크트리 생성 (배치는 설정으로 고정)
+5. **파일을 고치기 전에** before 캡처
+6. 구현 → 검증 → `guard` 통과 시 사용자 확인 없이 커밋
+7. after 캡처 (변경 구간에 바운딩 박스 필수)
+8. 증거 커밋 → 브랜치 push → **기본 브랜치에 증거 미러 커밋** → 이슈 코멘트
+
+6번의 무확인 커밋은 3중 가드를 전부 통과할 때만 합니다 — 링크된 워크트리이고, 기본 브랜치가 아니고, 브랜치에 이슈 번호가 있을 것. 하나라도 어긋나면 커밋하지 않고 확인을 받습니다.
+
+### 워크트리 배치는 한 번만 묻습니다
+
+처음 실행할 때 `~/.issue-plugin/settings.json`에 배치 방식을 고정하고, 이후 `issue-create` / `issue-start` / `issue-end` / `issue-merge` 어디서 들어오든 같은 값을 씁니다.
+
+| layout | 경로 |
+| --- | --- |
+| `sibling` | `../<repo>-issue-<번호>` |
+| `nested` | `<repo>/.issue/worktrees/<번호>-<slug>` |
+
+`nested`는 워크트리가 프로젝트 안에 생기므로, 스크립트가 `git check-ignore`로 실제 무시 여부를 확인하고 안 걸리면 생성을 중단합니다.
+
+### 증거 이미지는 webp + 바운딩 박스
+
+캡처는 Playwright로 하고 sharp → cwebp → ffmpeg 순으로 webp 변환합니다. 바운딩 박스는 sharp 합성이 아니라 브라우저 DOM 오버레이로 그리므로 변환 폴백 경로에서도 남습니다.
+
+```bash
+node capture.mjs --url http://localhost:3000/orders --out .issue/59/evidence/after/orders.webp \
+  --full --box ".order-row:first-child .status" --box-label "상태 배지"
+```
+
+before에도 같은 셀렉터로 박스를 그려 같은 눈높이에서 비교되게 합니다.
 
 ### 하지 않는 일
 
-- 코드 수정. 분석, 계획, 워크트리 준비까지만 합니다
-- 이슈 상태 변경, 코멘트 작성, PR 생성
+- PR 생성, merge, 이슈 상태 변경 — 각각 `issue-end`와 `issue-merge`의 몫입니다
+- 기본 브랜치에서의 구현. 워크트리 밖이면 커밋 자체를 막습니다
 
 ### 관련 파일
 
 ```text
 .claude/skills/issue-start/SKILL.md
-.claude/skills/issue-start/references/{issue-collection,frontend-analysis,backend-analysis,worktree}.md
-.claude/skills/issue-start/scripts/issue-start.mjs
-.codex/skills/issue-start/  (같은 구성)
+.claude/skills/issue-start/references/{intake,issue-collection,frontend-analysis,backend-analysis,worktree,implementation,evidence-capture}.md
+.claude/skills/issue-start/scripts/issue-start.mjs   # fetch / worktree / guard / evidence-* / migrate
+.claude/skills/issue-start/scripts/capture.mjs       # Playwright → webp + 바운딩 박스
+.claude/skills/issue-start/scripts/issue-common.mjs  # 공용 모듈 (vendored)
+.codex/skills/issue-start/  (같은 구성 + agents/openai.yaml)
 ```
 
-SKILL.md는 라우팅만 하고, 이슈 성격(frontend/backend)에 따라 references 문서로 분기합니다.
-
-요구사항은 `git`, 로그인된 `gh`, `curl`, Node 18 이상입니다.
+요구사항은 `git`, 로그인된 `gh`, `curl`, Node 18 이상이고, 프론트 캡처에는 Playwright와 webp 변환 도구가 필요합니다.
 
 </details>
 
 <details>
-<summary><strong>16. issue-end</strong> - 증거 캡처와 이슈 마무리</summary>
+<summary><strong>16. issue-end</strong> - 증거 재확인과 PR</summary>
 
 ### Best use case
 
-`issue-end`는 작업이 끝난 시점부터 브랜치 정리까지를 맡습니다. 핵심은 "말로 끝났다고 하지 않고 증거로 끝낸다"입니다.
+`issue-end`는 `issue-start`가 끝낸 작업을 **남들이 검증할 수 있는 상태**로 만듭니다.
 
-프론트엔드 작업이면 Playwright로 전/후 화면을 webp로 찍고, 백엔드 작업이면 성능 지표를 전/후 비교표로 만듭니다. 그 증거를 이슈 코멘트에 붙이고, 이미지가 `.gitignore`에 걸려 커밋되지 않는 문제와 브랜치 삭제로 이미지 링크가 깨지는 문제를 함께 해결합니다.
+증거가 충분한지 다시 보고, 부족하면 변경 직전 상태의 워크트리를 만들어 before를 다시 찍습니다. 그다음 증거와 리포트를 기본 브랜치에 커밋하고, 이슈에 코멘트를 달고, PR을 만듭니다.
+
+**기본 브랜치 증거 커밋과 이슈 코멘트는 필수 단계입니다.** 건너뛰는 선택지를 제시하지 않습니다. 증거가 기본 브랜치에 없으면 이슈 코멘트의 이미지가 깨지고, 코멘트가 없으면 이슈만 봐서는 무엇이 어떻게 해결됐는지 알 수 없기 때문입니다.
 
 ### Codex 호출 예시
 
@@ -735,31 +763,111 @@ $issue-end
 
 ### 동작
 
-1. `context`로 워크트리 여부, 브랜치, 이슈, 기존 PR을 판단하고 애매하면 사용자에게 의도를 확인
-2. 변경 파일로 frontend / backend / both를 판정해 해당 references로 분기
-3. 전/후 증거 생성 (webp 캡처 또는 성능 비교표)
-4. `.gitignore` 예외 + `git add -f`로 증거를 작업 브랜치에 커밋
-5. 기본 브랜치에도 증거만 담긴 커밋을 미러링. 브랜치 보호로 막히면 `evidence/issue-<번호>`로 폴백
-6. 이슈 코멘트에 브랜치 기준 URL과 미러 기준 URL을 모두 삽입해 둘 중 하나는 항상 렌더링
-7. 이슈 링크 확인 → PR 생성 → merge → 브랜치·워크트리 정리를 각각 사용자 확인 후 진행
+1. `context`로 워크트리·브랜치·이슈·PR·**증거 완결성**을 판단
+2. 증거가 부족하면 `pure-tree`로 변경 직전 상태를 만들어 before 재캡처
+3. 현재 커밋 상태로 after 재캡처·보강
+4. `comment.md` 작성·보강
+5. 증거 커밋 → 브랜치 push → **기본 브랜치 미러 커밋** (필수)
+6. **이슈 코멘트** (필수)
+7. 렌더링 확인 → PR 생성 (`Closes #N`)
+8. 다음 행동 4지선다
+
+`issue-start`가 이미 미러했더라도 다시 미러합니다. 그 사이 수정 커밋이 더 쌓였을 수 있고 after를 다시 찍었기 때문입니다. 내용이 같으면 빈 커밋이라 비용은 없습니다.
+
+### before 재캡처는 stash가 아니라 워크트리로
+
+`git stash`는 실패하면 사용자의 작업이 stash에 갇히고, 실행 중인 dev server 발밑에서 파일이 바뀌어 캡처가 오염됩니다. 대신 `git merge-base origin/<base> HEAD` 기준의 detached 워크트리를 만듭니다. 순수 추가 연산이라 실패해도 원복이 필요 없습니다.
+
+### merge는 하지 않습니다
+
+여러 워크트리를 동시에 굴리는 것이 이 스킬군의 전제라, 하나를 먼저 merge하면 나머지의 기준선이 흔들립니다. 마지막 단계에서 다음 행동을 묻고, merge를 고르면 `issue-merge`로 넘깁니다.
+
+```text
+1. 다른 이슈 착수 (권장)   → /issue-start
+2. 워크트리 전부 merge      → /issue-merge
+3. 새 이슈 등록            → /issue-create
+4. 종료
+```
+
+워크트리와 브랜치도 지우지 않습니다. 정리는 `issue-merge`가 통합을 마친 뒤에 합니다.
 
 ### 워크트리가 아니거나 이슈가 없어도 동작
 
 - 워크트리가 아니면 현재 브랜치에서 진행할지 먼저 묻습니다
-- 이슈가 없으면 `no-issue-<브랜치>` 키로 로컬 증거만 만들고 코멘트 단계를 건너뜁니다
-- 이슈는 있는데 현재 작업 트리와 무관해 보이면 어느 이슈에 붙일지 묻습니다
+- 이슈가 없으면 `no-issue-<브랜치>` 키를 쓰고 코멘트 단계만 건너뜁니다 (기본 브랜치 증거 커밋은 그대로)
+- 증거가 아예 없으면 `issue-start`로 돌아갈지 묻습니다. **증거 없이 PR을 만드는 선택지는 제시하지 않습니다**
 
 ### 관련 파일
 
 ```text
 .claude/skills/issue-end/SKILL.md
-.claude/skills/issue-end/references/{context-triage,frontend-evidence,backend-evidence,evidence-commit,wrapup-flow}.md
-.claude/skills/issue-end/scripts/issue-end.mjs   # context / init / commit / mirror / urls
-.claude/skills/issue-end/scripts/capture.mjs     # Playwright → webp 캡처
-.codex/skills/issue-end/  (같은 구성)
+.claude/skills/issue-end/references/{context-triage,evidence-recheck,report-and-pr,next-actions}.md
+.claude/skills/issue-end/scripts/issue-end.mjs   # context / init / commit / mirror / urls / pure-tree
+.claude/skills/issue-end/scripts/capture.mjs     # Playwright → webp + 바운딩 박스
+.claude/skills/issue-end/scripts/issue-common.mjs
+.codex/skills/issue-end/  (같은 구성 + agents/openai.yaml)
 ```
 
-요구사항은 `git`, 로그인된 `gh`, Node 18 이상이고, 프론트 캡처에는 Playwright와 webp 변환 도구(sharp / cwebp / ffmpeg 중 하나)가 필요합니다.
+요구사항은 `git`, 로그인된 `gh`, Node 18 이상이고, 재캡처에는 Playwright와 webp 변환 도구(sharp / cwebp / ffmpeg 중 하나)가 필요합니다.
+
+</details>
+
+<details>
+<summary><strong>17. issue-merge</strong> - 여러 워크트리 통합과 재검증</summary>
+
+### Best use case
+
+`issue-merge`는 동시에 굴리던 워크트리들을 한 번에 합칩니다.
+
+개별 PR을 하나씩 merge하는 것과 다른 점은, **합친 뒤 서로 깨지지 않았는지 각 이슈의 증거 기준으로 재검증한다**는 것입니다. 개별로는 통과했는데 합치니 깨지는 경우를 잡아냅니다.
+
+### Codex 호출 예시
+
+```text
+$issue-merge
+```
+
+### Claude Code 호출 예시
+
+```text
+/issue-merge
+```
+
+`issue-end`의 마지막 단계에서 merge를 고르면 자동으로 여기로 넘어옵니다.
+
+### 동작
+
+0. `base-tree`로 기본 브랜치 전용 임시 워크트리 생성 — **사용자의 작업 트리는 건드리지 않습니다**
+1. `inventory`로 워크트리·이슈·PR·증거 상태 수집
+2. 각 이슈의 완료 기준을 실제로 읽음
+3. **증거로** 해결 여부를 판정해 merge 후보 확정 (커밋 메시지는 근거가 아닙니다)
+4. 워크트리 개수만큼 `issue-merge-analyst`를 병렬로 띄워 `.issue/merge/16-21-53-64/plan.md` 작성
+5. `issue-merge-critic`으로 모호성·검증되지 않은 전제·되돌릴 수 없는 순서를 검토
+6. 승인 후 순서대로 merge → 각 이슈의 증거 조건으로 통합 테스트
+7. 재검증을 통과한 것만 이슈 close
+
+비판 에이전트가 `block`을 내면 계획을 고치기 전에는 merge하지 않습니다. 같은 계획으로 두 번 연속 `block`이면 자동 수정을 멈추고 사용자에게 넘깁니다.
+
+### 하지 않는 일
+
+- CI가 실패한 PR의 merge
+- 통합 테스트 전의 이슈 close
+- `evidence/issue-*` 브랜치 삭제 — 증거 URL이 의존합니다
+- 여러 PR을 묶어서 한 번에 승인받기
+
+### 관련 파일
+
+```text
+.claude/skills/issue-merge/SKILL.md
+.claude/skills/issue-merge/references/{inventory,merge-plan,verify-and-close}.md
+.claude/skills/issue-merge/scripts/issue-merge.mjs   # inventory / base-tree / plan-dir / merge / close / cleanup
+.claude/skills/issue-merge/scripts/issue-common.mjs
+.claude/agents/{issue-merge-analyst,issue-merge-critic}.md
+.codex/skills/issue-merge/  (같은 구성 + agents/openai.yaml)
+.codex/agents/{issue-merge-analyst,issue-merge-critic}.toml
+```
+
+요구사항은 `git`, 로그인된 `gh`, Node 18 이상입니다.
 
 </details>
 
@@ -777,11 +885,13 @@ $issue-end
 - `e2e-test-generator`
 - `e2e-test-hardener`
 - `e2e-test-healer`
+- `gh-setup`
 - `gpt-55-prompt-architect`
 - `install-skill`
 - `irasutoya-search`
 - `issue-create`
 - `issue-end`
+- `issue-merge`
 - `issue-start`
 - `kill-process`
 - `loop`
@@ -798,6 +908,9 @@ $issue-end
 - `ai-slop-detector`
 - `ai-slop-guardrail`
 - `ai-slop-rewriter`
+- `issue-merge-analyst`
+- `issue-merge-critic`
+- `issue-verifier`
 - `songcopy`
 
 </details>
@@ -825,12 +938,14 @@ $issue-end
 - `e2e-test-generator`
 - `e2e-test-hardener`
 - `e2e-test-healer`
+- `gh-setup`
 - `gpt-55-prompt-architect`
 - `imagine`
 - `install-skill`
 - `irasutoya-search`
 - `issue-create`
 - `issue-end`
+- `issue-merge`
 - `issue-start`
 - `mcp-builder`
 - `migrate-skill-agent`
@@ -857,6 +972,9 @@ $issue-end
 - `ai-slop-detector`
 - `ai-slop-guardrail`
 - `ai-slop-rewriter`
+- `issue-merge-analyst`
+- `issue-merge-critic`
+- `issue-verifier`
 - `songcopy`
 
 </details>
