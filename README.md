@@ -30,6 +30,8 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 ├── assets/
 │   └── images/
 ├── scripts/
+├── tools/
+│   └── issue-common.mjs
 ├── .claude/
 │   ├── agents/
 │   ├── commands/

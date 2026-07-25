@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shared/issue-common.mjs 정본을 각 스킬의 scripts/ 아래로 복사한다.
+# tools/issue-common.mjs 정본을 각 스킬의 scripts/ 아래로 복사한다.
 #
 # 스킬은 폴더 단위로 독립 설치되므로 스킬 간 import 가 불가능하다.
 # 그래서 정본 1벌을 두고 기계적으로 사본을 만든다. 사본은 직접 고치지 않는다.
@@ -10,7 +10,7 @@
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-SRC="$ROOT/shared/issue-common.mjs"
+SRC="$ROOT/tools/issue-common.mjs"
 CHECK=0
 [ "${1:-}" = "--check" ] && CHECK=1
 
@@ -20,7 +20,7 @@ SKILLS="issue-create issue-start issue-end issue-merge"
 FLAVORS=".claude .codex"
 
 BANNER='// !!! VENDORED FILE — DO NOT EDIT !!!
-// canonical: shared/issue-common.mjs
+// canonical: tools/issue-common.mjs
 // resync   : sh scripts/sync-shared.sh
 '
 

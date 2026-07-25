@@ -1,0 +1,8 @@
+$ ls -1 (저장소 루트)
+AGENTS.md
+assets
+CLAUDE.md
+LICENSE
+README.md
+scripts
+shared
