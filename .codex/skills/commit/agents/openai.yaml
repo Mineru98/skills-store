@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit"
+  short_description: "Group changed files and create focused Git commits"
+  default_prompt: "Use $commit to group the current changes by purpose and create focused Git commits."
