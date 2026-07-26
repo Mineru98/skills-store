@@ -196,7 +196,7 @@ function pct(n) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
-    console.log('node evals/issue-create/run-trigger-eval.mjs [--set tuning|holdout] [--repeat 3] [--model sonnet] [--concurrency 6] [--tools default] [--skills all|core] [--description @file] [--out result.json]');
+    console.log('node evals/issue-create/run-trigger-eval.mjs [--set tuning|holdout] [--repeat 3] [--model sonnet] [--concurrency 3] [--tools default] [--skills all|core] [--description @file] [--out result.json]');
     return;
   }
   const file = SETS[opts.set];
