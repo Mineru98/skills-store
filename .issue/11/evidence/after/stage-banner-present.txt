@@ -71,3 +71,30 @@ Only in .codex/skills/issue-merge: agents
 ## 5. issue-create 무변경
 $ git show --name-only --format= HEAD | grep -c issue-create
 0
+
+## 6. 지점별 단계 표기 개수 (완료 기준: 나열된 각 지점이 예시 문구를 갖는다)
+$ grep -c -E "issue-(start|end|merge) [0-9]+단계\(" <파일>
+.claude/skills/issue-start/references/intake.md            1
+.claude/skills/issue-start/references/worktree.md          1
+.claude/skills/issue-start/references/implementation.md    2
+.claude/skills/issue-start/references/evidence-capture.md  1
+.claude/skills/issue-end/references/context-triage.md      2
+.claude/skills/issue-end/references/evidence-recheck.md    1
+.claude/skills/issue-end/references/report-and-pr.md       3
+.claude/skills/issue-end/references/next-actions.md        1
+.claude/skills/issue-merge/references/inventory.md         3
+.claude/skills/issue-merge/references/merge-plan.md        1
+.claude/skills/issue-merge/references/verify-and-close.md  4
+
+합계(references): 20
+
+## 7. SKILL.md 규칙 반영 (hard-rule / reporting / 마무리 보고)
+$ grep -c "현재 단계를 반드시 함께 밝힌다" <SKILL.md>   # hard-rule
+.claude/skills/issue-end/SKILL.md:1
+.claude/skills/issue-merge/SKILL.md:1
+.claude/skills/issue-start/SKILL.md:1
+
+$ grep -c "^현재 단계 — " <SKILL.md>   # 마무리 보고 템플릿
+.claude/skills/issue-merge/SKILL.md:3
+.claude/skills/issue-end/SKILL.md:2
+.claude/skills/issue-start/SKILL.md:2
