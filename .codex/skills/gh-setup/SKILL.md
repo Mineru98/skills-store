@@ -1,6 +1,6 @@
 ---
 name: gh-setup
-description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Windows·WSL·Linux·macOS 를 판별해 설치 경로를 정하고, 권한이 필요 없는 명령은 자동 실행하고 관리자 권한이 필요한 명령은 그대로 복사해 쓸 수 있게 안내한 뒤 `gh auth login` 까지 끌고 갑니다. 설정은 `~/.issue-plugin/settings.json` 에서 관리합니다. `/gh-setup`, "gh 설치", "gh 로그인", "GitHub CLI 설정" 요청과 gh 가 필요한 다른 스킬의 전제 확인 실패 시 사용합니다.
+description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Windows·WSL·Linux·macOS 를 판별해 설치 경로를 정하고, 권한이 필요 없는 명령은 자동 실행하고 관리자 권한이 필요한 명령은 그대로 복사해 쓸 수 있게 안내한 뒤 `gh auth login` 까지 끌고 갑니다. 설정은 `~/.issue/settings.json` 에서 관리합니다. `/gh-setup`, "gh 설치", "gh 로그인", "GitHub CLI 설정" 요청과 gh 가 필요한 다른 스킬의 전제 확인 실패 시 사용합니다.
 ---
 
 <skill>
@@ -91,7 +91,7 @@ powershell -ExecutionPolicy Bypass -File <skill>/scripts/gh-env.ps1 <서브커�
 # 서브커맨드
 
 ```text
-detect              감지 후 ~/.issue-plugin/settings.json 생성·갱신
+detect              감지 후 ~/.issue/settings.json 생성·갱신
 status              gh 설치·인증 확인 후 settings.gh 갱신
 plan                OS별 설치 명령 목록 ([auto] / [user] / [guide] 표시)
 install [--dry-run] [auto] 표시된 명령만 실행
@@ -150,6 +150,6 @@ sh <skill>/scripts/gh-env.sh status
 플랫폼    <os> / <arch> (<family>)
 터미널    <선호 0번>
 gh       <버전> · 로그인 <계정>
-설정      ~/.issue-plugin/settings.json
+설정      ~/.issue/settings.json
 다음      <원래 하려던 작업>
 ```

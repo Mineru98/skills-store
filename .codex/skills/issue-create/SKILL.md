@@ -18,11 +18,12 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과 — 실패하면 `gh-setup` 스킬로 설치·로그인을 먼저 끝낸다</item>
+    <item>트래커 인증 통과 — `~/.issue/settings.json` 의 `provider.type` 이 github 면 `gh auth status`, jira 면 baseUrl·projectKey·토큰. github 인증 실패는 `gh-setup` 스킬로 먼저 끝낸다</item>
     <item>git, Node 18+</item>
   </preconditions>
 
   <routing>
+    <always>references/provider-settings.md — 이슈 백엔드(github / jira) 설정</always>
     <always>references/maturity-gate.md — 이슈를 만들 단계인지 판정</always>
     <always>references/split-requests.md — 요청을 이슈 몇 개로 나눌지 판정</always>
     <always>references/issue-draft.md — 초안 작성과 라벨 선택</always>
@@ -153,10 +154,17 @@ codex   .codex/agents/issue-verifier.toml  (model = "gpt-5.6-luna")
 
 ```bash
 git rev-parse --show-toplevel
-gh auth status
 ```
 
-`gh` 가 없거나 인증에 실패하면 **`gh-setup` 스킬을 실행해** 설치·로그인을 끝낸 뒤 이어서 진행한다.
+트래커 인증은 스크립트가 알아서 확인한다. `create` 를 뺀 모든 모드는 인증이 안 되어 있으면
+**exit 4** 로 빠지면서 무엇을 채워야 하는지 알려 준다.
+
+```text
+provider.type = github   gh 인증. 실패하면 `gh-setup` 스킬로 설치·로그인을 끝낸 뒤 이어서 진행
+provider.type = jira     ~/.issue/settings.json 의 provider.jira (baseUrl·projectKey·email)
+                         + tokenEnv 가 가리키는 환경변수
+```
+
 `gh-setup` 이 없는 환경이면 그 사실을 알리고, 이슈 본문 초안만 마크다운으로 남긴 뒤 중단한다.
 git 저장소가 아니면 그대로 중단한다.
 

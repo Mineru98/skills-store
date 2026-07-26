@@ -3,7 +3,7 @@
  * gh-env.mjs — gh(GitHub CLI) 설치·로그인 부트스트랩 (Node 구현).
  *
  * 서브커맨드:
- *   detect              OS·터미널·다운로더·패키지매니저 감지 → ~/.issue-plugin/settings.json
+ *   detect              OS·터미널·다운로더·패키지매니저 감지 → ~/.issue/settings.json
  *   status              gh 설치/인증 상태 확인 → settings.gh 갱신
  *   plan                설치 명령 목록 출력 (자동 실행 가능 여부 표시)
  *   install [--dry-run] 권한이 필요 없는 명령만 실행
@@ -25,8 +25,10 @@ import path from 'node:path';
 import process from 'node:process';
 
 const RUNTIME = 'node';
-const SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
+const SETTINGS_DIR = path.join(os.homedir(), '.issue');
 const SETTINGS_PATH = path.join(SETTINGS_DIR, 'settings.json');
+// 구 경로. 새 경로가 없을 때만 읽어서 1회 옮긴다. issue-common.mjs 와 같은 규칙이다.
+const LEGACY_SETTINGS_PATH = path.join(os.homedir(), '.issue-plugin', 'settings.json');
 const SETTINGS_VERSION = 1;
 
 const TERMINAL_PROGRAMS = {
@@ -68,14 +70,31 @@ function has(cmd) {
 
 /* --------------------------------------------------------------- settings */
 
-function readSettings() {
-  if (!existsSync(SETTINGS_PATH)) return null;
+function parseSettingsFile(file) {
   try {
-    return JSON.parse(readFileSync(SETTINGS_PATH, 'utf8'));
+    return JSON.parse(readFileSync(file, 'utf8'));
   } catch {
-    console.error(`! 설정 파일을 읽지 못했다(JSON 오류): ${SETTINGS_PATH}`);
+    console.error(`! 설정 파일을 읽지 못했다(JSON 오류): ${file}`);
     return null;
   }
+}
+
+/** 구 경로의 설정을 새 경로로 복사한다. 원본은 지우지 않는다. */
+function migrateSettings() {
+  if (existsSync(SETTINGS_PATH) || !existsSync(LEGACY_SETTINGS_PATH)) return false;
+  const prev = parseSettingsFile(LEGACY_SETTINGS_PATH);
+  if (!prev) return false;
+  mkdirSync(SETTINGS_DIR, { recursive: true });
+  writeFileSync(SETTINGS_PATH, `${JSON.stringify(prev, null, 2)}\n`);
+  console.error(`! 설정을 ${LEGACY_SETTINGS_PATH} 에서 ${SETTINGS_PATH} 로 옮겼다. 구 파일은 그대로 둔다.`);
+  return true;
+}
+
+function readSettings() {
+  migrateSettings();
+  if (existsSync(SETTINGS_PATH)) return parseSettingsFile(SETTINGS_PATH);
+  if (existsSync(LEGACY_SETTINGS_PATH)) return parseSettingsFile(LEGACY_SETTINGS_PATH);
+  return null;
 }
 
 function writeSettings(settings) {

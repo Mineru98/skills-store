@@ -530,7 +530,7 @@ songcopy subagent로 B2B SaaS 랜딩 페이지 CTA 문구 5개를 만들어줘.
 
 `gh`는 OS마다 설치 방법이 다르고, 로그인은 대화형이라 에이전트가 대신 해 줄 수 없습니다. 그래서 "gh auth status 실패"에서 멈추는 일이 잦습니다.
 
-이 스킬은 Windows / WSL / Linux / macOS와 배포판, 터미널, 다운로드 도구(curl·wget), 패키지 매니저를 감지해 `~/.issue-plugin/settings.json`에 남기고, 그 조합에 맞는 설치 명령을 만듭니다. 권한이 필요 없는 명령은 자동 실행하고, sudo가 필요한 명령은 프롬프트에 그대로 붙여 쓸 수 있는 형태로 안내합니다.
+이 스킬은 Windows / WSL / Linux / macOS와 배포판, 터미널, 다운로드 도구(curl·wget), 패키지 매니저를 감지해 `~/.issue/settings.json`에 남기고, 그 조합에 맞는 설치 명령을 만듭니다. 권한이 필요 없는 명령은 자동 실행하고, sudo가 필요한 명령은 프롬프트에 그대로 붙여 쓸 수 있는 형태로 안내합니다.
 
 ### Codex 호출 예시
 
@@ -546,7 +546,7 @@ $gh-setup
 
 ### 동작
 
-1. `detect`로 OS·배포판·터미널·다운로더·패키지 매니저를 감지해 `~/.issue-plugin/settings.json` 생성·갱신
+1. `detect`로 OS·배포판·터미널·다운로더·패키지 매니저를 감지해 `~/.issue/settings.json` 생성·갱신
 2. `status`로 gh 설치·인증 상태 확인
 3. `plan`으로 설치 명령 목록 생성 (`[auto]` / `[user]` / `[guide]` 표시)
 4. `install`은 `[auto]` 명령만 실행. sudo 필요한 건 `! sudo ...` 형태로 사용자에게 전달
@@ -733,9 +733,35 @@ $issue-start #59
 
 6번의 무확인 커밋은 3중 가드를 전부 통과할 때만 합니다 — 링크된 워크트리이고, 기본 브랜치가 아니고, 브랜치에 이슈 번호가 있을 것. 하나라도 어긋나면 커밋하지 않고 확인을 받습니다.
 
+### 이슈 백엔드는 GitHub 또는 Jira
+
+`~/.issue/settings.json`의 `provider`가 정합니다. 설정하지 않으면 GitHub으로 동작하므로 기존 사용자는 아무것도 바꿀 필요가 없습니다.
+
+```json
+{
+  "provider": {
+    "type": "jira",
+    "jira": {
+      "baseUrl": "https://acme.atlassian.net",
+      "projectKey": "ACME",
+      "email": "me@acme.com",
+      "tokenEnv": "JIRA_API_TOKEN"
+    }
+  }
+}
+```
+
+토큰 값은 설정 파일에 넣지 않고 환경변수 이름만 적습니다.
+
+축은 둘로 나뉩니다. **이슈**는 `provider`가 정하지만 **PR**은 항상 GitHub입니다 — Jira에는 PR이라는 개념이 없고, Jira로 이슈를 관리하는 팀도 코드는 GitHub에 두기 때문입니다. 그래서 Jira를 쓰더라도 `gh` 로그인은 여전히 필요합니다.
+
+브랜치 이름과 `.issue/<번호>/` 경로는 트래커와 무관하게 항상 숫자를 씁니다. 프로젝트 키는 설정에 있으므로 `12`에서 `ACME-12`를 언제든 다시 만들 수 있습니다.
+
+자세한 내용은 `issue-create/references/provider-settings.md`를 보세요.
+
 ### 워크트리 배치는 한 번만 묻습니다
 
-처음 실행할 때 `~/.issue-plugin/settings.json`에 배치 방식을 고정하고, 이후 `issue-create` / `issue-start` / `issue-end` / `issue-merge` 어디서 들어오든 같은 값을 씁니다.
+처음 실행할 때 `~/.issue/settings.json`에 배치 방식을 고정하고, 이후 `issue-create` / `issue-start` / `issue-end` / `issue-merge` 어디서 들어오든 같은 값을 씁니다.
 
 | layout | 경로 |
 | --- | --- |

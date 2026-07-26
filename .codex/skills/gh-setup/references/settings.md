@@ -1,6 +1,6 @@
 # 설정 파일
 
-위치는 `~/.issue-plugin/settings.json` 하나로 고정한다. 없으면 `detect` 가 만든다.
+위치는 `~/.issue/settings.json` 하나로 고정한다. 없으면 `detect` 가 만든다.
 
 ## 스키마
 

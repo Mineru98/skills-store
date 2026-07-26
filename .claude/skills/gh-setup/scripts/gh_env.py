@@ -19,8 +19,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 RUNTIME = "python"
-SETTINGS_DIR = Path.home() / ".issue-plugin"
+SETTINGS_DIR = Path.home() / ".issue"
 SETTINGS_PATH = SETTINGS_DIR / "settings.json"
+# 구 경로. 새 경로가 없을 때만 읽어서 1회 옮긴다. gh-env.mjs 와 같은 규칙이다.
+LEGACY_SETTINGS_PATH = Path.home() / ".issue-plugin" / "settings.json"
 SETTINGS_VERSION = 1
 
 TERMINAL_PROGRAMS = {
@@ -67,14 +69,36 @@ def has(cmd):
 # ------------------------------------------------------------------ settings
 
 
-def read_settings():
-    if not SETTINGS_PATH.exists():
-        return None
+def _parse_settings(path):
     try:
-        return json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError):
-        sys.stderr.write("! 설정 파일을 읽지 못했다(JSON 오류): %s\n" % SETTINGS_PATH)
+        sys.stderr.write("! 설정 파일을 읽지 못했다(JSON 오류): %s\n" % path)
         return None
+
+
+def migrate_settings():
+    """구 경로의 설정을 새 경로로 복사한다. 원본은 지우지 않는다."""
+    if SETTINGS_PATH.exists() or not LEGACY_SETTINGS_PATH.exists():
+        return False
+    prev = _parse_settings(LEGACY_SETTINGS_PATH)
+    if prev is None:
+        return False
+    SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
+    SETTINGS_PATH.write_text(json.dumps(prev, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    sys.stderr.write(
+        "! 설정을 %s 에서 %s 로 옮겼다. 구 파일은 그대로 둔다.\n" % (LEGACY_SETTINGS_PATH, SETTINGS_PATH)
+    )
+    return True
+
+
+def read_settings():
+    migrate_settings()
+    if SETTINGS_PATH.exists():
+        return _parse_settings(SETTINGS_PATH)
+    if LEGACY_SETTINGS_PATH.exists():
+        return _parse_settings(LEGACY_SETTINGS_PATH)
+    return None
 
 
 def write_settings(settings):

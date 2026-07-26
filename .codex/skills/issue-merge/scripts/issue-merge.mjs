@@ -6,24 +6,26 @@
  *   inventory              모든 워크트리 + 연결 이슈 + PR + 증거 상태를 JSON 으로
  *   base-tree              base 전용 임시 워크트리를 만든다 (사용자 작업 트리를 건드리지 않기 위해)
  *   plan-dir <n> [<n>...]  .issue/merge/<번호들>/ 을 만들고 경로를 출력
- *   merge --pr <n>         gh pr merge 래퍼. 실패 사유를 구조화해 출력
- *   close --issue <n> [--comment-file <f>]  이슈를 닫는다 (닫기 직전 status:close 로 전환)
- *   status <n> <상태>      진행 상태 라벨을 교체한다 (open|plan|in-process|review|close)
+ *   merge --pr <n>         PR merge 래퍼. 실패 사유를 구조화해 출력
+ *   close --issue <n> [--comment-file <f>]  이슈를 닫는다
  *   cleanup                통합이 끝난 워크트리와 base-tree 를 정리
  *
  * 이 스크립트는 판단하지 않는다. 사실 수집과 단일 동작 실행만 한다.
  * merge 여부·순서·이슈 해결 판정은 SKILL.md 의 흐름과 서브에이전트가 정한다.
  *
- * 요구사항: git, gh(로그인), Node 18+
+ * 이슈 백엔드는 ~/.issue/settings.json 의 provider 설정이 정한다 (github 기본 | jira).
+ * PR 은 코드 호스트(GitHub) 의 것이라 트래커와 무관하게 gitHost 를 쓴다.
+ *
+ * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
 import { mkdirSync, existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  run, git, fail, parseArgs, repoRoot, currentBranch, detectBase,
-  inferIssue, listWorktrees, listEvidence, evidenceRel, WORKSPACE_DIR, setStatus, STATUS_ORDER,
-  worktreeDisplayPath,
+  git, fail, parseArgs, repoRoot, currentBranch, detectBase,
+  inferIssue, listWorktrees, listEvidence, evidenceRel, WORKSPACE_DIR,
 } from './issue-common.mjs';
+import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
 
 const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|merge|close|status|cleanup> [options]
 
@@ -31,8 +33,8 @@ const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|merge|c
   base-tree [--remove]         base 전용 임시 워크트리 생성/정리
   plan-dir <n> [<n>...]        .issue/merge/<번호들>/ 생성
   merge --pr <n> [--method squash|merge|rebase]
-  close --issue <n> [--comment-file <f>] [--no-status]
-  status <n> <${STATUS_ORDER.map((s) => s.slice(7)).join('|')}>
+  close --issue <n> [--comment-file <f>]
+  status <n> <open|plan|in-process|review|close>
   cleanup --worktree <path> [--branch <name>]
 
   --base <branch>   기준 브랜치 고정`;
@@ -43,20 +45,12 @@ function baseTreePath(root) {
 
 /* -------------------------------------------------------------- inventory */
 
-function ghJson(args) {
-  const r = run('gh', args);
-  if (r.code !== 0) return null;
-  try {
-    return JSON.parse(r.out);
-  } catch {
-    return null;
-  }
-}
-
 function cmdInventory(args) {
   const root = repoRoot();
   const base = detectBase(root, 'origin', args.base);
-  const ghAuth = run('gh', ['auth', 'status']).code === 0;
+  const tracker = createTracker(root);
+  const trackerAuth = tracker.auth().ok;
+  const ghAuth = gitHost.auth().ok;
 
   const seen = listWorktrees(root)
     // base 워크트리(주 체크아웃)와 이 스크립트가 만든 보조 트리는 통합 대상이 아니다.
@@ -85,7 +79,6 @@ function cmdInventory(args) {
     .filter((w) => w.ahead === 0)
     .map((w) => ({
       path: w.path,
-      display: worktreeDisplayPath(root, w.path),
       branch: w.branch,
       reason: `기본 브랜치(${base})보다 앞선 커밋이 없음 — 합칠 변경이 없다`,
     }));
@@ -101,8 +94,6 @@ function cmdInventory(args) {
 
       const item = {
         path: w.path,
-        // 보고에 쓸 형태. children 이면 상대, sibling 이면 절대 — 그래야 ctrl+클릭이 열린다.
-        display: worktreeDisplayPath(root, w.path),
         branch: w.branch,
         detached: w.detached,
         issue,
@@ -123,33 +114,20 @@ function cmdInventory(args) {
         changedFiles: w.changedFiles,
       };
 
-      if (ghAuth && issue) {
-        const j = ghJson(['issue', 'view', String(issue), '--json', 'number,title,state,url']);
+      if (trackerAuth && issue) {
+        const j = tracker.issueView(issue);
         if (j) {
           item.issueState = j.state;
           item.issueTitle = j.title;
           item.issueUrl = j.url;
+          item.issueKey = j.key;
         }
       }
 
+      // PR 은 코드 호스트 소관이다. 트래커가 Jira 여도 여기는 GitHub 을 본다.
       if (ghAuth && w.branch) {
-        const list = ghJson(['pr', 'list', '--head', w.branch, '--state', 'all', '--json', 'number,state,url,isDraft,mergeable']);
-        item.pr = list?.[0] ?? null;
-        if (item.pr) {
-          const r = run('gh', ['pr', 'checks', String(item.pr.number), '--json', 'state']);
-          if (r.code === 0) {
-            try {
-              const states = JSON.parse(r.out).map((c) => c.state);
-              item.checks = states.some((s) => s === 'FAILURE' || s === 'ERROR') ? 'fail'
-                : states.some((s) => s === 'PENDING' || s === 'IN_PROGRESS') ? 'pending'
-                  : states.length ? 'pass' : 'none';
-            } catch {
-              item.checks = null;
-            }
-          } else {
-            item.checks = 'none';
-          }
-        }
+        item.pr = gitHost.prForBranch(w.branch);
+        if (item.pr) item.checks = gitHost.prChecks(item.pr.number);
       }
 
       return item;
@@ -167,6 +145,8 @@ function cmdInventory(args) {
     repoRoot: root,
     baseBranch: base,
     currentBranch: currentBranch(),
+    provider: tracker.provider,
+    trackerAuth,
     ghAuth,
     count: items.length,
     worktrees: items,
@@ -242,8 +222,8 @@ function cmdMerge(args) {
   }
 
   // 증거 URL 이 브랜치에 의존할 수 있으므로 --delete-branch 를 붙이지 않는다.
-  const r = run('gh', ['pr', 'merge', String(args.pr), `--${method}`]);
-  if (r.code !== 0) {
+  const r = gitHost.prMerge(args.pr, method);
+  if (!r.ok) {
     console.log(JSON.stringify({
       merged: false, pr: Number(args.pr), method,
       reason: r.err || r.out,
@@ -258,29 +238,24 @@ function cmdMerge(args) {
 
 function cmdClose(args) {
   if (!args.issue) fail('--issue <번호> 가 필요합니다.');
-  if (args['comment-file']) {
-    const c = run('gh', ['issue', 'comment', String(args.issue), '--body-file', args['comment-file']]);
-    if (c.code !== 0) fail(`이슈 코멘트 실패: ${c.err}`);
+  const tracker = createTracker(repoRoot());
+  if (!args['no-status']) {
+    const status = setTrackerStatus(tracker, args.issue, 'close', { quiet: true });
+    if (!status.ok) fail(`status:close 전환 실패: ${status.err}`);
   }
-  // 라벨은 닫기 전에 바꾼다. 닫힌 뒤에 붙이면 실패 여지가 늘어난다.
-  const status = args['no-status']
-    ? null
-    : setStatus(repoRoot(), args.issue, 'close', { quiet: true });
-  const r = run('gh', ['issue', 'close', String(args.issue)]);
-  if (r.code !== 0) fail(`이슈 close 실패: ${r.err}`);
+  if (args['comment-file']) {
+    const c = tracker.issueComment(args.issue, args['comment-file']);
+    if (!c.ok) fail(`이슈 코멘트 실패: ${c.err}`);
+  }
+  const r = tracker.issueClose(args.issue);
+  if (!r.ok) fail(`이슈 close 실패: ${r.err}`);
   console.log(JSON.stringify({
     closed: true,
+    provider: tracker.provider,
     issue: Number(args.issue),
+    issueKey: tracker.displayKey(args.issue),
     commented: Boolean(args['comment-file']),
-    status: status ? status.status : null,
-    statusChanged: status ? status.changed : false,
   }, null, 2));
-}
-
-/* ----------------------------------------------------------------- status */
-
-function cmdStatus(a) {
-  setStatus(repoRoot(), a._[0] ?? a.issue, a._[1], { repo: a.repo, dryRun: a.dryRun });
 }
 
 /* ---------------------------------------------------------------- cleanup */
@@ -310,12 +285,17 @@ const [, , sub, ...rest] = process.argv;
 const args = parseArgs(rest, ['json', 'dry-run', 'remove', 'force', 'no-status']);
 
 switch (sub) {
-  case 'status': cmdStatus(args); break;
   case 'inventory': cmdInventory(args); break;
   case 'base-tree': cmdBaseTree(args); break;
   case 'plan-dir': cmdPlanDir(args._); break;
   case 'merge': cmdMerge(args); break;
   case 'close': cmdClose(args); break;
+  case 'status': {
+    const result = setTrackerStatus(createTracker(repoRoot(), { repo: args.repo }), args._[0] ?? args.issue, args._[1], { dryRun: args.dryRun });
+    if (!result.status) { console.error(`✗ 상태 전환 실패: ${result.err}`); process.exit(2); }
+    if (!result.ok) console.log('STATUS_FAILED=1');
+    break;
+  }
   case 'cleanup': cmdCleanup(args); break;
   default:
     console.error(USAGE);

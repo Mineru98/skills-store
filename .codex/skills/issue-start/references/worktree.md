@@ -49,7 +49,7 @@ fallback       판별도 실패, 사용자 기본값도 없다 → DEFAULT_BASE_
 
 ## 배치 방식은 설정으로 고정한다
 
-워크트리가 매번 다른 곳에 생기면 정리도 추적도 안 된다. 그래서 배치 방식을 `~/.issue-plugin/settings.json` 에 한 번만 정해 두고, `issue-create` / `issue-start` / `issue-end` / `issue-merge` 어디서 들어오든 같은 값을 쓴다.
+워크트리가 매번 다른 곳에 생기면 정리도 추적도 안 된다. 그래서 배치 방식을 `~/.issue/settings.json` 에 한 번만 정해 두고, `issue-create` / `issue-start` / `issue-end` / `issue-merge` 어디서 들어오든 같은 값을 쓴다.
 
 ```json
 {

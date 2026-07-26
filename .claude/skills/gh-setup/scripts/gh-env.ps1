@@ -13,8 +13,10 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $Dir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$SettingsDir = Join-Path $HOME '.issue-plugin'
+$SettingsDir = Join-Path $HOME '.issue'
 $SettingsPath = Join-Path $SettingsDir 'settings.json'
+# 구 경로. 새 경로가 없을 때만 읽어서 1회 옮긴다. gh-env.mjs 와 같은 규칙이다.
+$LegacySettingsPath = Join-Path (Join-Path $HOME '.issue-plugin') 'settings.json'
 
 function Test-Cmd([string]$name) {
   return [bool](Get-Command $name -ErrorAction SilentlyContinue)
@@ -57,7 +59,16 @@ if (Test-Cmd 'gh') {
   if ($LASTEXITCODE -eq 0) { $GhAuthenticated = 1 }
 }
 
+function Move-LegacySettings {
+  if ((-not (Test-Path $SettingsPath)) -and (Test-Path $LegacySettingsPath)) {
+    New-Item -ItemType Directory -Force -Path $SettingsDir | Out-Null
+    Copy-Item -Path $LegacySettingsPath -Destination $SettingsPath
+    Write-Output "! 설정을 $LegacySettingsPath 에서 $SettingsPath 로 옮겼다. 구 파일은 그대로 둔다."
+  }
+}
+
 function Write-Settings {
+  Move-LegacySettings
   New-Item -ItemType Directory -Force -Path $SettingsDir | Out-Null
   $settings = [ordered]@{
     version         = 1
