@@ -84,16 +84,46 @@ try {
   writeFileSync(path.join(tmp, '.issue/worktrees/59-x/pkg.json'), '');
   eq('isIgnored(plan.md)', C.isIgnored(tmp, '.issue/59/plan.md'), true);
   eq('isIgnored(evidence)', C.isIgnored(tmp, '.issue/59/evidence/after/a.webp'), false);
-  eq('isIgnored(nested 워크트리)', C.isIgnored(tmp, '.issue/worktrees/59-x/pkg.json'), true);
+  eq('isIgnored(children 워크트리)', C.isIgnored(tmp, '.issue/worktrees/59-x/pkg.json'), true);
   eq('listEvidence', C.listEvidence(tmp, '59'), ['.issue/59/evidence/after/a.webp']);
 
   /* resolveWorktreePath */
   const repo = path.join(tmp, 'myapp');
   eq('resolveWorktreePath(sibling)', C.resolveWorktreePath(repo, 59, 'fix-login', 'sibling'),
     path.join(tmp, 'myapp-issue-59'));
-  eq('resolveWorktreePath(nested)', C.resolveWorktreePath(repo, 59, 'fix-login', 'nested'),
+  eq('resolveWorktreePath(children)', C.resolveWorktreePath(repo, 59, 'fix-login', 'children'),
     path.join(repo, '.issue/worktrees/59-fix-login'));
   eq('resolveWorktreePath(미결정)', C.resolveWorktreePath(repo, 59, 'x', null), null);
+  // 폐기된 이름은 조용히 sibling 으로 떨어지지 않고 재질문 대상이 된다
+  eq('resolveWorktreePath(폐기된 nested)', C.resolveWorktreePath(repo, 59, 'x', 'nested'), null);
+
+  /* 워크트리 표시 경로 — ctrl+클릭이 열리는 형태 */
+  eq('detectLayoutFromPath(안쪽)', C.detectLayoutFromPath(tmp, path.join(tmp, '.issue/worktrees/59-x')), 'children');
+  eq('detectLayoutFromPath(바깥)', C.detectLayoutFromPath(tmp, path.join(tmp, '..', 'other-issue-59')), 'sibling');
+  eq('detectLayoutFromPath(자기 자신)', C.detectLayoutFromPath(tmp, tmp), 'sibling');
+  eq('worktreeDisplayPath(children=상대)',
+    C.worktreeDisplayPath(tmp, path.join(tmp, '.issue/worktrees/59-x')), '.issue/worktrees/59-x');
+  eq('worktreeDisplayPath(sibling=절대)',
+    C.worktreeDisplayPath(tmp, path.join(tmp, '..', 'other-issue-59')),
+    path.resolve(tmp, '..', 'other-issue-59'));
+
+  /* 프로젝트 설정과 기본 브랜치 우선순위 */
+  eq('readProjectSettings(없을 때)', C.readProjectSettings(tmp), {});
+  const written = C.writeProjectSettings(tmp, { git: { baseBranch: 'master' } });
+  eq('writeProjectSettings(기록됨)', written?.git?.baseBranch, 'master');
+  eq('설정 파일은 무시 대상', C.isIgnored(tmp, C.PROJECT_SETTINGS_REL), true);
+  // 원격이 없는 저장소여도 프로젝트 기록이 있으면 그것을 쓴다
+  eq('detectBase(프로젝트 기록 우선)', C.detectBase(tmp, 'origin'), 'master');
+  eq('detectBase(explicit 이 최우선)', C.detectBase(tmp, 'origin', 'origin/develop'), 'develop');
+  // 최상위 키 병합 — 다른 키를 지우지 않는다
+  C.writeProjectSettings(tmp, { note: 'keep-me' });
+  eq('writeProjectSettings(병합)', C.readProjectSettings(tmp).git?.baseBranch, 'master');
+  eq('writeProjectSettings(새 키)', C.readProjectSettings(tmp).note, 'keep-me');
+
+  /* syncBaseCheckout — 안전하지 않으면 아무것도 하지 않는다 */
+  const sync = C.syncBaseCheckout({ root: tmp, base: 'master' });
+  eq('syncBaseCheckout(다른 브랜치면 건너뜀)', sync.ok, false);
+  eq('syncBaseCheckout(사유를 남김)', typeof sync.reason === 'string' && sync.reason.length > 0, true);
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

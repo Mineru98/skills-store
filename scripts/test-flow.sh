@@ -67,11 +67,25 @@ node "$START" worktree 59 --slug fix-login --layout sibling --dry-run > "$TMP/wt
 check "sibling 경로" "$(grep -q "WORKTREE_PATH=$TMP/myapp-issue-59\$" "$TMP/wt.txt" && echo 0 || echo 1)"
 check "브랜치 이름" "$(grep -q 'BRANCH=fix/59-fix-login$' "$TMP/wt.txt" && echo 0 || echo 1)"
 
-# --- nested: 실제 생성 후 부모가 깨끗한지
-node "$START" worktree 59 --slug fix-login --layout nested > "$TMP/wt2.txt"
+# --- children 안전장치: .issue 무시가 깨져 있으면 만들지 않는다
+cp .gitignore "$TMP/gitignore.bak"
+# 블록은 있지만 뒤에서 무효화된 상태. .gitignore 는 마지막 매치가 이기므로
+# 아래 한 줄이 앞의 .issue 규칙을 전부 되살린다. ensureIgnoreBlock 은 마커를 보고 손대지 않는다.
+printf '!.issue/**\n' >> .gitignore
+set +e
+GOUT=$(node "$START" worktree 58 --slug guard-probe --layout children 2>&1); GC=$?
+set -e
+check "children 안전장치가 생성을 막음" "$([ "$GC" -ne 0 ] && echo 0 || echo 1)"
+check "안전장치가 이유를 알림" "$(echo "$GOUT" | grep -q '무시되지 않습니다' && echo 0 || echo 1)"
+check "막힌 워크트리는 안 생김" "$([ ! -d "$TMP/myapp/.issue/worktrees/58-guard-probe" ] && echo 0 || echo 1)"
+cp "$TMP/gitignore.bak" .gitignore
+
+# --- children: 실제 생성 후 부모가 깨끗한지
+node "$START" worktree 59 --slug fix-login --layout children > "$TMP/wt2.txt"
+check "children 표시 경로는 상대" "$(grep -q 'WORKTREE_DISPLAY=.issue/worktrees/59-fix-login$' "$TMP/wt2.txt" && echo 0 || echo 1)"
 WT="$TMP/myapp/.issue/worktrees/59-fix-login"
-check "nested 워크트리 생성" "$([ -d "$WT" ] && echo 0 || echo 1)"
-check "nested 워크트리가 무시됨" "$(git check-ignore -q .issue/worktrees/59-fix-login/src/index.ts && echo 0 || echo 1)"
+check "children 워크트리 생성" "$([ -d "$WT" ] && echo 0 || echo 1)"
+check "children 워크트리가 무시됨" "$(git check-ignore -q .issue/worktrees/59-fix-login/src/index.ts && echo 0 || echo 1)"
 DIRTY=$(git status --porcelain | grep -c 'worktrees' || true)
 check "부모 저장소 status 에 워크트리 미노출" "$([ "$DIRTY" -eq 0 ] && echo 0 || echo 1)"
 
@@ -104,6 +118,31 @@ check "미러 push 성공" "$(grep -q '"pushed": true' "$TMP/mirror.json" && ech
 check "미러 대상이 main" "$(grep -q '"mirrorRef": "main"' "$TMP/mirror.json" && echo 0 || echo 1)"
 git -C "$TMP/origin.git" show main:.issue/59/evidence/after/home.webp > /dev/null 2>&1
 check "origin/main 에 증거 존재" "$?"
+
+# --- sync-base
+# 이 시점의 주 체크아웃에는 migrate 테스트가 남긴 옛 증거가 있다.
+# 받아올 내용과 글자가 다르므로 덮어쓰지 않고 거부해야 한다.
+node "$START" sync-base > "$TMP/sync0.json"
+check "내용이 다른 파일은 덮어쓰지 않음" "$(grep -q '"skipped": "dirty"' "$TMP/sync0.json" && echo 0 || echo 1)"
+check "무엇이 막았는지 알려줌" "$(grep -q 'evidence/before/home.webp' "$TMP/sync0.json" && echo 0 || echo 1)"
+check "막혔어도 파일은 그대로" "$(grep -q '^x$' "$TMP/myapp/.issue/59/evidence/before/home.webp" && echo 0 || echo 1)"
+
+# 옛 증거를 치우면 받아온다. `.gitignore` 수정은 받아올 내용과 같으므로 알아서 정리된다.
+rm -rf "$TMP/myapp/.issue/59/evidence"
+BEFORE=$(git -C "$TMP/myapp" rev-parse HEAD)
+node "$START" sync-base > "$TMP/sync.json"
+check "sync-base 성공" "$(grep -q '"ok": true' "$TMP/sync.json" && echo 0 || echo 1)"
+AFTER=$(git -C "$TMP/myapp" rev-parse HEAD)
+check "주 체크아웃이 증거 커밋을 받음" "$([ "$BEFORE" != "$AFTER" ] && echo 0 || echo 1)"
+check "주 체크아웃은 여전히 main" "$([ "$(git -C "$TMP/myapp" branch --show-current)" = "main" ] && echo 0 || echo 1)"
+check "증거가 주 체크아웃에도 있음" "$([ -f "$TMP/myapp/.issue/59/evidence/after/home.webp" ] && echo 0 || echo 1)"
+
+# 사용자의 소스 변경이 있으면 손대지 않고 사유만 남긴다
+printf 'dirty\n' >> "$TMP/myapp/src/index.ts"
+node "$START" sync-base > "$TMP/sync2.json"
+check "저장 안 된 변경이 있으면 건너뜀" "$(grep -q '"skipped": "dirty"' "$TMP/sync2.json" && echo 0 || echo 1)"
+check "건너뛰어도 변경은 그대로" "$(grep -q dirty "$TMP/myapp/src/index.ts" && echo 0 || echo 1)"
+git -C "$TMP/myapp" checkout -- src/index.ts
 
 # --- issue-end context: 증거 완결성 판정
 node "$END" context > "$TMP/ctx.json" 2>/dev/null

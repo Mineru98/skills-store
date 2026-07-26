@@ -26,6 +26,7 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
     <always>references/issue-draft.md — 초안 작성과 라벨 선택</always>
     <always>references/label-audit.md — 라벨 부착과 기존 이슈 라벨 점검</always>
     <always>references/create-and-handoff.md — 등록과 issue-start 인계</always>
+    <always>references/next-actions.md — 등록 뒤 다음 행동 4지선다</always>
   </routing>
 
   <subagents>
@@ -44,6 +45,15 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
     <rule>라벨을 새로 만들거나 기존 이슈의 라벨을 바꾸는 것은 사용자 승인 후에만 한다.</rule>
     <rule>이슈 상태 변경, 코멘트 작성, PR 생성을 하지 않는다.</rule>
   </hard-rules>
+
+  <reporting>
+    이슈·PR·코멘트는 `[설명](링크)` 로 쓴다. `링크와 경로 쓰는 법` 참고.
+    문제가 생기면 상황 → 문제 → 멀쩡한 것 → 원인 → 선택 순서로 쉬운 말로 보고하고, 마지막은 AskUserQuestion 으로 닫는다.
+  </reporting>
+
+  <next>
+    끝날 때는 항상 다음에 무엇을 할지 골라 준다. references/next-actions.md 의 4지선다를 그대로 쓴다.
+  </next>
 
   <handoff>
     이슈를 만든 뒤 착수 여부를 묻고, 예면 같은 번호로 `issue-start` 를 이어서 실행한다.
@@ -90,9 +100,11 @@ flowchart TD
     M2 -- 아니오 --> J
     M2 -- 예 --> M3[label: 이슈별 라벨 부착] --> J
 
-    J{바로 착수할까요?}
-    J -- 예 --> K[issue-start 실행]
-    J -- 아니오 --> L[이슈 번호와 명령만 안내]
+    J[다음 행동 4지선다]
+    J -->|착수| K[issue-start 실행]
+    J -->|이슈 더 등록| A
+    J -->|라벨 정리| M1
+    J -->|종료| L[이슈 번호와 명령만 안내]
 ```
 
 # 스크립트 경로
@@ -120,6 +132,56 @@ codex   .codex/agents/issue-verifier.toml  (model = "gpt-5.6-luna")
 없으면 `migrate-skill-agent.sh --agent issue-verifier --target home --link --clone` 으로 설치한다.
 실패하면 기본 서브에이전트로 진행하고 "모델 고정 실패"를 한 줄 보고한다.
 
+# 링크와 경로 쓰는 법
+
+보고·질문·마무리 요약에서 이슈·PR·워크트리를 가리킬 때 아래를 지킨다. 네 스킬(issue-create / issue-start / issue-end / issue-merge)이 같은 규칙을 쓴다.
+
+## 이슈 · PR · 코멘트는 항상 클릭되게
+
+맨 URL 을 그대로 붙이거나 번호만 적지 않는다. `[설명](링크)` 형식으로 쓴다.
+
+```text
+나쁜 예   이슈    #59 탭 활성 상태 초기화
+          코멘트  https://github.com/owner/repo/issues/59#issuecomment-123
+
+좋은 예   이슈    [#59 탭 활성 상태 초기화](https://github.com/owner/repo/issues/59)
+          PR      [#103 fix(tab): 활성 상태 유지](https://github.com/owner/repo/pull/103)
+          코멘트  [리포트 보기](https://github.com/owner/repo/issues/59#issuecomment-123)
+```
+
+주소는 이미 손에 들어온다. 직접 조립하지 않는다.
+
+```text
+gh issue view <n> --json url          이슈 주소
+gh pr view <n> --json url             PR 주소
+gh issue comment ... 의 출력           방금 단 코멘트 주소
+issue-end   context   출력의 issueUrl / openPr.url
+issue-merge inventory 출력의 issueUrl / pr.url
+```
+
+저장소를 식별하지 못해 주소를 만들 수 없으면 **번호만 적고** 그 사실을 한 줄 남긴다. 없는 링크를 지어내지 않는다.
+
+## 워크트리 경로는 배치에 맞는 형태로
+
+`ctrl+클릭` 으로 열리려면 형태가 배치와 맞아야 한다.
+
+```text
+children   저장소 안  → 상대 경로   .issue/worktrees/59-tab-active-state
+sibling    저장소 밖  → 절대 경로   /Users/me/work/repo-issue-59
+```
+
+sibling 을 상대 경로로 적으면 `../repo-issue-59` 가 되어 **없는 경로로 열린다.** 반대로 children 을 절대 경로로 적으면 쓸데없이 길다.
+
+스크립트가 계산해 둔 값을 그대로 쓴다.
+
+```text
+issue-start.mjs worktree   출력의 WORKTREE_DISPLAY=
+issue-end.mjs   context    출력의 worktrees[].display
+issue-merge.mjs inventory  출력의 worktrees[].display / excluded[].display
+```
+
+직접 판단해야 하면 설정이 아니라 **실제 경로**를 본다. `git worktree list` 로 경로를 얻어 저장소 루트 아래면 children, 아니면 sibling 이다. 설정값은 새로 만들 때만 쓰이므로, 이미 있는 워크트리는 예전 설정으로 만들어졌을 수 있다.
+
 # 실행 순서
 
 ## 0단계 — 전제 확인
@@ -132,6 +194,37 @@ gh auth status
 `gh` 가 없거나 인증에 실패하면 **`gh-setup` 스킬을 실행해** 설치·로그인을 끝낸 뒤 이어서 진행한다.
 `gh-setup` 이 없는 환경이면 그 사실을 알리고, 이슈 본문 초안만 마크다운으로 남긴 뒤 중단한다.
 git 저장소가 아니면 그대로 중단한다.
+
+이어서 이 저장소의 기본 브랜치를 확정한다. `main` 인지 `master` 인지를 뒤 단계마다 다시 알아내지 않기 위해서다.
+
+```bash
+node <skill>/scripts/issue-create.mjs base
+```
+
+출력의 `SOURCE=` 가 어디서 정해졌는지 알려준다.
+
+```text
+project        .issue/settings.json 에 이미 기록돼 있었다        → 그대로 진행
+detected       원격에서 판별했고 방금 기록했다                    → 그대로 진행
+home-default   판별 실패 — 사용자 기본값을 썼다                   → 그대로 진행
+fallback       판별도 실패, 사용자 기본값도 없다                  → 아래 질문
+```
+
+`DEFAULT_BASE_UNSET=1` 이 함께 나오면 **딱 한 번** 묻고 고정한다. 이후로는 묻지 않는다.
+
+```text
+질문   이 컴퓨터에서는 보통 어떤 브랜치를 기준으로 작업하시나요?
+       한 번 정하면 저장소에서 판별이 안 될 때만 씁니다.
+
+1. main (권장)   요즘 대부분의 저장소가 쓰는 이름입니다.
+2. master        예전부터 쓰던 저장소가 많다면 이쪽입니다.
+```
+
+```bash
+node <skill>/scripts/issue-create.mjs base --default main
+```
+
+**저장소 실제 상태가 사용자 습관보다 우선이다.** 사용자가 `main` 이라고 답해도 이 저장소가 `master` 면 `master` 를 쓴다. 이 답은 판별이 실패할 때만 쓰인다.
 
 ## 1단계 — 성숙도 게이트
 
@@ -187,16 +280,17 @@ node <skill>/scripts/issue-create.mjs unlabeled --state open
 `UNLABELED` 가 0 이면 그대로 넘어간다. 0 이 아니면 각 이슈의 제목·본문을 읽고 라벨을 제안한 뒤,
 AskUserQuestion 으로 한 번에 승인받아 붙인다. 세부는 `references/label-audit.md`.
 
-## 7단계 — 인계
+## 7단계 — 다음 행동
 
-착수 여부를 묻고, 예면 같은 번호로 `issue-start` 를 이어서 실행한다.
+`references/next-actions.md` 의 4지선다를 그대로 제시한다. "바로 착수" 를 고르면 같은 번호로 `issue-start` 를 이어서 실행한다.
 
 ## 마무리 보고
 
 ```text
-이슈      #{issue_number} <제목>
+이슈      [#{issue_number} <제목>](<이슈 URL>)
 라벨      <붙인 라벨>
 라벨 점검  <n>건 확인 / <m>건 보정
+기본 브랜치 <base> (<판별 출처>)
 요청 기록  .issue/{issue_number}/request.md
-다음      /issue-start #{issue_number}
+다음      <사용자가 고른 행동>
 ```

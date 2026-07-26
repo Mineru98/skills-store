@@ -10,6 +10,7 @@
  *   evidence-commit <n>  증거 파일을 강제 add 하고 커밋
  *   evidence-mirror <n>  기본 브랜치에 증거만 커밋 (코멘트 이미지가 렌더링되게)
  *   evidence-urls <n>    코멘트에 붙일 raw 이미지 URL 출력
+ *   sync-base            미러 push 뒤 주 체크아웃의 기본 브랜치를 최신으로 맞춘다
  *   migrate              .issue-start / .issue-evidence 를 .issue 로 이관
  *
  * 사용:
@@ -20,7 +21,9 @@
  * 규칙:
  *   - 워크트리 경로는 ~/.issue-plugin/settings.json 의 worktree.layout 이 결정한다.
  *     미결정이면 WORKTREE_LAYOUT_UNSET=1 을 출력하고 exit 2 로 빠진다 (사용자에게 물어야 함).
- *   - 기본 브랜치는 origin/HEAD 로 자동 판별(없으면 main → master)
+ *   - 기본 브랜치는 <repo>/.issue/settings.json 의 git.baseBranch 를 먼저 보고,
+ *     없으면 origin/HEAD → main → master 로 판별해 그 값을 같은 파일에 적어 둔다.
+ *     그래도 못 정하면 ~/.issue-plugin/settings.json 의 git.defaultBaseBranch 를 쓴다.
  *   - 이미 존재하는 브랜치/워크트리는 재사용(멱등)
  *
  * 요구사항: git, gh(로그인 상태), curl, Node 18+
@@ -37,6 +40,7 @@ import {
   slugify, prefixFromLabels, parseIssueNumber, inferIssue,
   issueDir, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
   mirrorEvidence, evidenceUrls, resolveWorktreePath, getWorktreeLayout,
+  syncBaseCheckout, worktreeDisplayPath,
   WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 } from './issue-common.mjs';
 
@@ -46,6 +50,7 @@ function usage(exitCode = 1) {
   node issue-start.mjs worktree <issue-number> [options]
   node issue-start.mjs guard [--issue <n>]
   node issue-start.mjs evidence-init|evidence-commit|evidence-mirror|evidence-urls <issue-number> [options]
+  node issue-start.mjs sync-base [--base <branch>]
   node issue-start.mjs migrate [--dry-run]
 
 fetch:
@@ -217,14 +222,14 @@ function cmdWorktree(number, root, opts) {
     }
     wtPath = resolveWorktreePath(root, number, opts.slug, layout);
 
-    // nested 는 워크트리 사본이 부모 저장소 안에 생긴다.
+    // children 은 워크트리 사본이 부모 저장소 안에 생긴다.
     // .issue/** 무시가 깨져 있으면 부모에서 git add -A 한 방에 사고가 나므로 먼저 막는다.
-    if (layout === 'nested') {
+    if (layout === 'children') {
       ensureIgnoreBlock(root);
       const probe = path.join(path.relative(root, wtPath).split(path.sep).join('/'), '.git');
       if (!isIgnored(root, probe)) {
         fail(
-          `nested 배치인데 ${probe} 가 무시되지 않습니다.\n`
+          `children 배치인데 ${probe} 가 무시되지 않습니다.\n`
           + '  .gitignore 의 .issue 블록을 확인하세요. 이대로 두면 부모 저장소가 워크트리 전체를 추적합니다.',
         );
       }
@@ -240,6 +245,7 @@ function cmdWorktree(number, root, opts) {
   if (opts.dryRun) {
     console.log('\n(dry-run) 아무것도 생성하지 않았다.');
     console.log(`WORKTREE_PATH=${wtPath}`);
+    console.log(`WORKTREE_DISPLAY=${worktreeDisplayPath(root, wtPath)}`);
     console.log(`BRANCH=${branch}`);
     return;
   }
@@ -247,6 +253,7 @@ function cmdWorktree(number, root, opts) {
   if (existing) {
     console.log(`\n✓ 이미 워크트리가 있다: ${existing}`);
     console.log(`WORKTREE_PATH=${existing}`);
+    console.log(`WORKTREE_DISPLAY=${worktreeDisplayPath(root, existing)}`);
     console.log(`BRANCH=${branch}`);
     return;
   }
@@ -274,6 +281,7 @@ function cmdWorktree(number, root, opts) {
   console.log('\n✓ 워크트리 준비 완료');
   if (copied) console.log(`  ${WORKSPACE_DIR}/${number}/ 를 워크트리로 복사했다 (${copied}개 항목)`);
   console.log(`WORKTREE_PATH=${wtPath}`);
+  console.log(`WORKTREE_DISPLAY=${worktreeDisplayPath(root, wtPath)}`);
   console.log(`BRANCH=${branch}`);
 }
 
@@ -418,12 +426,23 @@ function cmdMigrate(root, opts) {
   console.log(JSON.stringify({ dryRun: Boolean(opts.dryRun), moves, gitignoreUpdated }, null, 2));
 }
 
+/**
+ * 미러 push 뒤 주 체크아웃을 최신으로 맞춘다.
+ *
+ * 안전하지 않은 상황(다른 브랜치 / 저장 안 된 변경 / 갈라짐)에서는 아무것도 하지 않고
+ * 사유만 돌려준다. 그 판단은 사람이 해야 하므로 스킬이 AskUserQuestion 으로 이어간다.
+ * 흐름을 막는 단계가 아니라서 어떤 경우에도 exit 0 이다.
+ */
+function cmdSyncBase(root, opts) {
+  console.log(JSON.stringify(syncBaseCheckout({ root, base: opts.base }), null, 2));
+}
+
 /* ------------------------------------------------------------------- main */
 
 const NEEDS_NUMBER = new Set([
   'fetch', 'worktree', 'evidence-init', 'evidence-commit', 'evidence-mirror', 'evidence-urls',
 ]);
-const MODES = new Set([...NEEDS_NUMBER, 'guard', 'migrate']);
+const MODES = new Set([...NEEDS_NUMBER, 'guard', 'sync-base', 'migrate']);
 
 function main() {
   const argv = process.argv.slice(2);
@@ -469,6 +488,7 @@ function main() {
     case 'fetch': cmdFetch(number, root, opts); break;
     case 'worktree': cmdWorktree(number, root, opts); break;
     case 'guard': cmdGuard(root, { ...opts, issue: number }); break;
+    case 'sync-base': cmdSyncBase(root, opts); break;
     case 'evidence-init': cmdEvidenceInit(number, root); break;
     case 'evidence-commit': cmdEvidenceCommit(number, root); break;
     case 'evidence-mirror': cmdEvidenceMirror(number, root, opts); break;
