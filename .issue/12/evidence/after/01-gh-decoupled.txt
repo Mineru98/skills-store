@@ -1,0 +1,22 @@
+### 1. gh 직접 호출이 프로바이더 모듈 한 곳으로 모였다
+
+tools/issue-common.mjs                               0곳
+tools/issue-tracker.mjs                              13곳
+.claude/skills/issue-create/scripts/issue-create.mjs 0곳
+.claude/skills/issue-start/scripts/issue-start.mjs   0곳
+.claude/skills/issue-end/scripts/issue-end.mjs       0곳
+.claude/skills/issue-merge/scripts/issue-merge.mjs   0곳
+
+$ grep -rn "'gh'" tools/ .claude/skills/issue-*/scripts/ | grep -v issue-tracker.mjs
+  (없음 — 프로바이더 밖에 gh 직접 호출이 남아 있지 않다)
+
+### 2. 프로바이더 개념이 코드에 들어왔다
+
+$ grep -n "SETTINGS_DIR =" tools/issue-common.mjs
+317:export const SETTINGS_DIR = path.join(os.homedir(), '.issue');
+321:export const LEGACY_SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
+
+$ ls ~/.issue/settings.json ~/.issue-plugin/settings.json
+/Users/mineru/.issue-plugin/settings.json
+/Users/mineru/.issue/settings.json
+  → 새 경로로 옮겨졌고 구 파일은 롤백용으로 남아 있다
