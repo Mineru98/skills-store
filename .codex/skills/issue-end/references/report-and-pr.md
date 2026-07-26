@@ -118,7 +118,7 @@ node <skill>/scripts/issue-end.mjs sync-base
 | 필드 | 의미 |
 | --- | --- |
 | `ok: true` | 받아왔다. `received` 가 새로 온 커밋 수 (0 이면 이미 최신) |
-| `skipped` | 안전하지 않아 건너뛰었다. 아래 표대로 사용자에게 묻는다 |
+| `skipped` | 안전하지 않아 건너뛰었다. 아래 표대로 AskUserQuestion 으로 사용자에게 묻는다 |
 | `dirtyPaths` | 무엇이 막았는지. `skipped: "dirty"` 일 때 나온다 |
 | `discarded` | 받아올 내용과 같아서 알아서 정리한 파일들 |
 | `restored` | 실패 후 원래 상태로 되돌렸는지 (`conflict` / `error` 일 때만 나온다) |
@@ -170,13 +170,13 @@ git -C <메인 경로> stash pop
 - 지금은 그냥 두기              나중에 정리하셔도 됩니다.
 ```
 
-**"서버 것으로 맞추기" 는 되돌릴 수 없다.** 사라질 커밋 목록을 먼저 보여주고 한 번 더 확인받는다. 출력의 `localOnly` 가 그 목록이다.
+**"서버 것으로 맞추기" 는 되돌릴 수 없다.** 사라질 커밋 목록을 먼저 보여주고 AskUserQuestion 으로 한 번 더 확인받는다. 출력의 `localOnly` 가 그 목록이다.
 
 ```bash
 git -C <메인 경로> log --oneline origin/<base>..HEAD    # 사라질 커밋
 ```
 
-확인을 받은 뒤에만 실행한다. 확인 없이 `reset --hard` 를 돌리지 않는다.
+AskUserQuestion 으로 확인을 받은 뒤에만 실행한다. 확인 없이 `reset --hard` 를 돌리지 않는다.
 
 #### `other-branch` — 메인 폴더가 다른 브랜치에 있다
 
@@ -249,7 +249,15 @@ gh issue view 59 --json comments \
 
 ## 9단계 — 렌더링 확인
 
-코멘트 URL 을 사용자에게 보여주고 이미지가 실제로 보이는지 확인받는다. 깨졌다면 원인은 셋이다.
+코멘트 URL 을 사용자에게 보여주고 이미지가 실제로 보이는지 AskUserQuestion 으로 확인받는다.
+
+```text
+질문: 이슈 코멘트의 이미지가 잘 보이나요?
+- 잘 보인다 (권장 경로)   9단계 PR 생성으로 넘어갑니다
+- 깨져 보인다             아래 원인 셋을 순서대로 확인해 고칩니다
+```
+
+깨졌다면 원인은 셋이다.
 
 1. 미러 push 가 안 됐다 → `mirror` 출력의 `pushed` 확인
 2. `--mirrorRef` 를 안 넘겼다 → 폴백인데 기본 브랜치 URL 을 썼다
@@ -259,7 +267,14 @@ gh issue view 59 --json comments \
 
 **증거가 없으면 PR 을 만들지 않는다.** 이유를 보고하고 멈춘다.
 
-`context` 의 `openPr` 가 있으면 새로 만들지 않고 그 PR 에 코멘트할지 묻는다.
+`context` 의 `openPr` 가 있으면 새로 만들지 않고 그 PR 에 코멘트할지 AskUserQuestion 으로 묻는다.
+
+```text
+질문: 이 브랜치로 이미 열린 PR #<n> 이 있습니다. 어떻게 할까요?
+- 기존 PR 에 코멘트 (권장)   증거 링크를 코멘트로 추가합니다
+- 기존 PR 본문 갱신          본문을 이번 내용으로 다시 씁니다
+- 아무것도 하지 않음         PR 은 그대로 두고 마무리합니다
+```
 
 ```bash
 BASE=$(node <skill>/scripts/issue-end.mjs context | python3 -c "import json,sys; print(json.load(sys.stdin)['baseBranch'])")
@@ -287,7 +302,14 @@ gh pr create --base "$BASE" --head "$(git branch --show-current)" \
 
 이슈 참조는 `#59` 만 적어도 GitHub 이 알아서 링크로 만들지만, **제목까지 붙인 링크**로 쓰면 PR 목록에서 무엇을 고치는 PR 인지 바로 읽힌다.
 
-PR 생성은 push 와 **따로** 확인받는다.
+PR 생성은 push 와 **따로** AskUserQuestion 으로 확인받는다. 두 결정을 한 질문에 묶지 않는다.
+
+```text
+질문: PR 을 만들까요?
+- 만든다 (권장)   위 본문으로 PR 을 엽니다. merge 는 하지 않습니다
+- 초안으로 만든다  draft PR 로 열어 리뷰 요청을 미룹니다
+- 만들지 않는다    push 까지만 하고 끝냅니다
+```
 
 ## merge 하지 않는다
 

@@ -39,7 +39,8 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
     <rule>증거가 없으면 PR 을 만들지 않는다. 왜 만들 수 없는지 보고하고 멈춘다.</rule>
     <rule>merge 를 실행하지 않는다. 요청받으면 `issue-merge` 로 위임한다.</rule>
     <rule>워크트리를 삭제하지 않는다. 정리는 `issue-merge` 가 통합 후에 한다.</rule>
-    <rule>push 와 PR 생성은 각각 따로 확인받는다. 묶어서 승인받지 않는다.</rule>
+    <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
+    <rule>push 와 PR 생성은 각각 따로 AskUserQuestion 으로 확인받는다. 묶어서 승인받지 않는다.</rule>
     <rule>현재 워크트리에서 브랜치를 갈아타지 않는다. 기본 브랜치 작업은 임시 워크트리에서 한다.</rule>
     <rule>이슈 번호를 확정하지 못한 상태에서 임의의 이슈에 코멘트하지 않는다.</rule>
     <rule>측정값과 캡처를 지어내지 않는다. 악화된 지표도 그대로 적는다.</rule>

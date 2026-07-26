@@ -208,7 +208,15 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 
 ## 8. 확인
 
-코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** 확인받는다. 깨졌다면 원인은 셋 중 하나다.
+코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** AskUserQuestion 으로 확인받는다.
+
+```text
+질문: 이슈 코멘트의 이미지가 잘 보이나요?
+- 잘 보인다 (권장 경로)   이대로 issue-end 로 넘어갑니다
+- 깨져 보인다             아래 원인 셋을 순서대로 확인해 고칩니다
+```
+
+깨졌다면 원인은 셋 중 하나다.
 
 1. 미러 push 가 안 됐다 → `evidence-mirror` 출력의 `pushed` 확인
 2. `--mirrorRef` 를 안 넘겼다 → 폴백 브랜치인데 기본 브랜치 URL 을 썼다
@@ -237,7 +245,7 @@ node <skill>/scripts/issue-start.mjs sync-base
 | 필드 | 의미 |
 | --- | --- |
 | `ok: true` | 받아왔다. `received` 가 새로 온 커밋 수 (0 이면 이미 최신) |
-| `skipped` | 안전하지 않아 건너뛰었다. 아래 표대로 사용자에게 묻는다 |
+| `skipped` | 안전하지 않아 건너뛰었다. 아래 표대로 AskUserQuestion 으로 사용자에게 묻는다 |
 | `dirtyPaths` | 무엇이 막았는지. `skipped: "dirty"` 일 때 나온다 |
 | `discarded` | 받아올 내용과 같아서 알아서 정리한 파일들 |
 | `restored` | 실패 후 원래 상태로 되돌렸는지 (`conflict` / `error` 일 때만 나온다) |
@@ -289,13 +297,13 @@ git -C <메인 경로> stash pop
 - 지금은 그냥 두기              나중에 정리하셔도 됩니다.
 ```
 
-**"서버 것으로 맞추기" 는 되돌릴 수 없다.** 사라질 커밋 목록을 먼저 보여주고 한 번 더 확인받는다. 출력의 `localOnly` 가 그 목록이다.
+**"서버 것으로 맞추기" 는 되돌릴 수 없다.** 사라질 커밋 목록을 먼저 보여주고 AskUserQuestion 으로 한 번 더 확인받는다. 출력의 `localOnly` 가 그 목록이다.
 
 ```bash
 git -C <메인 경로> log --oneline origin/<base>..HEAD    # 사라질 커밋
 ```
 
-확인을 받은 뒤에만 실행한다. 확인 없이 `reset --hard` 를 돌리지 않는다.
+AskUserQuestion 으로 확인을 받은 뒤에만 실행한다. 확인 없이 `reset --hard` 를 돌리지 않는다.
 
 #### `other-branch` — 메인 폴더가 다른 브랜치에 있다
 
