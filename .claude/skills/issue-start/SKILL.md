@@ -35,6 +35,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     <always>references/worktree.md — 배치 결정, 브랜치 이름 규칙, 워크트리 생성</always>
     <always>references/implementation.md — 구현과 무확인 커밋 규칙</always>
     <always>references/evidence-capture.md — 전후 캡처·바운딩 박스·미러 커밋·이슈 코멘트</always>
+    <always>references/next-actions.md — 마무리 뒤 다음 행동 4지선다</always>
   </routing>
 
   <subagents>
@@ -45,12 +46,15 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
 
   <hard-rules>
     <rule>before 캡처는 워크트리를 만든 직후, 어떤 파일도 수정하기 전에 찍는다. 순서를 바꾸지 않는다.</rule>
-    <rule>커밋은 `guard` 가 통과할 때만 사용자 확인 없이 한다. 실패하면 커밋하지 않고 확인을 받는다.</rule>
+    <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
+    <rule>커밋은 `guard` 가 통과할 때만 사용자 확인 없이 한다. 실패하면 커밋하지 않고 AskUserQuestion 으로 확인을 받는다.</rule>
     <rule>기본 브랜치에서는 절대 구현하지 않는다. 현재 워크트리에서 브랜치를 갈아타지도 않는다.</rule>
     <rule>증거는 기본 브랜치에 먼저 커밋·푸시한 뒤 이슈에 코멘트한다. 순서를 뒤집으면 이미지가 렌더링되지 않는다.</rule>
     <rule>증거 이미지는 webp 로만 만들고, after 에는 변경 구간을 가리키는 바운딩 박스를 넣는다.</rule>
     <rule>첨부 이미지는 요약만 믿지 않고 Read 로 직접 열어본다.</rule>
     <rule>이슈 상태 변경, PR 생성, merge 를 하지 않는다. 각각 issue-end 와 issue-merge 의 몫이다.</rule>
+    <rule>사용자에게 말을 걸 때는 — 전이 보고든 질문이든 — 현재 단계를 반드시 함께 밝힌다.
+      본문이 5줄 미만이면 앞에, 5줄 이상이면 마지막 줄에 둔다. 형식은 `# 현재 단계 밝히기` 를 따른다.</rule>
   </hard-rules>
 
   <handoff>
@@ -66,10 +70,79 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     3. 무엇이 잘못됐는지 말한다.
     4. 잘못되지 않은 것도 말한다 — 무엇은 멀쩡한지 짚어 준다.
     5. 사용자가 정해야 할 것을 고를 수 있게 물어본다. AskUserQuestion 을 쓴다.
+    6. 이슈·PR·코멘트는 `[설명](링크)` 로, 워크트리 경로는 배치에 맞는 형태로 쓴다. `링크와 경로 쓰는 법` 참고.
+
+    문제 상황이 아니어도 사용자에게 말을 걸 때는 현재 단계를 함께 밝힌다.
+    다음 단계로 넘어가기 직전의 전이 보고와 승인·확인 질문이 모두 대상이다. `# 현재 단계 밝히기` 를 따른다.
   </reporting>
+
+  <next>
+    끝날 때는 항상 다음에 무엇을 할지 골라 준다. references/next-actions.md 의 4지선다를 그대로 쓴다.
+  </next>
 </skill>
 
 # 전체 흐름
+
+# 현재 단계 밝히기
+
+사용자에게 말을 걸 때는 **지금 어느 스킬의 몇 단계인지** 반드시 함께 적는다. 전이 보고와 AskUserQuestion 질문 본문이 대상이며, 선택지 라벨에는 단계 표기를 넣지 않는다.
+
+## 표기 형식
+
+```text
+<스킬 이름> <n>단계(<단계 이름>)
+
+예) issue-start 5단계(워크트리 생성)
+```
+
+## 단계 이름 정본
+
+```text
+ 1  인자 분기 및 전제 확인
+ 2  이슈 수집
+ 3  작업 성격 판정
+ 4  코드베이스 대조 분석
+ 5  워크트리 생성
+ 6  before 증거 캡처
+ 7  구현
+ 8  작업 트리 커밋
+ 9  after 증거 캡처
+10  증거 미러 커밋·푸시
+11  이슈 리포트 코멘트
+12  메인 체크아웃 최신화
+13  다음 행동 선택
+```
+
+## 위치는 분량으로 정한다
+
+```text
+5줄 미만   단계를 먼저 말하고, 이어서 할 말을 한다
+5줄 이상   할 말을 먼저 하고, 마지막에 `현재 단계 — <표기>` 를 한 줄로 남긴다
+```
+
+줄 수는 사용자에게 보이는 본문 기준이며 AskUserQuestion 선택지는 세지 않는다.
+
+### 5줄 미만 — 앞에 붙인다
+
+```text
+issue-start 5단계(워크트리 생성)입니다. 워크트리를 어디에 만들지 한 번만 정하겠습니다.
+```
+
+### 5줄 이상 — 뒤에 붙인다
+
+```text
+계획을 `.issue/11/plan.md` 에 저장했습니다.
+
+원인 가설과 검증 방법을 정리했습니다.
+증거 캡처 조건도 함께 확인했습니다.
+다음에는 워크트리를 만들겠습니다.
+
+현재 단계 — issue-start 4단계(코드베이스 대조 분석)
+```
+
+## 질문일 때
+
+질문 본문에 단계 표기를 넣고, 선택지에는 반복하지 않는다.
 
 ```mermaid
 flowchart TD
@@ -94,7 +167,7 @@ flowchart TD
     H --> I[plan.md 저장]
 
     I --> J{worktree.layout 설정됨?}
-    J -- 아니오 --> J1[AskUserQuestion: sibling / nested] --> J2[settings.json 에 고정] --> K
+    J -- 아니오 --> J1[AskUserQuestion: sibling / children] --> J2[settings.json 에 고정] --> K
     J -- 예 --> K[워크트리 생성]
 
     K --> L[before 캡처 · 파일 수정 전]
@@ -109,7 +182,9 @@ flowchart TD
     P --> Q[evidence-mirror --push: 기본 브랜치에 증거 커밋]
     Q --> R[evidence-urls: 미러 기준 raw URL]
     R --> S[gh issue comment: 전후 리포트]
-    S --> T[보고 + issue-end 안내]
+    S --> S1[sync-base: 메인 체크아웃 최신화]
+    S1 -- 막힘 --> S2[AskUserQuestion: 어떻게 받아올지] --> T
+    S1 -- 성공 --> T[보고 + 다음 행동 4지선다]
 ```
 
 # 스크립트 경로
@@ -179,11 +254,61 @@ sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-verifier -
 멀쩡한 것  코드 변경, 커밋, 작업 브랜치 push 는 모두 끝났습니다. 잃은 것은 없습니다.
 원인      저장소 설정에서 main 브랜치에 직접 push 를 막아 둔 것으로 보입니다.
 
-질문: 증거를 어디에 올릴까요?
+질문: issue-start <n>단계(<단계 이름>)입니다. 증거를 어디에 올릴까요?
 - 별도 브랜치에 올리기 (권장)   evidence/issue-59 브랜치를 만들어 올립니다. 이슈의 이미지는 정상 표시됩니다.
 - 이미지를 직접 첨부           이슈 웹 페이지에 이미지를 끌어다 놓습니다. 손이 한 번 더 갑니다.
 - 증거 없이 진행               이미지 없이 글로만 남깁니다. 나중에 확인이 어려워집니다.
 ```
+
+# 링크와 경로 쓰는 법
+
+보고·질문·마무리 요약에서 이슈·PR·워크트리를 가리킬 때 아래를 지킨다. 네 스킬(issue-create / issue-start / issue-end / issue-merge)이 같은 규칙을 쓴다.
+
+## 이슈 · PR · 코멘트는 항상 클릭되게
+
+맨 URL 을 그대로 붙이거나 번호만 적지 않는다. `[설명](링크)` 형식으로 쓴다.
+
+```text
+나쁜 예   이슈    #59 탭 활성 상태 초기화
+          코멘트  https://github.com/owner/repo/issues/59#issuecomment-123
+
+좋은 예   이슈    [#59 탭 활성 상태 초기화](https://github.com/owner/repo/issues/59)
+          PR      [#103 fix(tab): 활성 상태 유지](https://github.com/owner/repo/pull/103)
+          코멘트  [리포트 보기](https://github.com/owner/repo/issues/59#issuecomment-123)
+```
+
+주소는 이미 손에 들어온다. 직접 조립하지 않는다.
+
+```text
+gh issue view <n> --json url          이슈 주소
+gh pr view <n> --json url             PR 주소
+gh issue comment ... 의 출력           방금 단 코멘트 주소
+issue-end   context   출력의 issueUrl / openPr.url
+issue-merge inventory 출력의 issueUrl / pr.url
+```
+
+저장소를 식별하지 못해 주소를 만들 수 없으면 **번호만 적고** 그 사실을 한 줄 남긴다. 없는 링크를 지어내지 않는다.
+
+## 워크트리 경로는 배치에 맞는 형태로
+
+`ctrl+클릭` 으로 열리려면 형태가 배치와 맞아야 한다.
+
+```text
+children   저장소 안  → 상대 경로   .issue/worktrees/59-tab-active-state
+sibling    저장소 밖  → 절대 경로   /Users/me/work/repo-issue-59
+```
+
+sibling 을 상대 경로로 적으면 `../repo-issue-59` 가 되어 **없는 경로로 열린다.** 반대로 children 을 절대 경로로 적으면 쓸데없이 길다.
+
+스크립트가 계산해 둔 값을 그대로 쓴다.
+
+```text
+issue-start.mjs worktree   출력의 WORKTREE_DISPLAY=
+issue-end.mjs   context    출력의 worktrees[].display
+issue-merge.mjs inventory  출력의 worktrees[].display / excluded[].display
+```
+
+직접 판단해야 하면 설정이 아니라 **실제 경로**를 본다. `git worktree list` 로 경로를 얻어 저장소 루트 아래면 children, 아니면 sibling 이다. 설정값은 새로 만들 때만 쓰이므로, 이미 있는 워크트리는 예전 설정으로 만들어졌을 수 있다.
 
 # 실행 순서
 
@@ -209,7 +334,7 @@ gh auth status
 
 ## 1단계 — 체크리스트 생성
 
-TodoWrite 로 아래 11개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
+TodoWrite 로 아래 13개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
 
 ```text
 1.  인자 분기 및 전제 확인
@@ -223,6 +348,8 @@ TodoWrite 로 아래 11개를 만든다. **단계가 끝날 때마다 즉시 완
 9.  after 증거 캡처 (바운딩 박스 포함)
 10. 증거를 기본 브랜치에 미러 커밋·푸시
 11. 이슈에 전후 리포트 코멘트
+12. 메인 체크아웃의 기본 브랜치 최신화
+13. 다음 행동 선택
 ```
 
 ## 2단계 — 이슈 수집
@@ -232,6 +359,9 @@ node <skill>/scripts/issue-start.mjs fetch {issue_number}
 ```
 
 세부는 `references/issue-collection.md`.
+
+수집에 성공하면 스크립트가 진행 상태 라벨을 `status:plan` 으로 옮긴다(출력의 `STATUS=`).
+이슈를 잡았다는 신호이므로 별도 호출이 필요 없다. 막으려면 `--no-status`.
 
 ## 3단계 — 작업 성격 판정
 
@@ -266,6 +396,8 @@ neither         문서·설정만 바뀜 — 캡처 대신 변경 근거를 글�
 
 `references/worktree.md` 를 따른다. 배치 방식이 정해지지 않았으면 여기서 딱 한 번 묻고 고정한다.
 
+워크트리가 서면 스크립트가 진행 상태를 `status:in-process` 로 옮긴다. 코드가 돌아가기 시작했다는 뜻이다.
+
 ## 6단계 — before 캡처
 
 **워크트리를 만든 직후, 파일을 하나도 고치기 전에** 찍는다. 이 순간의 워크트리는 정의상 pure 하다.
@@ -283,7 +415,7 @@ git add -A -- ':!.issue'          # 증거는 이 커밋에 넣지 않는다
 git commit -m "<type>(<scope>): <요약>"
 ```
 
-통과하면 **사용자에게 묻지 않고** 커밋한다. 실패하면(exit 3) 이유를 보고하고 확인을 받는다.
+통과하면 **사용자에게 묻지 않고** 커밋한다. 실패하면(exit 3) 이유를 보고하고 AskUserQuestion 으로 확인을 받는다.
 
 `':!.issue'` 를 빼면 6단계에서 만든 before 증거가 구현 커밋에 섞여 리뷰에서 diff 가 읽히지 않는다. 증거는 10단계에서 따로 커밋한다.
 
@@ -305,16 +437,35 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 
 세부와 코멘트 형식은 `references/evidence-capture.md`.
 
+## 12단계 — 메인 체크아웃 최신화
+
+증거는 임시 워크트리에서 기본 브랜치로 곧장 올라갔다. 사용자의 메인 폴더는 그 커밋을 아직 모른다.
+
+```bash
+node <skill>/scripts/issue-start.mjs sync-base
+```
+
+안전할 때만 받아온다. 막히면 아무것도 하지 않고 사유만 돌려주므로, 그때는 AskUserQuestion 으로 함께 정한다. 세부는 `references/evidence-capture.md` 의 `9. 메인 체크아웃 최신화`.
+
+## 13단계 — 다음 행동
+
+`references/next-actions.md` 의 4지선다를 그대로 제시한다.
+
 ## 마무리 보고
 
 ```text
-이슈      #{issue_number} <제목>
+이슈      [#{issue_number} <제목>](<이슈 URL>)
 핵심 발견  <3줄 이내>
 계획      .issue/{issue_number}/plan.md
-워크트리   <경로> (<layout>)
+워크트리   <WORKTREE_DISPLAY 값> (<layout>)
+상태      status:in-process
 브랜치    <이름>
+기본 브랜치 <base> (<판별 출처>)
 커밋      <구현 커밋> + <증거 커밋>
 증거      before <n>장 / after <n>장 (박스 <n>개)
-코멘트    <이슈 코멘트 URL>
-다음      issue-end 실행 — 증거 재확인 후 PR
+코멘트    [리포트 보기](<이슈 코멘트 URL>)
+동기화    <메인 최신화 결과 또는 건너뛴 사유>
+다음      <사용자가 고른 행동>
+
+현재 단계 — issue-start 13단계(다음 행동 선택) 완료
 ```

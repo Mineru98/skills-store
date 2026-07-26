@@ -79,7 +79,7 @@ OUT=$(node "$CREATE" create --title "라벨 없는 이슈" --body-file "$TMP/dra
 CODE=$?
 set -e
 check "create: --label 없으면 exit 2" "$([ "$CODE" -eq 2 ] && echo 0 || echo 1)"
-check "create: --label 없을 때 이유를 출력" "$(echo "$OUT" | grep -q -- '--label 이 하나 이상 필요하다' && echo 0 || echo 1)"
+check "create: --label 없을 때 이유를 출력" "$(echo "$OUT" | grep -q -- '성격 라벨(--label)이 하나 이상 필요하다' && echo 0 || echo 1)"
 check "create: --label 없으면 .issue 를 만들지 않음" "$([ ! -d .issue ] && echo 0 || echo 1)"
 
 # =====================================================================

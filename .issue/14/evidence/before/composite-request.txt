@@ -1,7 +1,7 @@
 # before — 복합 요청 처리 (변경 전)
 
 스킬 버전 : origin/main (d3ee5b7)
-references: create-and-handoff.md issue-draft.md label-audit.md maturity-gate.md 
+references: create-and-handoff.md issue-draft.md label-audit.md maturity-gate.md
 요청      : 대시보드에 기간 필터 넣고, 주문 목록 가끔 비는 것도 고치고, 안 쓰는 export 스크립트도 지워줘. 셋 다 이번 스프린트에 해야 하는 것들이야
 
 ----- 스킬 응답 -----

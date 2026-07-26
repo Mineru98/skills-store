@@ -1,0 +1,19 @@
+### 1. gh 직접 호출이 어디에 흩어져 있나
+
+tools/issue-common.mjs                               1곳
+.claude/skills/issue-create/scripts/issue-create.mjs 10곳
+.claude/skills/issue-end/scripts/issue-end.mjs       3곳
+.claude/skills/issue-merge/scripts/issue-merge.mjs   6곳
+.claude/skills/issue-start/scripts/issue-start.mjs   2곳
+
+### 2. 프로바이더 설정을 넣어도 무시된다
+
+$ cat ~/.issue/settings.json
+  (없음 — 설정 경로는 ~/.issue-plugin/settings.json 이다)
+
+$ grep -n "SETTINGS_DIR" tools/issue-common.mjs
+311:export const SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
+
+$ grep -rn "provider" tools/ .claude/skills/issue-*/scripts/ | wc -l
+0
+  → 프로바이더 개념이 코드에 존재하지 않는다

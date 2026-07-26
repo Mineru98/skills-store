@@ -25,10 +25,10 @@ node -e "import('<skill>/scripts/issue-common.mjs').then(m=>console.log(m.parseI
 
 ## 2. AskUserQuestion
 
-선택지는 4개로 고정한다.
+선택지는 4개로 고정한다. 질문 본문에 현재 단계를 함께 적는다(SKILL.md 의 `# 현재 단계 밝히기`).
 
 ```text
-질문   이 요청을 GitHub 이슈로 먼저 등록할까요?
+질문   issue-start 1단계(인자 분기)입니다. 이 요청을 GitHub 이슈로 먼저 등록할까요?
 
 1. 등록하고 착수 (권장)  issue-create 로 이슈를 만든 뒤 그 번호로 이 스킬을 이어서 진행
 2. 등록만               이슈만 만들고 착수는 나중에
@@ -95,7 +95,14 @@ codex   https://raw.githubusercontent.com/Mineru98/skills-store/refs/heads/main/
 gh issue create --title "<한 줄 제목>" --body-file <초안 파일>
 ```
 
-초안에는 배경 / 요구사항 / 현재와 기대 / 완료 기준 / 영향 범위를 담는다. 등록 전에 사용자 승인을 받는다.
+초안에는 배경 / 요구사항 / 현재와 기대 / 완료 기준 / 영향 범위를 담는다. 등록 전에 AskUserQuestion 으로 승인을 받는다.
+
+```text
+질문: issue-start 1단계(인자 분기)입니다. 이 초안으로 이슈를 등록할까요?
+- 승인 (권장)   이대로 등록하고 이슈 번호를 받습니다
+- 수정          고칠 항목을 받아 초안을 다시 제시합니다
+- 취소          등록하지 않고 종료합니다
+```
 
 ## 5. 복귀
 
