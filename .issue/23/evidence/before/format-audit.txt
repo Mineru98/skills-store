@@ -1,0 +1,17 @@
+Issue #23 — before format audit
+
+This documentation-only change has no meaningful UI screenshot. The baseline is
+the text audit below, captured before source files were changed.
+
+question-colon=14
+spaced-question=8
+recommended-bullets=14
+recommended-numbered=2
+canonical-ask-files=0
+
+Command basis:
+rg -n '질문:' .claude/skills/issue-merge .codex/skills/issue-merge
+rg -n '^질문 {2,}' .claude/skills/issue-merge .codex/skills/issue-merge
+rg -n '^- .+\\(권장\\)' .claude/skills/issue-merge .codex/skills/issue-merge
+rg -n '^[0-9]+\\. .+\\(권장\\)' .claude/skills/issue-merge .codex/skills/issue-merge
+rg --files .claude/skills/issue-merge .codex/skills/issue-merge | rg '/ask\\.md$'

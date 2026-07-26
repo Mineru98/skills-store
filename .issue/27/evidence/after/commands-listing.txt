@@ -1,0 +1,40 @@
+# after — .claude/commands listing
+date: 2026-07-27T07:39:55+09:00
+
+total 56
+drwxr-xr-x@ 6 mineru  staff    192  7월 27 07:39 .
+drwxr-xr-x@ 7 mineru  staff    224  7월 27 07:38 ..
+-rw-r--r--@ 1 mineru  staff    317  7월 27 07:38 audit.md
+-rw-r--r--@ 1 mineru  staff   2271  7월 27 07:38 commit.md
+-rw-r--r--@ 1 mineru  staff    821  7월 27 07:38 kill-process.md
+-rw-r--r--@ 1 mineru  staff  12549  7월 27 07:39 setup-bash-cli-alias.md
+
+## setup-bash-cli-alias.md exists?
+YES
+
+## frontmatter (head)
+---
+description: Gist bash 절 기준으로 ~/.zshrc 에 cc/cx CLI alias(tmux·resume·worktree)를 셋업
+allowed-tools: Read, Edit, Write, Bash(test:*), Bash(ls:*), Bash(grep:*), Bash(wc:*), Bash(head:*), Bash(tail:*), Bash(source:*), Bash(zsh:*), Bash(which:*), Bash(command:*), Bash(date:*), Bash(cat:*), Bash(cp:*)
+argument-hint: [선택 힌트 — 예: dry-run]
+---
+
+# 목적
+
+
+## keyword checks
+OK  cc()
+OK  cx()
+OK  --tmux
+OK  --worktree
+OK  --resume
+OK  ~/.zshrc
+OK  claude_default_args
+OK  codex_default_args
+OK  tmux_settle_wrapper
+
+## PowerShell body should be absent
+OK no PowerShell profile code
+
+## git status
+?? .claude/commands/setup-bash-cli-alias.md
