@@ -44,6 +44,7 @@ import {
   WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 } from './issue-common.mjs';
 import { createTracker, evidenceUrls, setTrackerStatus } from './issue-tracker.mjs';
+import { publishDocumentation } from './issue-docs.mjs';
 
 function usage(exitCode = 1) {
   console.error(`Usage:
@@ -347,6 +348,10 @@ function cmdEvidenceInit(number, root) {
 
 function cmdEvidenceCommit(number, root) {
   const key = String(number);
+  const reportFile = path.join(evidenceDir(root, key), 'comment.md');
+  const docs = publishDocumentation({ root, key, reportFile });
+  if (!docs.ok) console.error(`! Confluence 게시 건너뜀: ${docs.warning}`);
+  else if (!docs.skipped) console.log(`✓ Confluence 리포트 게시: ${docs.url}`);
   const files = listEvidence(root, key);
   if (files.length === 0) fail(`증거 파일이 없습니다: ${evidenceRel(root, key)}`);
   ensureIgnoreBlock(root);

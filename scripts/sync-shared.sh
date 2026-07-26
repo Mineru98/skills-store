@@ -13,7 +13,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CHECK=0
 [ "${1:-}" = "--check" ] && CHECK=1
 
-SHARED="issue-common.mjs issue-tracker.mjs"
+SHARED="issue-common.mjs issue-tracker.mjs issue-docs.mjs"
 SKILLS="issue-create issue-start issue-end issue-merge"
 FLAVORS=".claude .codex"
 

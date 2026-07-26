@@ -759,6 +759,29 @@ $issue-start #59
 
 자세한 내용은 `issue-create/references/provider-settings.md`를 보세요.
 
+### 리포트 게시 대상: Confluence
+
+`~/.issue/settings.json`의 `docs`가 이슈 리포트와 webp 증거의 추가 게시 대상을 정합니다. 설정이 없거나 `none`이면 기존 GitHub 이슈 코멘트 흐름만 실행합니다.
+
+```json
+{
+  "docs": {
+    "type": "confluence",
+    "confluence": {
+      "baseUrl": "https://acme.atlassian.net/wiki",
+      "spaceKey": "ENG",
+      "parentPageId": "123456",
+      "email": "me@acme.com",
+      "tokenEnv": "CONFLUENCE_API_TOKEN"
+    }
+  }
+}
+```
+
+토큰 값은 설정 파일에 넣지 않고 `CONFLUENCE_API_TOKEN` 환경변수로 둡니다. 증거 커밋 단계가 `{이슈키} {제목}` 페이지를 만들거나 같은 제목의 기존 페이지를 갱신하고, webp를 첨부해 본문에서 참조합니다. 성공한 페이지 URL은 GitHub 리포트에도 함께 기록됩니다.
+
+Confluence 권한·공간 정책·네트워크 오류는 경고로만 남깁니다. 이 오류 때문에 커밋·PR 흐름이 멈추지는 않습니다.
+
 ### 워크트리 배치는 한 번만 묻습니다
 
 처음 실행할 때 `~/.issue/settings.json`에 배치 방식을 고정하고, 이후 `issue-create` / `issue-start` / `issue-end` / `issue-merge` 어디서 들어오든 같은 값을 씁니다.
