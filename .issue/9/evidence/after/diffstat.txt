@@ -1,0 +1,12 @@
+ .claude/skills/issue-end/SKILL.md                  |  3 ++-
+ .../skills/issue-end/references/context-triage.md  | 26 ++++++++++++++------
+ .../skills/issue-end/references/report-and-pr.md   | 28 +++++++++++++++++++---
+ .claude/skills/issue-merge/SKILL.md                |  3 ++-
+ .claude/skills/issue-merge/references/inventory.md | 15 ++++++++----
+ .../skills/issue-merge/references/merge-plan.md    |  6 ++---
+ .../issue-merge/references/verify-and-close.md     | 22 +++++++++++++----
+ .claude/skills/issue-start/SKILL.md                |  5 ++--
+ .../issue-start/references/evidence-capture.md     | 10 +++++++-
+ .../issue-start/references/implementation.md       | 11 +++++++--
+ .claude/skills/issue-start/references/intake.md    |  9 ++++++-
+ 11 files changed, 109 insertions(+), 29 deletions(-)
