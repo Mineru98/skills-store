@@ -620,7 +620,7 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 → 이슈 3건으로 분할안 제시 → 승인 → 초안 3건 일괄 승인 → 순차 등록
 ```
 
-명시적으로 부르지 않아도, 이슈 없이 변경 요청이 들어오면 스스로 발동합니다.
+명시적으로 부르지 않아도, 커밋이 충분히 쌓인 저장소에서 이슈 없이 변경 요청이 들어오면 스스로 발동합니다. 다만 "이 버튼 색만 바꿔줘"처럼 한 단계로 끝나는 요청은 스킬을 거치지 않고 바로 처리될 수 있습니다.
 
 ### 라벨 체계
 
@@ -674,9 +674,50 @@ status:close       이슈 close 직전                         issue-merge   (�
 .claude/skills/issue-create/scripts/issue-common.mjs   # 공용 모듈 (vendored)
 .codex/skills/issue-create/  (같은 구성 + agents/openai.yaml)
 scripts/test-issue-create.sh                           # gh 를 부르지 않는 경로의 회귀 테스트
+evals/issue-create/trigger-eval.json                   # description 트리거 회귀 셋 (30문항, 튜닝용)
+evals/issue-create/holdout-eval.json                   # 튜닝에 쓰지 않은 검증 셋 (10문항)
+evals/issue-create/run-trigger-eval.mjs                # 위 두 셋을 실제로 돌려 recall/specificity 를 재는 실행기
 ```
 
 요구사항은 `git`, 로그인된 `gh`, Node 18 이상입니다.
+
+### description 을 고칠 때
+
+이 스킬은 명시 호출 없이도 발동해야 하므로 frontmatter 의 `description` 이 곧 기능입니다. 감으로 고치지 말고 실측하세요.
+
+```bash
+node evals/issue-create/run-trigger-eval.mjs --set tuning     # 문구를 다듬는 동안 돌리는 회귀 셋
+node evals/issue-create/run-trigger-eval.mjs --set holdout    # 문구를 확정한 뒤 마지막에 한 번만
+```
+
+실행기는 커밋 35개짜리 픽스처 저장소를 임시로 만들어 이 저장소의 스킬을 전부 설치한 뒤, 질의를 헤드리스 `claude` 에 던져 `Skill` 도구가 `issue-create` 를 부르는지 셉니다. 홈(`~/.claude/skills`) 의 스킬은 `--setting-sources project` 로 배제하므로 경쟁 상대는 저장소에 든 스킬뿐입니다. 기본값은 `sonnet` 모델에 질의당 3회, 동시 3개이며 `--repeat` / `--model` / `--concurrency` 로 바꿉니다. 개선 전 문구를 같은 조건에서 다시 재려면 `--description @<파일>` 로 갈아끼우세요. `--out <파일>` 을 주면 질의별 결과까지 JSON 으로 남습니다.
+
+측정 조건이 결과를 크게 흔듭니다. 두 가지를 실제 환경과 맞춰야 합니다.
+
+- **도구셋** — 기본값 `--tools default`. `Edit` / `Write` / `Bash` 를 빼면 모델이 코드로 직행할 길이 막혀 `Skill` 쪽으로 쏠립니다. 정작 이 스킬이 겪는 미발동은 "스킬을 건너뛰고 코드로 직행"하는 상황이라, 도구를 좁히면 문제 자체가 재현되지 않습니다
+- **경쟁 스킬** — 기본값 `--skills all`. `issue-*` 만 깔면 스킬 목록 자체가 "이 저장소는 이슈 워크플로를 쓴다" 는 힌트가 되어 recall 이 부풀려집니다. 같은 문구가 스킬 5개 조건에서 recall 1.000, 13개 조건에서 0.933 으로 갈렸습니다
+
+동시 실행을 6 이상으로 올리면 API 가 요청을 거절해 전 시행이 실패할 수 있습니다. 실패는 백오프 후 두 번까지 다시 시도하고, 그래도 실패하면 집계에서 빼고 사유를 출력합니다.
+
+- `trigger-eval.json` — 발동해야 하는 15문항 + 발동하면 안 되는 15문항. 발동하면 안 되는 쪽은 `issue-start` / `issue-end` / `issue-merge` / `gh-setup` 과 헷갈리기 쉬운 근접 사례입니다
+- `holdout-eval.json` — 문구를 다듬을 때 보지 않고 마지막에만 돌리는 검증 셋 10문항. 튜닝 셋에서만 오르는 과적합을 걸러냅니다
+- 채택 기준은 **검증 셋 recall 상승 + specificity 가 개선 전 이상**입니다. 튜닝 셋 점수만 오르면 채택하지 않습니다
+
+현재 문구의 측정값은 아래와 같습니다. 위 기본 조건에서 질의당 3회씩 돌려 잰 값입니다.
+
+```text
+                  recall   specificity   accuracy
+개선 전 (30문항)    0.933      0.933        0.933
+개선 후 (30문항)    1.000      0.933        0.967
+개선 전 (검증 10)   0.933      1.000        0.967
+개선 후 (검증 10)   1.000      1.000        1.000
+```
+
+개선 전 문구가 놓친 것은 **삭제 요청**이었습니다. `scripts/export-legacy.mjs 이거 안 쓰는 것 같은데 지워도 될까?` 처럼 물음표로 끝나는 정리 요청과 `legacy 결제 어댑터 걷어내자` 같은 코드 제거 요청에서 발동하지 않았습니다. 새 문구가 "안 쓰는 코드·플래그·스크립트 삭제"와 "물음표로 끝나는 정리 요청"을 명시해 이 사각지대를 메웠습니다.
+
+남은 오발동은 두 가지입니다. `빈 폴더에서 시작하는 중입니다` 류의 스캐폴딩 요청이 3회 중 1회, `이슈들 라벨이 엉망이야` 류의 라벨 정리 요청이 3회 중 2회 발동합니다. 뒤쪽은 개선 전에도 3회 중 3회 발동하던 항목으로, 이 스킬이 실제로 라벨 보정 기능을 갖고 있어 경계가 본질적으로 흐립니다.
+
+한계도 남습니다. Claude 는 스스로 처리 가능한 단순 요청에는 스킬 목록을 조회하지 않습니다. description 으로 끌어올릴 수 있는 상한이 있고, 위 수치는 그 상한 안에서의 값입니다.
 
 </details>
 
