@@ -45,10 +45,21 @@ node <skill>/scripts/issue-merge.mjs merge --pr 103 --method squash
 merge 가 실패하면 출력의 `reason` 을 읽는다. 충돌이면 계획의 순서 판단이 틀린 것이다. 그 PR 을 보류로 돌리고 나머지를 계속할지 AskUserQuestion 으로 묻는다.
 
 ```text
-질문: PR #<n> 의 merge 가 실패했습니다(<reason>). 나머지를 계속할까요?
+질문: issue-merge 6단계(merge · 통합 테스트)입니다. PR #<n> 의 merge 가 실패했습니다(<reason>). 나머지를 계속할까요?
 - 보류하고 계속 (권장)   이 PR 만 빼고 계획의 다음 순서로 넘어갑니다
 - 순서를 바꿔 재시도      먼저 넣을 PR 을 Other 로 입력받아 다시 시도합니다
 - 이번 회차 중단          여기서 멈춥니다. 이미 merge 된 것은 그대로 남습니다
+```
+
+```text
+질문   issue-merge 6단계(merge · 통합 테스트)입니다. #21 의 merge 가 충돌로 실패했습니다.
+       나머지를 계속할까요?
+```
+
+여러 건을 순서대로 처리하므로 **지금 몇 번째를 다루는지 함께 적는다.**
+
+```text
+현재 단계 — issue-merge 6단계(merge · 통합 테스트) · #16 #21 #53 중 #21 처리 중
 ```
 
 ## 2. base-tree 갱신
@@ -113,7 +124,7 @@ oha -n 200 -c 10 http://localhost:8180/api/orders | tee .issue/merge/16-21-53-64
 3. 되돌릴지 후속 수정할지 AskUserQuestion 으로 묻는다.
 
 ```text
-질문: #21 이 통합 후 깨졌습니다. 어떻게 할까요?
+질문: issue-merge 6단계(merge · 통합 테스트)입니다. #21 이 통합 후 깨졌습니다. 어떻게 할까요?
 - revert 하고 다시 작업 (권장)   git revert <merge commit> 후 /issue-start 로 재착수
 - 이대로 두고 후속 이슈 등록      /issue-create 로 회귀 이슈를 만든다
 - 무시하고 진행                   권장하지 않음. 기록만 남긴다
@@ -194,10 +205,14 @@ node <skill>/scripts/issue-merge.mjs base-tree --remove
 ```
 
 ```text
-질문: 아래 <n>개 워크트리를 정리할까요?
+질문: issue-merge 7단계(이슈 close · 정리)입니다. 아래 <n>개 워크트리를 정리할까요?
 - 전부 정리 (권장)   목록의 워크트리와 로컬 브랜치를 제거합니다
 - 일부만 정리        남길 것을 Other 로 입력받습니다
 - 정리하지 않음      전부 그대로 둡니다
+```
+
+```text
+질문   issue-merge 7단계(이슈 close · 정리)입니다. 아래를 지울까요?
 ```
 
 ## 7. 남은 것 정리
