@@ -43,12 +43,24 @@ exit=1 (1 = 무시되지 않음 → 커밋 가능)
 - 완료 기준 4개 항목을 Node 스크립트로 검증 → 전부 PASS
 - `git check-ignore` 로 `.gitignore` 에 걸리지 않음을 확인 (`.gitignore` 는 `.claude/worktrees` 만 무시)
 - 저장소에 `package.json` 이 없어 lint/type-check/build 는 해당 없음
+- 자격 증명 파일(`.auth.json`, `storage-state.json`)이 증거에 섞이지 않았음을 확인
 
 ## 조사에서 확인한 사실
 
 - `skillOverrides` 는 **Claude Code 공식 설정 키**입니다. changelog 근거: "`skillOverrides` setting now works: `off` hides from model and `/`". 따라서 `off` 만으로도 슬래시 호출까지 막힙니다.
 - 위 때문에 `permissions.deny` 는 기능상 중복이지만, 설정 병합 순서가 달라져도 막히는 이중 방어로 그대로 유지했습니다.
+- **설정이 적용되는 시점**: 세션 도중 작업 디렉터리를 이 워크트리로 옮긴 직후에도 차단 대상 스킬 7개가 목록에 그대로 떴습니다. 프로젝트 설정은 세션 시작 시점에 읽히고, 세션 중 디렉터리가 바뀌어도 다시 읽지 않습니다. 저장소를 새 세션으로 열면 정상 적용됩니다. 파일 내용은 완료 기준을 모두 만족하므로 결함이 아니라 반영 시점에 관한 사실입니다.
+
+## 정리한 것
+
+작업 시작 시점에 기본 브랜치 작업 폴더에 `.claude/settings.json` 이 추적되지 않은 상태로 남아 있었습니다. 워크트리 커밋(`fddb09e`)과 내용이 바이트 단위로 동일함을 확인한 뒤 제거했습니다. 이제 기본 브랜치 작업 폴더가 깨끗하므로, 이 PR 을 merge 할 때 "추적되지 않은 파일을 덮어쓴다"는 충돌이 발생하지 않습니다.
+
+```
+$ git status --short --branch
+* main...origin/main
+clean — nothing to commit
+```
 
 ## 남은 이슈
 
-- 메인 작업 폴더에 같은 파일이 아직 추적되지 않은 상태로 남아 있어, 기본 브랜치를 받아올 때 충돌할 수 있습니다. 내용이 동일하므로 잃는 것은 없습니다. 처리는 마무리 단계에서 확인합니다.
+없음.
