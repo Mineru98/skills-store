@@ -1,0 +1,27 @@
+Confluence 게시 구현 후 검증
+=============================
+
+구현 커밋:
+  c31649f feat(issue): Confluence 리포트 게시 지원
+
+실행 명령과 결과:
+  node scripts/test-docs.mjs          test-docs: 통과
+  node scripts/test-common.mjs        test-common: 통과
+  node scripts/test-tracker.mjs       test-tracker: 통과
+  sh scripts/test-issue-create.sh     test-issue-create: 통과
+  sh scripts/test-flow.sh             test-flow: 통과
+  sh scripts/check-shared.sh          check-shared: 통과
+  sh scripts/verify-ignore.sh         verify-ignore: 통과
+  git diff --check                    통과
+
+가짜 Confluence 서버 검증 범위:
+  - docs 미설정은 skipped로 처리되어 기존 흐름을 바꾸지 않는다.
+  - docs.type=confluence에서 이슈 제목 페이지를 한 번 생성한다.
+  - 같은 이슈의 두 번째 게시가 같은 페이지 ID의 version을 2로 올리고 페이지 수는 1개로 유지한다.
+  - webp 증거를 multipart 첨부하고 storage 본문이 attachment image를 참조한다.
+  - Basic 인증과 X-Atlassian-Token: no-check 헤더를 보낸다.
+  - 연결 실패는 예외를 던지지 않고 warning 결과로 돌아온다.
+  - 성공한 페이지 URL은 comment.md의 Confluence 항목에 기록한다.
+
+실제 Confluence Cloud 인스턴스:
+  미측정. 공간 권한, API 토큰, 부모 페이지 정책은 첫 운영 연결에서 확인해야 한다.

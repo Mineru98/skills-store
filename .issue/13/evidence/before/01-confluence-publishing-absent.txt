@@ -1,0 +1,17 @@
+Confluence 게시 기능 전 상태
+=============================
+
+측정 커밋:
+  f2fb0d7c51aada09cee22bfe76762bc51c310d3f
+
+확인 명령:
+  rg -n -i "confluence|docs.type" tools scripts .claude/skills/issue-start .claude/skills/issue-end .codex/skills/issue-start .codex/skills/issue-end -g '*.{mjs,md,sh}'
+  rg --files tools scripts | rg 'issue-docs|test-docs|confluence'
+
+결과:
+  두 명령 모두 출력이 없었다.
+  tools/issue-docs.mjs, scripts/test-docs.mjs, Confluence 설정과 게시 구현은 없었다.
+
+기존 evidence-commit 동작:
+  issue-start와 issue-end 모두 .issue/<번호>/evidence와 .gitignore만 add/commit한다.
+  리포트를 외부 문서 시스템에 게시하거나 페이지 URL을 comment.md에 기록하는 동작은 없다.
