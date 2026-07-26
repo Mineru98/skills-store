@@ -8,6 +8,12 @@
 .ouroboros
 .openchrome
 evals
+# 스킬 트리거 회귀 셋은 재현 가능해야 해서 예외로 커밋한다.
+# 디렉터리가 통째로 제외되면 하위 negation 이 먹지 않아, 루트 evals 만 되살린 뒤 다시 좁힌다.
+!/evals/
+/evals/*
+!/evals/issue-create/
+!/evals/issue-create/*
 .claude/worktrees
 
 # issue-* workspace — evidence only stays committed so issue comments render

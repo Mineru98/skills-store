@@ -1,0 +1,42 @@
+[
+  {
+    "query": "설정 페이지에 알림 수신 시간대 선택 넣어주세요. 지금은 하루 아무 때나 푸시가 가서 새벽에 받았다는 CS 가 이번 주에만 네 건 들어왔습니다. 09시~21시 같은 범위를 사용자가 직접 고르게 하고 싶어요",
+    "should_trigger": true
+  },
+  {
+    "query": "장바구니에서 수량을 0으로 내리면 아이템이 안 지워지고 그냥 0개로 남아. 새로고침해야 사라짐. CartItem 쪽인 것 같은데 봐줄래",
+    "should_trigger": true
+  },
+  {
+    "query": "src/infrastructure/api/billing.ts 에 있는 legacy 결제 어댑터 걷어내자. 신규 PG 로 다 넘어갔고 이제 호출하는 데가 없어",
+    "should_trigger": true
+  },
+  {
+    "query": "두 가지요. 검색 필터 초기화 버튼 하나 추가해주시고, 목록 헤더가 스크롤할 때 안 붙어있는 것도 고쳐주세요",
+    "should_trigger": true
+  },
+  {
+    "query": "프로필 수정하고 저장 누르면 성공 토스트는 뜨는데 값이 반영이 안돼요 뒤로갔다 오면 옛날 값 그대로임",
+    "should_trigger": true
+  },
+  {
+    "query": "77번 이슈 보고 작업 들어가줘. 브랜치 파고 구현까지 부탁해",
+    "should_trigger": false
+  },
+  {
+    "query": "다 만들었으니까 스크린샷 찍고 이슈에 결과 정리해서 올린 다음 PR 까지 부탁해",
+    "should_trigger": false
+  },
+  {
+    "query": "지금 떠 있는 워크트리들 정리하면서 PR 순서대로 합쳐줘. 다 끝나면 해당 이슈들 닫아주고",
+    "should_trigger": false
+  },
+  {
+    "query": "우리 프로젝트에서 zustand 스토어랑 react-query 캐시가 각각 뭘 담당하고 있는지 알려줘. 경계가 헷갈려서",
+    "should_trigger": false
+  },
+  {
+    "query": "새로 만드는 사이드 프로젝트인데 방금 폴더 만들었어. vite + react + ts 로 초기 세팅이랑 라우터까지만 잡아줘",
+    "should_trigger": false
+  }
+]
