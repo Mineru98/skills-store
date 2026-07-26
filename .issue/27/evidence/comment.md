@@ -12,13 +12,13 @@ PowerShell 절은 포함하지 않았다.
 
 `.claude/commands/` 에 `audit.md`, `commit.md`, `kill-process.md` 만 존재. `setup-bash-cli-alias.md` 없음.
 
-원본: `.issue/27/evidence/before/commands-listing.txt`
+- [before 목록](https://raw.githubusercontent.com/Mineru98/skills-store/main/.issue/27/evidence/before/commands-listing.txt)
 
 ### after
 
-`setup-bash-cli-alias.md` 추가 (약 12KB). 키워드 `cc()`, `cx()`, `--tmux`, `--worktree`, `--resume`, `~/.zshrc` 확인. PowerShell 프로필 코드 없음.
+`setup-bash-cli-alias.md` 추가. 키워드 `cc()`, `cx()`, `--tmux`, `--worktree`, `--resume`, `~/.zshrc` 확인. PowerShell 프로필 코드 없음.
 
-원본: `.issue/27/evidence/after/commands-listing.txt`
+- [after 목록](https://raw.githubusercontent.com/Mineru98/skills-store/main/.issue/27/evidence/after/commands-listing.txt)
 
 ## 변경 파일
 
