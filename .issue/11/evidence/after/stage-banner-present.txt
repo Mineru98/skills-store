@@ -1,0 +1,73 @@
+# after — 단계 표기 규칙이 들어간 상태
+
+## 1. 공통 블록 존재 여부 (6개 파일 모두 1)
+$ grep -c "^# 현재 단계 밝히기" .claude/skills/issue-{start,end,merge}/SKILL.md .codex/skills/issue-{start,end,merge}/SKILL.md
+.claude/skills/issue-end/SKILL.md:1
+.claude/skills/issue-merge/SKILL.md:1
+.claude/skills/issue-start/SKILL.md:1
+.codex/skills/issue-start/SKILL.md:1
+.codex/skills/issue-merge/SKILL.md:1
+.codex/skills/issue-end/SKILL.md:1
+
+## 2. 같은 질문 지점 — 단계 표기가 들어갔다
+
+### issue-start / references/worktree.md (5단계 워크트리 생성)
+이때 **딱 한 번** AskUserQuestion 으로 묻는다. 질문 본문에 현재 단계를 함께 적는다.
+
+```text
+질문   issue-start 5단계(워크트리 생성)입니다.
+       워크트리를 어디에 만들까요? 한 번 정하면 이후 계속 이 방식을 씁니다.
+
+1. sibling   ../<repo>-issue-<번호>. 소스 폴더 옆에 나란히 생깁니다.
+2. nested    <repo>/.issue/worktrees/<번호>-<slug>. 프로젝트 안에 모이고 git 이 무시합니다.
+             다만 IDE·파일 감시자·ripgrep 이 중복 트리를 훑을 수 있습니다.
+```
+
+### issue-end / references/next-actions.md (10단계 다음 행동)
+AskUserQuestion 으로 제시한다. 순서를 바꾸지 않는다. 새 작업을 이어가는 쪽이 기본값이다.
+질문 본문에 현재 단계를 함께 적는다 — 여기가 이 스킬의 마지막 단계라는 사실 자체가 사용자에게 필요한 정보다.
+
+```text
+질문   issue-end 10단계(다음 행동 선택)입니다. PR 까지 끝났습니다. 다음으로 무엇을 할까요?
+
+1. 다른 이슈 착수 (권장)   등록된 열린 이슈 중 하나를 골라 /issue-start
+2. 워크트리 전부 merge     지금까지 쌓인 워크트리를 모아 /issue-merge
+3. 새 이슈 등록            /issue-create
+4. 종료                    여기서 마친다
+```
+
+
+### issue-merge / references/inventory.md (3단계 후보 확정)
+
+```text
+후보   #16 #21 #53
+제외   3개 — 기본 브랜치보다 앞선 커밋이 없어 합칠 것이 없습니다
+
+질문: issue-merge 3단계(merge 후보 확정)입니다.
+      아래 <n>개를 이번 통합 대상으로 잡았습니다. 진행할까요?
+- 이대로 진행 (권장)
+- 일부 제외        → 어떤 것을 뺄지 다시 묻는다
+
+## 3. 마무리 보고 템플릿 — 현재 단계 줄이 생겼다
+
+### issue-end SKILL.md
+이슈      #{issue_number} <제목>
+브랜치    <이름>
+증거      before <n>장 / after <n>장 (박스 <n>개)
+미러      <mirrorRef> (fallback 이면 그 사실 명시)
+코멘트    <이슈 코멘트 URL> (신규 / 기존 갱신)
+PR        <PR URL 또는 "만들지 않음 — 사유">
+동기화    기본 브랜치 체크아웃에서 `git pull --rebase origin <base>` 필요
+다음      <사용자가 고른 행동>
+
+현재 단계 — issue-end 10단계(다음 행동 선택) 완료
+```
+
+## 4. .claude / .codex 트리 동기화 (agents 만 차이나야 정상)
+Only in .codex/skills/issue-start: agents
+Only in .codex/skills/issue-end: agents
+Only in .codex/skills/issue-merge: agents
+
+## 5. issue-create 무변경
+$ git show --name-only --format= HEAD | grep -c issue-create
+0
