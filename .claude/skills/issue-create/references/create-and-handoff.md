@@ -28,6 +28,33 @@ node <skill>/scripts/issue-create.mjs create \
 `--no-label` 이라는 탈출구가 있지만, 규칙을 의도적으로 벗어날 때만 쓰고 그 사유를 보고에 남긴다. 모델이 라벨을 고르기 귀찮아서 쓰는 용도가 아니다.
 등록 직후 `unlabeled` 로 기존 이슈의 라벨도 점검한다.
 
+## 여러 건 등록
+
+`create` 는 이슈 하나만 만든다. **항목마다 따로 호출한다.**
+
+```bash
+node <skill>/scripts/issue-create.mjs create \
+  --title "대시보드 기간 필터 추가" --body-file /tmp/draft-1.md \
+  --request-file /tmp/request-1.md --label enhancement
+
+node <skill>/scripts/issue-create.mjs create \
+  --title "주문 목록 빈 렌더링 수정" --body-file /tmp/draft-2.md \
+  --request-file /tmp/request-2.md --label bug
+
+node <skill>/scripts/issue-create.mjs create \
+  --title "레거시 export 스크립트 제거" --body-file /tmp/draft-3.md \
+  --request-file /tmp/request-3.md --label chore
+```
+
+규칙은 셋이다.
+
+- **실패해도 멈추지 않는다.** 한 건이 실패하면 그 항목만 접고 다음 항목으로 간다. 첫 실패로 나머지를 날리지 않는다.
+- **결과는 마지막에 한 번 모아 보고한다.** 항목마다 성공 로그를 늘어놓지 않는다. 실패한 항목은 초안 파일 경로를 남긴다.
+- `.gitignore` 블록 추가 메시지는 **첫 호출에서만** 나온다. 두 번째부터 조용한 것이 정상이다.
+
+`--request-file` 에 넣을 내용은 `issue-draft.md` 의 "원본 요청 기록" 규약을 따른다.
+항목이 하나뿐이면 이 절은 무시하고 위의 단건 절차를 그대로 쓴다.
+
 ## 산출물
 
 ```text
@@ -73,7 +100,21 @@ cp /tmp/issue-draft.md .issue/<번호>/request.md
 "바로 착수" 를 고르면 `issue-start` 는 방금 만든 이슈를 `gh` 로 다시 받아온다.
 초안 내용을 대화 컨텍스트에서 재사용하지 않고, 실제 등록된 본문을 기준으로 분석하게 둔다.
 
+### 여러 건일 때
+
+**첫 번호로만 이어간다.** 나머지는 번호와 명령만 안내한다.
+
+```text
+바로 착수     issue-start 를 #61 로 실행. #62, #63 은 나중에
+나중에        세 번호와 명령만 안내하고 종료
+```
+
+여러 이슈를 한 세션에서 동시에 착수하지 않는다. `issue-start` 는 이슈마다 워크트리를 파므로
+동시에 굴리면 어느 워크트리에서 편집 중인지 잃는다. 병렬로 굴리고 싶으면 세션을 나눠
+`issue-start` 를 각각 부르고, 마지막에 `issue-merge` 로 한 번에 통합한다.
+
 ## 실패 처리
 
 - `gh issue create` 실패(권한·라벨 없음 등) → 실패 원문을 보여주고 초안 파일 경로를 알린다. 재시도는 라벨을 뺀 상태로 한 번만.
 - 저장소에 이슈가 비활성화되어 있으면 초안만 남기고 종료한다.
+- 여러 건 중 일부만 실패했으면 성공한 번호는 그대로 살리고, 실패한 항목만 마무리 보고의 `실패` 줄에 초안 경로와 함께 남긴다. 이미 만든 이슈를 되돌리지 않는다.
