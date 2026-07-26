@@ -1,0 +1,12 @@
+# before — .claude/commands listing
+date: 2026-07-27T07:39:07+09:00
+
+total 24
+drwxr-xr-x@ 5 mineru  staff   160  7월 27 07:38 .
+drwxr-xr-x@ 7 mineru  staff   224  7월 27 07:38 ..
+-rw-r--r--@ 1 mineru  staff   317  7월 27 07:38 audit.md
+-rw-r--r--@ 1 mineru  staff  2271  7월 27 07:38 commit.md
+-rw-r--r--@ 1 mineru  staff   821  7월 27 07:38 kill-process.md
+
+## setup-bash-cli-alias.md exists?
+NO
