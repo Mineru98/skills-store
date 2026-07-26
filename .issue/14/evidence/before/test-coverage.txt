@@ -1,0 +1,13 @@
+# before — issue-create 회귀 테스트 커버리지 (변경 전)
+
+저장소 상태: origin/main (d3ee5b7)
+
+## scripts/ 에 있는 테스트
+scripts/test-flow.sh
+
+## test-flow.sh 가 다루는 스크립트
+10:START="$ROOT/.claude/skills/issue-start/scripts/issue-start.mjs"
+11:END="$ROOT/.claude/skills/issue-end/scripts/issue-end.mjs"
+
+## issue-create.mjs 를 부르는 테스트가 있는가
+없음 — issue-create 는 회귀 테스트 커버가 0 이다
