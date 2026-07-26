@@ -1,0 +1,43 @@
+### 변경 후 GitHub 경로 — before 와 동일해야 한다 (회귀 없음)
+
+$ issue-create.mjs labels
+
+LABELS=bug,documentation,duplicate,enhancement,good first issue,help wanted,invalid,question,wontfix,status:open,status:plan,status:in-process,status:review,status:close
+
+$ issue-create.mjs search "provider"
+
+MATCHES=1
+MATCH_NUMBERS=12
+
+$ issue-create.mjs unlabeled --state open
+SCANNED=8
+UNLABELED=0
+UNLABELED_NUMBERS=
+
+$ issue-end.mjs context --issue 12   (일부 필드)
+  "repo": "Mineru98/skills-store",
+  "provider": "github",
+  "trackerAuth": true,
+  "ghAuth": true,
+  "issueState": "OPEN",
+  "issueTitle": "feat(issue): 이슈 백엔드를 프로바이더로 추상화하고 Jira 를 지원한다",
+
+### before 와의 차이 검토
+
+$ diff (before/03-github-behavior.txt vs 이 파일)
+4c4
+< SCANNED=6
+---
+> SCANNED=8
+
+LABELS / MATCHES / MATCH_NUMBERS / UNLABELED 은 완전 동일하다.
+SCANNED 만 6 → 8 로 늘었는데, 코드 변경이 아니라 그 사이 저장소에
+이슈 #14 · #15 가 새로 등록된 결과다. 아래로 확인된다.
+
+$ gh issue list --state open --limit 50
+  #15 feat(issue): issue-create 가 명시 호출 없이도 발동하도록 description 을...
+  #14 feat(issue): issue-create 가 복합 요청을 이슈 여러 건으로 나눈다
+  #13 · #12 · #11 · #9 · #6 · #5           ← before 캡처 시점의 6건
+  = 8건
+
+UNLABELED=0 이 유지되므로 라벨 판정 로직도 그대로다.

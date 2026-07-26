@@ -1,0 +1,32 @@
+### 변경 전 GitHub 경로 동작 (회귀 비교용)
+
+$ issue-create.mjs labels
+  status:close  — merge 되어 종료됨
+
+LABELS=bug,documentation,duplicate,enhancement,good first issue,help wanted,invalid,question,wontfix,status:open,status:plan,status:in-process,status:review,status:close
+
+$ issue-create.mjs search "provider"
+     https://github.com/Mineru98/skills-store/issues/12
+
+MATCHES=1
+MATCH_NUMBERS=12
+
+$ issue-create.mjs unlabeled --state open
+
+SCANNED=6
+UNLABELED=0
+UNLABELED_NUMBERS=
+
+$ issue-end.mjs context --issue 12   (일부 필드)
+  "repo": "Mineru98/skills-store",
+  "branch": "feat/12-tracker-provider",
+  "issue": "12",
+  "ghAuth": true,
+  "issueState": "OPEN",
+  "issueTitle": "feat(issue): 이슈 백엔드를 프로바이더로 추상화하고 Jira 를 지원한다",
+      "branch": "main",
+      "branch": "feat/11-stage-banner",
+      "branch": "feat/12-tracker-provider",
+      "branch": "feat/5-status-labels",
+      "branch": "feat/9-askuserquestion-approval-points",
+      "branch": "feat/6-issue-skills-ux",
