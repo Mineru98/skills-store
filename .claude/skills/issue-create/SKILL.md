@@ -41,8 +41,10 @@ description: 기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸�
     <rule>성숙도 게이트가 SKIP 이면 조용히 빠지고 원래 요청을 방해하지 않는다.</rule>
     <rule>사용자가 `/issue-create` 를 직접 호출하면 게이트를 건너뛴다.</rule>
     <rule>유사한 열린 이슈가 있으면 새로 만들지 않고 그 번호를 제시한다.</rule>
-    <rule>만든 이슈에는 라벨을 반드시 하나 이상 붙인다. 스크립트가 `--label` 없는 `create` 를 exit 2 로 막는다.</rule>
-    <rule>라벨을 새로 만들거나 기존 이슈의 라벨을 바꾸는 것은 사용자 승인 후에만 한다.</rule>
+    <rule>만든 이슈에는 성격 라벨을 반드시 하나 이상 붙인다. 스크립트가 성격 라벨 없는 `create` 를 exit 2 로 막는다.</rule>
+    <rule>진행 상태 라벨(`status:*`)은 상호배타다. 바꿀 때는 `status` 명령으로 교체하고, 직접 add/remove 를 조합하지 않는다.</rule>
+    <rule>상태 전환 실패는 흐름을 막지 않는다. 경고만 남기고 진행한 뒤 마무리 보고에 적는다.</rule>
+    <rule>라벨을 새로 만들거나 기존 이슈의 라벨을 바꾸는 것은 사용자 승인 후에만 한다. `status:open` 자동 부착은 예외다.</rule>
     <rule>이슈 상태 변경, 코멘트 작성, PR 생성을 하지 않는다.</rule>
   </hard-rules>
 
@@ -91,9 +93,9 @@ flowchart TD
     G --> H{초안 승인?}
     H -- 수정 --> G
     H -- 취소 --> Z0
-    H -- 승인 --> I[create: gh issue create + 라벨 부착 + request.md]
+    H -- 승인 --> I[create: gh issue create + 성격 라벨 + status:open + request.md]
 
-    I --> M[unlabeled: 라벨 없는 기존 이슈 점검]
+    I --> M[unlabeled: 성격·상태 라벨 점검]
     M -- 없음 --> J
     M -- 있음 --> M1[제목·본문으로 라벨 제안]
     M1 --> M2{일괄 적용 승인?}
@@ -268,8 +270,10 @@ both            사용자 플로우 전체를 다루거나 API 계약 변경이 
 
 ## 5단계 — 등록
 
-`references/create-and-handoff.md` 를 따른다. **라벨 없이 등록하지 않는다.**
+`references/create-and-handoff.md` 를 따른다. **성격 라벨 없이 등록하지 않는다.**
 쓸 라벨이 저장소에 하나도 없으면 `references/label-audit.md` 의 라벨 생성 절차를 먼저 밟는다.
+
+`status:open` 은 등록 성공 직후 스크립트가 자동으로 붙인다. `--label` 로 직접 넘기지 않는다.
 
 ## 6단계 — 기존 이슈 라벨 점검
 
@@ -277,8 +281,13 @@ both            사용자 플로우 전체를 다루거나 API 계약 변경이 
 node <skill>/scripts/issue-create.mjs unlabeled --state open
 ```
 
-`UNLABELED` 가 0 이면 그대로 넘어간다. 0 이 아니면 각 이슈의 제목·본문을 읽고 라벨을 제안한 뒤,
-AskUserQuestion 으로 한 번에 승인받아 붙인다. 세부는 `references/label-audit.md`.
+출력은 두 축으로 나뉜다.
+
+- `UNLABELED_NUMBERS` — 성격 라벨이 없는 이슈. 제목·본문을 읽고 라벨을 제안한다.
+- `NO_STATUS_NUMBERS` — 진행 상태 라벨이 없는 이슈. PR·브랜치 유무로 현재 상태를 판정한다.
+
+둘 다 0 이면 그대로 넘어간다. 아니면 제안 목록을 만들어 AskUserQuestion 으로 한 번에 승인받아 붙인다.
+세부는 `references/label-audit.md`.
 
 ## 7단계 — 다음 행동
 
@@ -288,8 +297,8 @@ AskUserQuestion 으로 한 번에 승인받아 붙인다. 세부는 `references/
 
 ```text
 이슈      [#{issue_number} <제목>](<이슈 URL>)
-라벨      <붙인 라벨>
-라벨 점검  <n>건 확인 / <m>건 보정
+라벨      <붙인 성격 라벨> + status:open
+라벨 점검  성격 <n>건 확인 / <m>건 보정, 상태 <p>건 확인 / <q>건 보정
 기본 브랜치 <base> (<판별 출처>)
 요청 기록  .issue/{issue_number}/request.md
 다음      <사용자가 고른 행동>

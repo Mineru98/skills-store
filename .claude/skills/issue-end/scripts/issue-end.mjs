@@ -9,6 +9,7 @@
  *   mirror    [--issue <n>]     기본 브랜치 사본에 증거만 커밋. push 실패 시 evidence 브랜치 폴백
  *   urls      [--issue <n>]     이슈 코멘트에 붙일 raw 이미지 URL 출력
  *   pure-tree [--issue <n>]     변경 직전 상태의 detached 워크트리를 만든다 (before 재캡처용)
+ *   status <n> <상태>           진행 상태 라벨을 교체한다 (open|plan|in-process|review|close)
  *   sync-base                   미러 push 뒤 주 체크아웃의 기본 브랜치를 최신으로 맞춘다
  *
  * 공통 옵션
@@ -35,11 +36,13 @@ import process from 'node:process';
 import {
   run, git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
   repoSlug, evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, evidenceUrls, listWorktrees, issueDir, WORKSPACE_DIR,
+  mirrorEvidence, evidenceUrls, listWorktrees, issueDir, WORKSPACE_DIR, setStatus, STATUS_ORDER,
   syncBaseCheckout, worktreeDisplayPath,
 } from './issue-common.mjs';
 
-const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|sync-base> [options]
+const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|status|sync-base> [options]
+
+  status <n> <상태>  ${STATUS_ORDER.join(' | ')} (접두사 생략 가능)
 
   --issue <n>        이슈 번호 (생략 시 브랜치에서 추론)
   --base <branch>    기준 브랜치 고정
@@ -258,7 +261,13 @@ function cmdSyncBase(args) {
 const [, , sub, ...rest] = process.argv;
 const args = parseArgs(rest, ['push', 'json', 'dry-run', 'remove']);
 
+/** 진행 상태 라벨 교체. 구현은 공용 모듈에 있고 여기서는 인자만 넘긴다. */
+function cmdStatus(a) {
+  setStatus(repoRoot(), a._[0] ?? a.issue, a._[1], { repo: a.repo, dryRun: a.dryRun });
+}
+
 switch (sub) {
+  case 'status': cmdStatus(args); break;
   case 'context': cmdContext(args); break;
   case 'sync-base': cmdSyncBase(args); break;
   case 'init': cmdInit(args); break;

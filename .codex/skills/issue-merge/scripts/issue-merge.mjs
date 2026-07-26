@@ -7,7 +7,8 @@
  *   base-tree              base 전용 임시 워크트리를 만든다 (사용자 작업 트리를 건드리지 않기 위해)
  *   plan-dir <n> [<n>...]  .issue/merge/<번호들>/ 을 만들고 경로를 출력
  *   merge --pr <n>         gh pr merge 래퍼. 실패 사유를 구조화해 출력
- *   close --issue <n> [--comment-file <f>]  이슈를 닫는다
+ *   close --issue <n> [--comment-file <f>]  이슈를 닫는다 (닫기 직전 status:close 로 전환)
+ *   status <n> <상태>      진행 상태 라벨을 교체한다 (open|plan|in-process|review|close)
  *   cleanup                통합이 끝난 워크트리와 base-tree 를 정리
  *
  * 이 스크립트는 판단하지 않는다. 사실 수집과 단일 동작 실행만 한다.
@@ -20,17 +21,18 @@ import path from 'node:path';
 import process from 'node:process';
 import {
   run, git, fail, parseArgs, repoRoot, currentBranch, detectBase,
-  inferIssue, listWorktrees, listEvidence, evidenceRel, WORKSPACE_DIR,
+  inferIssue, listWorktrees, listEvidence, evidenceRel, WORKSPACE_DIR, setStatus, STATUS_ORDER,
   worktreeDisplayPath,
 } from './issue-common.mjs';
 
-const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|merge|close|cleanup> [options]
+const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|merge|close|status|cleanup> [options]
 
   inventory                    워크트리·이슈·PR·증거 상태를 JSON 으로
   base-tree [--remove]         base 전용 임시 워크트리 생성/정리
   plan-dir <n> [<n>...]        .issue/merge/<번호들>/ 생성
   merge --pr <n> [--method squash|merge|rebase]
-  close --issue <n> [--comment-file <f>]
+  close --issue <n> [--comment-file <f>] [--no-status]
+  status <n> <${STATUS_ORDER.map((s) => s.slice(7)).join('|')}>
   cleanup --worktree <path> [--branch <name>]
 
   --base <branch>   기준 브랜치 고정`;
@@ -260,9 +262,25 @@ function cmdClose(args) {
     const c = run('gh', ['issue', 'comment', String(args.issue), '--body-file', args['comment-file']]);
     if (c.code !== 0) fail(`이슈 코멘트 실패: ${c.err}`);
   }
+  // 라벨은 닫기 전에 바꾼다. 닫힌 뒤에 붙이면 실패 여지가 늘어난다.
+  const status = args['no-status']
+    ? null
+    : setStatus(repoRoot(), args.issue, 'close', { quiet: true });
   const r = run('gh', ['issue', 'close', String(args.issue)]);
   if (r.code !== 0) fail(`이슈 close 실패: ${r.err}`);
-  console.log(JSON.stringify({ closed: true, issue: Number(args.issue), commented: Boolean(args['comment-file']) }, null, 2));
+  console.log(JSON.stringify({
+    closed: true,
+    issue: Number(args.issue),
+    commented: Boolean(args['comment-file']),
+    status: status ? status.status : null,
+    statusChanged: status ? status.changed : false,
+  }, null, 2));
+}
+
+/* ----------------------------------------------------------------- status */
+
+function cmdStatus(a) {
+  setStatus(repoRoot(), a._[0] ?? a.issue, a._[1], { repo: a.repo, dryRun: a.dryRun });
 }
 
 /* ---------------------------------------------------------------- cleanup */
@@ -289,9 +307,10 @@ function cmdCleanup(args) {
 /* ------------------------------------------------------------------ entry */
 
 const [, , sub, ...rest] = process.argv;
-const args = parseArgs(rest, ['json', 'dry-run', 'remove', 'force']);
+const args = parseArgs(rest, ['json', 'dry-run', 'remove', 'force', 'no-status']);
 
 switch (sub) {
+  case 'status': cmdStatus(args); break;
   case 'inventory': cmdInventory(args); break;
   case 'base-tree': cmdBaseTree(args); break;
   case 'plan-dir': cmdPlanDir(args._); break;
