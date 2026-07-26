@@ -81,7 +81,7 @@ export JIRA_API_TOKEN='...'   # https://id.atlassian.com/manage-profile/security
 ## Jira 에서 달라지는 것
 
 ```text
-본문 서식     REST v2 로 마크다운 원문을 그대로 넣는다. Jira 는 wiki markup 으로 렌더하므로
+본문 서식     REST v3 로 제목·문단·목록·코드·링크를 ADF 문서로 변환해 넣는다. 지원하지 않는
               표·코드펜스 일부가 원문 그대로 보일 수 있다. 내용이 없어지지는 않는다
 라벨          Jira 라벨은 공백을 못 쓴다. "good first issue" → "good-first-issue" 로 바꾸고 알린다
 라벨 생성     Jira 에는 라벨을 미리 만드는 개념이 없다. ensure-label 은 NOOP=1 로 통과한다

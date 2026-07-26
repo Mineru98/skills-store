@@ -40,31 +40,34 @@ const server = createServer((req, res) => {
       body: body ? JSON.parse(body) : null,
     });
 
-    if (url.startsWith('/rest/api/2/myself')) return send({ displayName: '테스터' });
-    if (url.startsWith('/rest/api/2/label')) return send({ values: ['bug', 'enhancement'] });
-    if (url === '/rest/api/2/issue' && req.method === 'POST') return send({ key: 'ACME-77' }, 201);
-    if (url.startsWith('/rest/api/2/issue/ACME-77/transitions') && req.method === 'GET') {
+    if (url.startsWith('/rest/api/3/myself')) return send({ displayName: '테스터' });
+    if (url.startsWith('/rest/api/3/label')) return send({ values: ['bug', 'enhancement'] });
+    if (url === '/rest/api/3/issue' && req.method === 'POST') return send({ key: 'ACME-77' }, 201);
+    if (url.startsWith('/rest/api/3/issue/ACME-77/transitions') && req.method === 'GET') {
       return send({ transitions: [{ id: '31', name: '완료로', to: { name: 'Done' } }] });
     }
-    if (url.startsWith('/rest/api/2/issue/ACME-77/transitions') && req.method === 'POST') return send({}, 204);
-    if (url.startsWith('/rest/api/2/issue/ACME-77/comment')) return send({ id: '1' }, 201);
-    if (url.startsWith('/rest/api/2/issue/ACME-77') && req.method === 'PUT') return send({}, 204);
-    if (url.startsWith('/rest/api/2/issue/ACME-77')) {
+    if (url.startsWith('/rest/api/3/issue/ACME-77/transitions') && req.method === 'POST') return send({}, 204);
+    if (url.startsWith('/rest/api/3/issue/ACME-77/comment')) return send({ id: '1' }, 201);
+    if (url.startsWith('/rest/api/3/issue/ACME-77') && req.method === 'PUT') return send({}, 204);
+    if (url.startsWith('/rest/api/3/issue/ACME-77')) {
       return send({
         key: 'ACME-77',
         fields: {
           summary: '주문 목록이 빈다',
-          description: '## 배경\n\n마크다운 원문',
+          description: { version: 1, type: 'doc', content: [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: '배경' }] },
+            { type: 'paragraph', content: [{ type: 'text', text: '마크다운 원문' }] },
+          ] },
           status: { name: 'In Progress' },
           labels: ['bug', 'status:open'],
           assignee: { displayName: '담당자' },
-          comment: { comments: [{ author: { displayName: '리뷰어' }, body: '재현됨', created: '2026-07-01' }] },
+          comment: { comments: [{ author: { displayName: '리뷰어' }, body: { version: 1, type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '재현됨' }] }] }, created: '2026-07-01' }] },
           created: '2026-06-01',
           updated: '2026-07-01',
         },
       });
     }
-    if (url.startsWith('/rest/api/2/search')) {
+    if (url.startsWith('/rest/api/3/search')) {
       return send({
         issues: [{
           key: 'ACME-42',

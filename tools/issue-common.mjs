@@ -254,32 +254,16 @@ export function listWorktrees(root) {
     .filter(Boolean);
 }
 
-/**
- * gh 로 owner/name + private 여부. gh 실패 시 origin URL 파싱(이때 isPrivate 는 null).
- *
- * 링크를 만들 때마다 불리므로 저장소별로 한 번만 조회한다. `gh repo view` 는 네트워크를 탄다.
- */
-const slugCache = new Map();
-export function repoSlug(root) {
-  const key = root ?? '';
-  if (slugCache.has(key)) return slugCache.get(key);
-  const value = queryRepoSlug(root);
-  slugCache.set(key, value);
-  return value;
-}
-
-function queryRepoSlug(root) {
-  const r = run('gh', ['repo', 'view', '--json', 'nameWithOwner,isPrivate,defaultBranchRef'], root ? { cwd: root } : {});
-  if (r.code === 0) {
-    try {
-      return JSON.parse(r.out);
-    } catch {
-      /* fallthrough */
-    }
-  }
+/** origin URL만으로 owner/name을 뽑는다. private 여부는 gitHost가 보강한다. */
+export function repoSlugFromRemote(root) {
   const url = git(['remote', 'get-url', 'origin'], root ? { cwd: root } : {}).out;
   const m = url.match(/[:/]([^/:]+)\/([^/]+?)(?:\.git)?$/);
   return m ? { nameWithOwner: `${m[1]}/${m[2]}`, isPrivate: null } : null;
+}
+
+/** 하위호환용 이름. 호스트 CLI를 직접 부르지 않는다. */
+export function repoSlug(root) {
+  return repoSlugFromRemote(root);
 }
 
 /** 경로가 실제로 git 에게 무시되는지 확인. children 워크트리 안전장치의 근거. */
@@ -389,130 +373,16 @@ export function resolveStatus(raw) {
   return STATUS_ORDER.includes(full) ? full : null;
 }
 
-function ghArgs(base, opts = {}) {
-  return opts.repo ? [...base, '--repo', opts.repo] : base;
-}
-
-/** 이슈에 실제로 붙어 있는 라벨 이름 배열. 조회 실패는 null (빈 배열과 구분한다). */
-export function issueLabels(root, number, opts = {}) {
-  const r = run('gh', ghArgs(['issue', 'view', String(number), '--json', 'labels'], opts), { cwd: root });
-  if (r.code !== 0) return null;
-  try {
-    return (JSON.parse(r.out || '{}').labels ?? []).map((l) => l.name);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * 라벨이 없으면 만든다. 이미 있으면 아무것도 하지 않는다.
- * 색·설명은 STANDARD_LABELS / STATUS_LABELS 프리셋에서 찾고, 없으면 gh 기본값에 맡긴다.
- * 반환: 'exists' | 'created' | 'failed'
- */
-export function ensureLabel(root, name, opts = {}) {
-  const listed = run('gh', ghArgs(['label', 'list', '--limit', '200', '--json', 'name'], opts), { cwd: root });
-  if (listed.code === 0) {
-    let existing = [];
-    try {
-      existing = JSON.parse(listed.out || '[]').map((l) => l.name);
-    } catch {
-      existing = [];
-    }
-    if (existing.includes(name)) return 'exists';
-  }
-  const preset = STATUS_LABELS[name] ?? STANDARD_LABELS[name] ?? {};
-  const args = ghArgs(['label', 'create', name], opts);
-  const color = opts.color ?? preset.color;
-  const description = opts.description ?? preset.description;
-  if (color) args.push('--color', color);
-  if (description) args.push('--description', description);
-  return run('gh', args, { cwd: root }).code === 0 ? 'created' : 'failed';
-}
-
-/**
- * 진행 상태 라벨을 원자적으로 교체한다 — 기존 status:* 전부 제거 + 새 것 하나 추가.
- *
- * 라벨은 메타데이터이지 게이트가 아니다. 실패해도 흐름을 막지 않고 경고만 남긴다.
- * 출력 계약: STATUS= / PREV_STATUS= / CHANGED=0|1, 실패 시 STATUS_FAILED=1 + FAILED_ISSUE=.
- *
- * opts.quiet 이면 아무것도 찍지 않고 결과만 돌려준다 — JSON 만 뱉는 호출부에서 쓴다.
- */
-export function setStatus(root, number, status, opts = {}) {
-  const say = opts.quiet ? () => {} : (m) => console.log(m);
-  const warn = opts.quiet ? () => {} : (m) => console.warn(m);
-  const target = resolveStatus(status);
-  if (!target) {
-    console.error(`✗ 모르는 상태: ${status}`);
-    console.error(`  쓸 수 있는 값: ${STATUS_ORDER.join(', ')} (접두사 생략 가능)`);
-    process.exit(2);
-  }
-  const n = parseIssueNumber(number);
-  if (!n) {
-    console.error(`✗ 이슈 번호가 필요하다 (예: status 59 plan)`);
-    process.exit(2);
-  }
-
-  const current = issueLabels(root, n, opts);
-  if (current === null) {
-    warn(`  ! #${n} 라벨을 읽지 못해 상태 전환을 건너뛴다.`);
-    say('STATUS_FAILED=1');
-    say(`FAILED_ISSUE=${n}`);
-    return { ok: false, changed: false, status: target, previous: null };
-  }
-
-  const stale = current.filter((l) => isStatusLabel(l) && l !== target);
-  const previous = stale[0] ?? (current.includes(target) ? target : null);
-
-  if (current.includes(target) && !stale.length) {
-    say(`✓ #${n} 이미 ${target}`);
-    say(`STATUS=${target}`);
-    say(`PREV_STATUS=${previous ?? ''}`);
-    say('CHANGED=0');
-    return { ok: true, changed: false, status: target, previous };
-  }
-
-  const args = ghArgs(['issue', 'edit', String(n)], opts);
-  if (!current.includes(target)) args.push('--add-label', target);
-  for (const l of stale) args.push('--remove-label', l);
-
-  if (opts.dryRun) {
-    say(`(dry-run) gh ${args.join(' ')}`);
-    say(`STATUS=${target}`);
-    say(`PREV_STATUS=${previous ?? ''}`);
-    say('CHANGED=0');
-    return { ok: true, changed: false, status: target, previous };
-  }
-
-  if (!current.includes(target) && ensureLabel(root, target, opts) === 'failed') {
-    warn(`  ! ${target} 라벨을 만들지 못했다. 상태 전환을 건너뛴다.`);
-    say('STATUS_FAILED=1');
-    say(`FAILED_ISSUE=${n}`);
-    return { ok: false, changed: false, status: target, previous };
-  }
-
-  const res = run('gh', args, { cwd: root });
-  if (res.code !== 0) {
-    warn(`  ! #${n} 상태 전환 실패: ${res.err || res.out}`);
-    say('STATUS_FAILED=1');
-    say(`FAILED_ISSUE=${n}`);
-    return { ok: false, changed: false, status: target, previous };
-  }
-
-  say(`✓ #${n} ${previous ?? '(없음)'} → ${target}`);
-  say(`STATUS=${target}`);
-  say(`PREV_STATUS=${previous ?? ''}`);
-  say('CHANGED=1');
-  return { ok: true, changed: true, status: target, previous };
-}
-
-/** "59", "#59", 이슈 URL 에서 번호를 뽑는다. */
+/** "59", "#59", GitHub 이슈 URL, Jira 키("ACME-59")에서 번호를 뽑는다. */
 export function parseIssueNumber(raw) {
   if (raw === null || raw === undefined) return null;
   const s = String(raw).trim();
   const url = s.match(/\/issues\/(\d+)/);
   if (url) return Number(url[1]);
   const m = s.match(/^#?(\d{1,6})$/);
-  return m ? Number(m[1]) : null;
+  if (m) return Number(m[1]);
+  const jira = s.match(/^[A-Za-z][A-Za-z0-9_]*-(\d{1,6})$/);
+  return jira ? Number(jira[1]) : null;
 }
 
 /**
@@ -613,10 +483,21 @@ export function ensureIgnoreBlock(root) {
 
 /* --------------------------------------------------------------- settings */
 
-export const SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
+/** 사용자 환경 설정의 정본. 기존 ~/.issue-plugin 은 한 번만 읽어 이곳으로 복사한다. */
+export const SETTINGS_DIR = path.join(os.homedir(), '.issue');
 export const SETTINGS_PATH = path.join(SETTINGS_DIR, 'settings.json');
+export const LEGACY_SETTINGS_PATH = path.join(os.homedir(), '.issue-plugin', 'settings.json');
 
 export function readIssueSettings() {
+  if (!existsSync(SETTINGS_PATH) && existsSync(LEGACY_SETTINGS_PATH)) {
+    try {
+      mkdirSync(SETTINGS_DIR, { recursive: true });
+      cpSync(LEGACY_SETTINGS_PATH, SETTINGS_PATH);
+      console.error(`! 기존 설정을 ${SETTINGS_PATH} 로 한 번 옮겼습니다.`);
+    } catch {
+      return {};
+    }
+  }
   if (!existsSync(SETTINGS_PATH)) return {};
   try {
     return JSON.parse(readFileSync(SETTINGS_PATH, 'utf8'));

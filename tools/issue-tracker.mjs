@@ -17,10 +17,9 @@
  *
  * ## Jira 어댑터의 선택
  *
- * REST v3 는 본문이 ADF(Atlassian Document Format) 라는 JSON 문서 트리라 마크다운을
- * 그대로 못 넣는다. 변환기를 직접 쓰는 비용이 이 스킬의 목적에 비해 크다.
- * v2 는 문자열 본문을 받으므로 마크다운 원문을 손실 없이 저장할 수 있다.
- * 렌더는 Jira wiki markup 기준이라 표·코드펜스 일부가 그대로 보이지 않을 수 있다.
+ * Jira REST v3 는 본문을 ADF(Atlassian Document Format) JSON 문서 트리로 받는다.
+ * 이 모듈은 스킬 리포트에서 쓰는 제목·문단·목록·코드 펜스·링크를 의존성 없이 ADF로
+ * 바꾸고, 응답 ADF는 사람이 읽을 수 있는 Markdown 텍스트로 되돌린다.
  *
  * 의존성 없음. Node 18+, curl.
  */
@@ -29,6 +28,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import process from 'node:process';
 import {
   run, fail, detectBase, listEvidence, evidenceRel, repoSlugFromRemote, readIssueSettings,
+  isStatusLabel, resolveStatus, STATUS_LABELS,
 } from './issue-common.mjs';
 
 export const PROVIDERS = ['github', 'jira'];
@@ -187,6 +187,21 @@ function githubTracker(root, cfg) {
       return { ok: r.code === 0, err: r.err };
     },
 
+    issueRemoveLabels(number, labels) {
+      const args = repoArgs(['issue', 'edit', String(number)]);
+      for (const l of labels) args.push('--remove-label', l);
+      const r = run('gh', args, opts);
+      return { ok: r.code === 0, err: r.err };
+    },
+
+    issueUpdateLabels(number, { add = [], remove = [] }) {
+      const args = repoArgs(['issue', 'edit', String(number)]);
+      for (const label of add) args.push('--add-label', label);
+      for (const label of remove) args.push('--remove-label', label);
+      const r = run('gh', args, opts);
+      return { ok: r.code === 0, err: r.err };
+    },
+
     issueComment(number, bodyFile) {
       const r = run('gh', repoArgs(['issue', 'comment', String(number), '--body-file', bodyFile]), opts);
       return { ok: r.code === 0, err: r.err };
@@ -248,6 +263,82 @@ export function sanitizeJiraLabel(label) {
   return { label: safe, changed: safe !== String(label).trim() };
 }
 
+const adfText = (text, marks) => ({ type: 'text', text, ...(marks?.length ? { marks } : {}) });
+
+/** 스킬 리포트에 필요한 Markdown 부분집합을 Jira REST v3 ADF로 바꾼다. */
+export function markdownToAdf(markdown) {
+  const lines = String(markdown ?? '').replace(/\r\n/g, '\n').split('\n');
+  const content = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      content.push({ type: 'heading', attrs: { level: heading[1].length }, content: [adfText(heading[2])] });
+      continue;
+    }
+    if (/^```/.test(line)) {
+      const code = [];
+      i += 1;
+      while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
+      content.push({ type: 'codeBlock', content: code.length ? [adfText(code.join('\n'))] : [] });
+      continue;
+    }
+    const list = line.match(/^([-*+] |\d+\. )(.+)$/);
+    if (list) {
+      const ordered = /^\d+\. /.test(line);
+      const items = [];
+      while (i < lines.length) {
+        const item = lines[i].match(ordered ? /^\d+\.\s+(.+)$/ : /^[-*+]\s+(.+)$/);
+        if (!item) break;
+        items.push({ type: 'listItem', content: [{ type: 'paragraph', content: inlineToAdf(item[1]) }] });
+        i += 1;
+      }
+      i -= 1;
+      content.push({ type: ordered ? 'orderedList' : 'bulletList', content: items });
+      continue;
+    }
+    content.push({ type: 'paragraph', content: inlineToAdf(line) });
+  }
+  return { version: 1, type: 'doc', content };
+}
+
+function inlineToAdf(text) {
+  const nodes = [];
+  const re = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  let at = 0;
+  for (const hit of text.matchAll(re)) {
+    if (hit.index > at) nodes.push(adfText(text.slice(at, hit.index)));
+    nodes.push(adfText(hit[1], [{ type: 'link', attrs: { href: hit[2] } }]));
+    at = hit.index + hit[0].length;
+  }
+  if (at < text.length) nodes.push(adfText(text.slice(at)));
+  return nodes.length ? nodes : [];
+}
+
+/** Jira v3 ADF 응답을 스킬의 기존 문자열 body 계약으로 정규화한다. */
+export function adfToMarkdown(value) {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return '';
+  const text = (node) => (node?.content ?? []).map((child) => {
+    if (child.type === 'text') {
+      const link = child.marks?.find((mark) => mark.type === 'link')?.attrs?.href;
+      return link ? `[${child.text ?? ''}](${link})` : (child.text ?? '');
+    }
+    if (child.type === 'hardBreak') return '\n';
+    return text(child);
+  }).join('');
+  const block = (node) => {
+    const body = text(node);
+    if (node.type === 'heading') return `${'#'.repeat(node.attrs?.level ?? 1)} ${body}`;
+    if (node.type === 'codeBlock') return `\`\`\`\n${body}\n\`\`\``;
+    if (node.type === 'bulletList') return (node.content ?? []).map((item) => `- ${text(item)}`).join('\n');
+    if (node.type === 'orderedList') return (node.content ?? []).map((item, i) => `${i + 1}. ${text(item)}`).join('\n');
+    return body;
+  };
+  return (value.content ?? []).map(block).filter(Boolean).join('\n\n');
+}
+
 function jiraTracker(cfg) {
   const base = String(cfg.baseUrl ?? '').replace(/\/+$/, '');
   const projectKey = cfg.projectKey;
@@ -258,7 +349,7 @@ function jiraTracker(cfg) {
   const doneStatus = (Array.isArray(cfg.doneStatus) ? cfg.doneStatus : [cfg.doneStatus ?? 'Done']).filter(Boolean);
 
   const auth = email && token ? Buffer.from(`${email}:${token}`).toString('base64') : null;
-  const api = (p) => `${base}/rest/api/2${p}`;
+  const api = (p) => `${base}/rest/api/3${p}`;
   const key = (n) => (/^[A-Za-z]/.test(String(n)) ? String(n) : `${projectKey}-${n}`);
   const numberOf = (k) => Number(String(k).split('-').pop());
   const browse = (k) => `${base}/browse/${k}`;
@@ -277,14 +368,14 @@ function jiraTracker(cfg) {
       title: f.summary ?? '',
       state: isDone(f.status?.name) ? 'CLOSED' : 'OPEN',
       statusName: f.status?.name ?? null,
-      body: f.description ?? '',
+      body: adfToMarkdown(f.description),
       url: browse(it.key),
       labels: (f.labels ?? []).map((name) => ({ name })),
       assignees: f.assignee ? [{ login: f.assignee.displayName ?? f.assignee.accountId }] : [],
       milestone: null,
       comments: (f.comment?.comments ?? []).map((c) => ({
         author: { login: c.author?.displayName ?? 'unknown' },
-        body: c.body ?? '',
+        body: adfToMarkdown(c.body),
         createdAt: c.created ?? '',
       })),
       createdAt: f.created ?? null,
@@ -355,7 +446,7 @@ function jiraTracker(cfg) {
       const fields = {
         project: { key: projectKey },
         summary: title,
-        description,
+        description: markdownToAdf(description),
         issuetype: { name: issueType },
         labels: clean.map((c) => c.label),
       };
@@ -392,9 +483,17 @@ function jiraTracker(cfg) {
       return { ok: r.ok, err: r.ok ? null : `HTTP ${r.status}: ${r.raw ?? ''}` };
     },
 
+    issueRemoveLabels(number, labels) {
+      const clean = labels.map((l) => sanitizeJiraLabel(l).label);
+      const r = call('PUT', `/issue/${key(number)}`, {
+        update: { labels: clean.map((l) => ({ remove: l })) },
+      });
+      return { ok: r.ok, err: r.ok ? null : `HTTP ${r.status}: ${r.raw ?? ''}` };
+    },
+
     issueComment(number, bodyFile) {
       const body = existsSync(bodyFile) ? readFileSync(bodyFile, 'utf8') : '';
-      const r = call('POST', `/issue/${key(number)}/comment`, { body });
+      const r = call('POST', `/issue/${key(number)}/comment`, { body: markdownToAdf(body) });
       return { ok: r.ok, err: r.ok ? null : `HTTP ${r.status}: ${r.raw ?? ''}` };
     },
 
@@ -442,6 +541,39 @@ export function checkTrackerAuth(tracker) {
     if (r.hint) console.error(`  ${r.hint}`);
   }
   return r;
+}
+
+/** 진행 상태 라벨을 트래커 안에서만 교체한다. Jira도 labels 필드로 같은 메타데이터를 유지한다. */
+export function setTrackerStatus(tracker, number, status, { dryRun = false, quiet = false } = {}) {
+  const target = resolveStatus(status);
+  if (!target) return { ok: false, changed: false, status: null, previous: null, err: `모르는 상태: ${status}` };
+  const issue = tracker.issueView(number);
+  if (!issue) return { ok: false, changed: false, status: target, previous: null, err: '이슈 라벨을 읽지 못했습니다.' };
+  const labels = (issue.labels ?? []).map((label) => label.name);
+  const stale = labels.filter((label) => isStatusLabel(label) && label !== target);
+  const previous = stale[0] ?? (labels.includes(target) ? target : null);
+  if (labels.includes(target) && !stale.length) return { ok: true, changed: false, status: target, previous };
+  if (dryRun) return { ok: true, changed: false, status: target, previous };
+  if (!labels.includes(target) && tracker.provider === 'github') {
+    // 이미 있는 라벨 생성은 GitHub가 거절하지만, 뒤의 issue edit은 그대로 성공한다.
+    // 사전 목록 조회를 피하면 상태 전환이 한 번의 읽기와 쓰기로 끝난다.
+    tracker.labelCreate(target, STATUS_LABELS[target]);
+  }
+  if (tracker.provider === 'github') {
+    const update = tracker.issueUpdateLabels(number, { add: labels.includes(target) ? [] : [target], remove: stale });
+    if (!update.ok) return { ok: false, changed: false, status: target, previous, err: update.err };
+  } else {
+    if (!labels.includes(target)) {
+      const added = tracker.issueAddLabels(number, [target]);
+      if (!added.ok) return { ok: false, changed: false, status: target, previous, err: added.err };
+    }
+    if (stale.length) {
+      const removed = tracker.issueRemoveLabels(number, stale);
+      if (!removed.ok) return { ok: false, changed: false, status: target, previous, err: removed.err };
+    }
+  }
+  if (!quiet) console.log(`✓ ${tracker.displayKey(number)} ${previous ?? '(없음)'} → ${target}`);
+  return { ok: true, changed: true, status: target, previous };
 }
 
 /* --------------------------------------------------------- 증거 URL */

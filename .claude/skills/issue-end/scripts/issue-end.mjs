@@ -9,8 +9,6 @@
  *   mirror    [--issue <n>]     기본 브랜치 사본에 증거만 커밋. push 실패 시 evidence 브랜치 폴백
  *   urls      [--issue <n>]     이슈 코멘트에 붙일 raw 이미지 URL 출력
  *   pure-tree [--issue <n>]     변경 직전 상태의 detached 워크트리를 만든다 (before 재캡처용)
- *   status <n> <상태>           진행 상태 라벨을 교체한다 (open|plan|in-process|review|close)
- *   sync-base                   미러 push 뒤 주 체크아웃의 기본 브랜치를 최신으로 맞춘다
  *
  * 공통 옵션
  *   --issue <n>   이슈 번호. 생략 시 브랜치 이름에서 추론, 그래도 없으면 브랜치 slug 사용
@@ -28,21 +26,22 @@
  *
  * 증거는 .issue/<key>/evidence/ 에 쌓이고, 이 경로만 .gitignore 예외로 커밋된다.
  *
- * 요구사항: git, gh(로그인), Node 18+
+ * 이슈 백엔드는 ~/.issue/settings.json 의 provider 설정이 정한다 (github 기본 | jira).
+ * PR 은 코드 호스트(GitHub) 의 것이라 트래커와 무관하게 gitHost 를 쓴다.
+ *
+ * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
 import { mkdirSync, existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  run, git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
-  repoSlug, evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, evidenceUrls, listWorktrees, issueDir, WORKSPACE_DIR, setStatus, STATUS_ORDER,
-  syncBaseCheckout, worktreeDisplayPath,
+  git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
+  evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
+  mirrorEvidence, listWorktrees, issueDir, WORKSPACE_DIR,
 } from './issue-common.mjs';
+import { createTracker, gitHost, evidenceUrls, setTrackerStatus } from './issue-tracker.mjs';
 
-const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|status|sync-base> [options]
-
-  status <n> <상태>  ${STATUS_ORDER.join(' | ')} (접두사 생략 가능)
+const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|status> [options]
 
   --issue <n>        이슈 번호 (생략 시 브랜치에서 추론)
   --base <branch>    기준 브랜치 고정
@@ -50,11 +49,6 @@ const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-t
   --mirrorRef <ref>  urls 에서 쓸 미러 ref
   --ref <ref>        pure-tree 기준 ref
   --remove           pure-tree 정리`;
-
-/** 워크트리 목록에 `ctrl+클릭` 으로 열리는 표시용 경로를 붙인다. */
-function withDisplay(root, worktrees) {
-  return worktrees.map((w) => ({ ...w, display: worktreeDisplayPath(root, w.path) }));
-}
 
 /** before/after 각각에 파일이 있는지 — 증거 완결성 판단의 근거 */
 function evidenceSummary(root, key) {
@@ -80,7 +74,9 @@ function cmdContext(args) {
   const branch = currentBranch();
   const base = detectBase(root, 'origin', args.base);
   const { key, issue } = evidenceKey(args, branch);
-  const repo = repoSlug(root);
+  const repo = gitHost.repoInfo(root);
+  const tracker = createTracker(root);
+  const trackerAuth = tracker.auth();
   const evidence = evidenceSummary(root, key);
 
   const ctx = {
@@ -101,13 +97,17 @@ function cmdContext(args) {
     dirty: git(['status', '--porcelain']).out.split('\n').filter(Boolean).length,
     ahead: null,
     upstream: git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']).out || null,
-    ghAuth: run('gh', ['auth', 'status']).code === 0,
+    provider: tracker.provider,
+    trackerAuth: trackerAuth.ok,
+    trackerAuthDetail: trackerAuth.ok ? null : trackerAuth.detail,
+    // 하위호환: 기존 소비자가 ghAuth 를 읽는다. github 트래커면 같은 값이다.
+    ghAuth: gitHost.auth().ok,
     issueState: null,
     issueTitle: null,
     issueUrl: null,
     openPr: null,
     pureTree: existsSync(pureTreePath(root, key)) ? pureTreePath(root, key) : null,
-    worktrees: withDisplay(root, listWorktrees(root)),
+    worktrees: listWorktrees(root),
   };
 
   if (ctx.upstream) {
@@ -115,29 +115,19 @@ function cmdContext(args) {
     ctx.ahead = c.code === 0 ? Number(c.out) : null;
   }
 
-  if (ctx.ghAuth && issue) {
-    const r = run('gh', ['issue', 'view', String(issue), '--json', 'number,title,state,url']);
-    if (r.code === 0) {
-      try {
-        const j = JSON.parse(r.out);
-        ctx.issueState = j.state;
-        ctx.issueTitle = j.title;
-        ctx.issueUrl = j.url;
-      } catch {
-        /* ignore */
-      }
+  if (ctx.trackerAuth && issue) {
+    const j = tracker.issueView(issue);
+    if (j) {
+      ctx.issueState = j.state;
+      ctx.issueTitle = j.title;
+      ctx.issueUrl = j.url;
+      ctx.issueKey = j.key;
     }
   }
 
+  // PR 은 코드 호스트 소관이다. 트래커가 Jira 여도 여기는 GitHub 을 본다.
   if (ctx.ghAuth && branch) {
-    const r = run('gh', ['pr', 'list', '--head', branch, '--state', 'all', '--json', 'number,state,url,isDraft']);
-    if (r.code === 0) {
-      try {
-        ctx.openPr = JSON.parse(r.out)[0] ?? null;
-      } catch {
-        /* ignore */
-      }
-    }
+    ctx.openPr = gitHost.prForBranch(branch);
   }
 
   console.log(JSON.stringify(ctx, null, 2));
@@ -195,6 +185,14 @@ function cmdUrls(args) {
   ));
 }
 
+function cmdStatus(args) {
+  const root = repoRoot();
+  const number = args._[0] ?? args.issue;
+  const result = setTrackerStatus(createTracker(root, { repo: args.repo }), number, args._[1], { dryRun: args.dryRun });
+  if (!result.status) { console.error(`✗ 상태 전환 실패: ${result.err}`); process.exit(2); }
+  if (!result.ok) console.log('STATUS_FAILED=1');
+}
+
 /**
  * 변경 직전 상태의 detached 워크트리를 만든다.
  *
@@ -244,36 +242,18 @@ function cmdPureTree(args) {
   }, null, 2));
 }
 
-/**
- * 미러 push 뒤 주 체크아웃을 최신으로 맞춘다.
- *
- * 안전하지 않은 상황(다른 브랜치 / 저장 안 된 변경 / 갈라짐)에서는 아무것도 하지 않고
- * 사유만 돌려준다. 그 판단은 사람이 해야 하므로 스킬이 AskUserQuestion 으로 이어간다.
- * 흐름을 막는 단계가 아니라서 어떤 경우에도 exit 0 이다.
- */
-function cmdSyncBase(args) {
-  const root = repoRoot();
-  console.log(JSON.stringify(syncBaseCheckout({ root, base: args.base }), null, 2));
-}
-
 // ---------------------------------------------------------------- entry
 
 const [, , sub, ...rest] = process.argv;
 const args = parseArgs(rest, ['push', 'json', 'dry-run', 'remove']);
 
-/** 진행 상태 라벨 교체. 구현은 공용 모듈에 있고 여기서는 인자만 넘긴다. */
-function cmdStatus(a) {
-  setStatus(repoRoot(), a._[0] ?? a.issue, a._[1], { repo: a.repo, dryRun: a.dryRun });
-}
-
 switch (sub) {
-  case 'status': cmdStatus(args); break;
   case 'context': cmdContext(args); break;
-  case 'sync-base': cmdSyncBase(args); break;
   case 'init': cmdInit(args); break;
   case 'commit': cmdCommit(args); break;
   case 'mirror': cmdMirror(args); break;
   case 'urls': cmdUrls(args); break;
+  case 'status': cmdStatus(args); break;
   case 'pure-tree': cmdPureTree(args); break;
   default:
     console.error(USAGE);

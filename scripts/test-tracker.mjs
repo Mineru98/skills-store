@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import {
   resolveProviderConfig, providerType, createTracker, sanitizeJiraLabel, curlJson, PROVIDERS,
+  markdownToAdf, adfToMarkdown,
 } from '../tools/issue-tracker.mjs';
 
 let failed = 0;
@@ -50,6 +51,15 @@ eq('콜론 라벨도 그대로', sanitizeJiraLabel('status:open').label, 'status
 eq('공백은 하이픈으로', sanitizeJiraLabel('good first issue').label, 'good-first-issue');
 check('바뀐 사실을 알린다', sanitizeJiraLabel('good first issue').changed === true);
 check('안 바뀌면 changed=false', sanitizeJiraLabel('bug').changed === false);
+
+const adf = markdownToAdf('## 배경\n\n본문 [링크](https://example.com)\n\n- 하나\n- 둘\n\n```\nconst x = 1;\n```');
+eq('ADF 문서 버전', adf.version, 1);
+eq('ADF 문서 타입', adf.type, 'doc');
+check('ADF 제목 변환', adf.content.some((node) => node.type === 'heading'));
+check('ADF 목록 변환', adf.content.some((node) => node.type === 'bulletList'));
+check('ADF 코드 변환', adf.content.some((node) => node.type === 'codeBlock'));
+check('ADF 링크 변환', JSON.stringify(adf).includes('https://example.com'));
+check('ADF 역변환', adfToMarkdown(adf).includes('## 배경'));
 
 /* ------------------------------------------------ 가짜 Jira 서버로 검증 */
 
@@ -110,12 +120,12 @@ eq('키에서 번호 추출', view.number, 77);
 eq('라벨을 gh 모양으로', view.labels[0].name, 'bug');
 eq('담당자를 gh 모양으로', view.assignees[0].login, '담당자');
 eq('코멘트를 gh 모양으로', view.comments[0].author.login, '리뷰어');
-check('본문 마크다운 보존', view.body.startsWith('## 배경'));
+check('ADF 본문 정규화', view.body.startsWith('## 배경'));
 
 const list = jira.issueList({ state: 'open', search: '주문' });
 eq('검색 결과 개수', list.length, 1);
 eq('완료 상태는 CLOSED 로', list[0].state, 'CLOSED');
-const searchReq = requests().find((r) => r.url.startsWith('/rest/api/2/search'));
+const searchReq = requests().find((r) => r.url.startsWith('/rest/api/3/search'));
 const jql = decodeURIComponent(searchReq.url.split('jql=')[1].split('&')[0]);
 check('JQL 에 프로젝트 조건', jql.includes('project = ACME'), jql);
 check('열린 이슈만 거르는 조건', jql.includes('statusCategory != Done'), jql);
@@ -130,11 +140,13 @@ check('이슈 생성 성공', created.ok, created.err);
 eq('생성된 번호', created.number, 77);
 eq('생성된 키', created.key, 'ACME-77');
 eq('생성 URL', created.url, `${baseUrl}/browse/ACME-77`);
-const createReq = requests().find((r) => r.url === '/rest/api/2/issue' && r.method === 'POST');
+const createReq = requests().find((r) => r.url === '/rest/api/3/issue' && r.method === 'POST');
 check('Basic 인증 헤더를 붙인다', String(createReq.auth ?? '').startsWith('Basic '), createReq.auth);
 eq('프로젝트 키 전달', createReq.body.fields.project.key, 'ACME');
 eq('이슈 타입 전달', createReq.body.fields.issuetype.name, 'Task');
-check('본문을 파일에서 읽어 넣는다', createReq.body.fields.description.includes('본문이다'));
+eq('생성 본문은 ADF 문서', createReq.body.fields.description.type, 'doc');
+eq('생성 본문 ADF 버전', createReq.body.fields.description.version, 1);
+check('본문을 ADF로 넣는다', JSON.stringify(createReq.body.fields.description).includes('본문이다'));
 eq('공백 라벨을 정리해 보낸다', createReq.body.fields.labels[1], 'good-first-issue');
 
 check('라벨 부착 성공', jira.issueAddLabels(77, ['chore']).ok);
@@ -145,7 +157,8 @@ const commentFile = path.join(tmp, 'comment.md');
 writeFileSync(commentFile, '리포트 본문');
 check('코멘트 성공', jira.issueComment(77, commentFile).ok);
 const commentReq = requests().find((r) => r.url.includes('/comment'));
-eq('코멘트 본문 전달', commentReq.body.body, '리포트 본문');
+eq('코멘트 본문은 ADF 문서', commentReq.body.body.type, 'doc');
+check('코멘트 본문 ADF 전달', JSON.stringify(commentReq.body.body).includes('리포트 본문'));
 
 check('종료 성공', jira.issueClose(77).ok);
 const transitionPost = requests().find((r) => r.url.includes('/transitions') && r.method === 'POST');
@@ -153,7 +166,12 @@ eq('완료로 가는 전이 id 를 골랐다', transitionPost.body.transition.id
 
 /* --------------------------------------------------- 실패 경로도 확인한다 */
 
-const notFound = curlJson({ method: 'GET', url: `${baseUrl}/rest/api/2/nope` });
+const allJiraRequestsUseV3 = requests()
+  .filter((r) => r.url.startsWith('/rest/api/'))
+  .every((r) => r.url.startsWith('/rest/api/3/'));
+check('모든 Jira 요청은 REST v3', allJiraRequestsUseV3);
+
+const notFound = curlJson({ method: 'GET', url: `${baseUrl}/rest/api/3/nope` });
 check('404 는 ok=false', notFound.ok === false);
 eq('상태 코드 보존', notFound.status, 404);
 

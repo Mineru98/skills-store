@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * issue-create.mjs — 착수 전에 GitHub 이슈를 만드는 보조 스크립트 (저장소 비종속).
+ * issue-create.mjs — 착수 전에 이슈를 만드는 보조 스크립트 (저장소·트래커 비종속).
  *
  * 네 가지 모드로 나뉜다.
  *
@@ -8,14 +8,9 @@
  *   2) search    : 같은 내용의 이슈가 이미 있는지 찾는다.
  *   3) labels    : 저장소에 실제로 존재하는 라벨만 쓰기 위해 목록을 뽑는다.
  *   4) create    : 이슈를 만들고 issue-start 가 이어받을 request.md 를 남긴다.
- *   5) unlabeled : 성격 라벨 / 진행 상태 라벨이 빠진 기존 이슈를 찾는다.
- *   6) label     : 기존 이슈에 라벨을 붙이거나 뗀다.
+ *   5) unlabeled : 라벨이 하나도 없는 기존 이슈를 찾는다.
+ *   6) label     : 기존 이슈에 라벨을 붙인다.
  *   7) ensure-label : 표준 라벨이 없을 때 만든다 (사용자 승인 후에만 호출).
- *   8) status    : 진행 상태 라벨을 교체한다 (open|plan|in-process|review|close).
- *   9) base      : 이 저장소의 기본 브랜치를 정해 `.issue/settings.json` 에 남긴다.
- *
- * 라벨은 두 축이다 — 성격(bug/enhancement/…) 과 진행 상태(status:*).
- * create 는 성격 라벨을 강제하고, status:open 은 생성 직후 자동으로 붙인다.
  *
  * 사용:
  *   node issue-create.mjs gate
@@ -26,18 +21,19 @@
  *   node issue-create.mjs label 59 --label bug
  *   node issue-create.mjs ensure-label enhancement
  *
- * 요구사항: git, gh(로그인 상태), Node 18+
+ * 이슈 백엔드는 ~/.issue/settings.json 의 provider 설정이 정한다 (github 기본 | jira).
+ * 트래커 호출은 전부 issue-tracker.mjs 를 거친다. 이 파일은 gh 를 직접 부르지 않는다.
+ *
+ * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  git, repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR,
-  ensureLabel, setStatus, typeLabels, isStatusLabel, STATUS_ORDER,
-  detectBase, readProjectSettings, writeProjectSettings,
-  getDefaultBaseBranch, setDefaultBaseBranch, PROJECT_SETTINGS_REL,
+  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR, STATUS_ORDER, typeLabels, isStatusLabel,
 } from './issue-common.mjs';
+import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
 
 export { parseIssueNumber };
 
@@ -73,10 +69,9 @@ function usage(exitCode = 1) {
   node issue-create.mjs labels [--repo <owner/name>]
   node issue-create.mjs create --title <제목> --body-file <파일> [options]
   node issue-create.mjs unlabeled [--state open|all] [--limit <n>] [--repo <o/n>]
-  node issue-create.mjs label <issue-number> [--label <name>...] [--remove-label <name>...]
+  node issue-create.mjs label <issue-number> --label <name> [--label <name>...]
   node issue-create.mjs ensure-label <name> [--color <hex>] [--desc <설명>]
   node issue-create.mjs status <issue-number> <${STATUS_ORDER.map((s) => s.slice(7)).join('|')}>
-  node issue-create.mjs base [--set <branch>] [--default <branch>]
 
 gate:
   커밋 수·원격·이슈 이력·빌드 설정·소스 규모를 확인해
@@ -85,16 +80,18 @@ gate:
 create options:
   --title <t>          이슈 제목 (필수)
   --body-file <f>      이슈 본문 마크다운 파일 (필수)
-  --label <name>       성격 라벨 (필수, 여러 번 지정 가능, 저장소에 있는 것만)
+  --label <name>       라벨 (필수, 여러 번 지정 가능, 저장소에 있는 것만)
   --no-label           라벨 없이 만든다. 의도적으로 규칙을 벗어날 때만 쓴다
   --no-status          생성 후 status:open 자동 부착을 생략한다
   --assignee <login>   담당자 (@me 가능)
   --request-file <f>   원본 요청 기록. 생략 시 --body-file 을 복사
-  --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin)
+  --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin, github 트래커 전용)
 
 request.md 는 ${WORKSPACE_DIR}/<번호>/ 에 남고, ${WORKSPACE_DIR} 는 .gitignore 에 자동 등록된다.
-  --dry-run            gh 를 호출하지 않고 실행 계획만 출력
+  --dry-run            트래커를 호출하지 않고 실행 계획만 출력
   -h, --help           이 도움말
+
+이슈 백엔드는 ~/.issue/settings.json 의 provider.type 이 정한다 (github 기본 | jira).
 `);
   process.exit(exitCode);
 }
@@ -103,23 +100,6 @@ function run(cmd, args, opts = {}) {
   const res = spawnSync(cmd, args, { encoding: 'utf8', ...opts });
   if (res.error) throw res.error;
   return res;
-}
-
-function must(cmd, args, opts = {}) {
-  const res = run(cmd, args, { stdio: ['ignore', 'pipe', 'inherit'], ...opts });
-  if (res.status !== 0) {
-    console.error(`✗ 실패: ${cmd} ${args.join(' ')}`);
-    process.exit(res.status ?? 1);
-  }
-  return (res.stdout ?? '').trim();
-}
-
-function quoteArgs(args) {
-  return args.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(' ');
-}
-
-function ghArgs(base, opts) {
-  return opts.repo ? [...base, '--repo', opts.repo] : base;
 }
 
 /* ------------------------------------------------------------------- gate */
@@ -131,25 +111,17 @@ export function verdictOf({ score, commits }) {
   return 'SKIP';
 }
 
-function cmdGate(root, opts) {
+function cmdGate(root, tracker) {
   const commits = Number(run('git', ['rev-list', '--count', 'HEAD'], { cwd: root }).stdout?.trim() || 0);
 
   const remotes = (run('git', ['remote'], { cwd: root }).stdout ?? '').trim().split('\n').filter(Boolean);
-  const repoView = remotes.length
-    ? run('gh', ghArgs(['repo', 'view', '--json', 'nameWithOwner'], opts), { cwd: root })
-    : { status: 1 };
-  const hasRemote = remotes.length > 0 && repoView.status === 0;
+  const repo = remotes.length ? gitHost.repoInfo(root) : null;
+  const hasRemote = Boolean(repo?.nameWithOwner);
 
+  // 이슈 이력은 트래커에, PR 이력은 코드 호스트에 있다. 트래커가 Jira 여도 둘 다 본다.
   let hasHistory = false;
   if (hasRemote) {
-    const issues = run('gh', ghArgs(['issue', 'list', '--state', 'all', '--limit', '1', '--json', 'number'], opts), {
-      cwd: root,
-    });
-    const prs = run('gh', ghArgs(['pr', 'list', '--state', 'all', '--limit', '1', '--json', 'number'], opts), {
-      cwd: root,
-    });
-    const nonEmpty = (res) => res.status === 0 && (res.stdout ?? '').trim() !== '[]';
-    hasHistory = nonEmpty(issues) || nonEmpty(prs);
+    hasHistory = tracker.hasIssueHistory() || gitHost.hasPrHistory({ cwd: root });
   }
 
   const tracked = (run('git', ['ls-files'], { cwd: root }).stdout ?? '').split('\n').filter(Boolean);
@@ -158,7 +130,7 @@ function cmdGate(root, opts) {
 
   const signals = [
     [`commits>=${THRESHOLD.commits}`, commits >= THRESHOLD.commits, `${commits}개`],
-    ['remote+gh', hasRemote, hasRemote ? repoView.stdout.trim() : '없음'],
+    ['remote+gh', hasRemote, hasRemote ? repo.nameWithOwner : '없음'],
     ['issue/pr-history', hasHistory, hasHistory ? '있음' : '없음'],
     ['build-config', hasBuildFile, BUILD_FILES.filter((f) => existsSync(path.join(root, f))).join(', ') || '없음'],
     [`source>=${THRESHOLD.sourceFiles}`, sourceFiles >= THRESHOLD.sourceFiles, `${sourceFiles}개`],
@@ -177,31 +149,20 @@ function cmdGate(root, opts) {
 
 /* ----------------------------------------------------------------- search */
 
-function cmdSearch(query, root, opts) {
+function cmdSearch(query, opts, tracker) {
   if (!query) {
     console.error('✗ 검색어가 필요하다 (예: search "탭 활성 상태")');
     usage();
   }
-  const limit = String(opts.limit ?? 5);
-  const args = ghArgs(
-    ['issue', 'list', '--state', 'open', '--limit', limit, '--search', query, '--json', 'number,title,labels,url'],
-    opts,
-  );
-  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
-  if (res.status !== 0) {
+  const list = tracker.issueList({ state: 'open', limit: Number(opts.limit ?? 5), search: query });
+  if (list === null) {
     console.log('MATCHES=0');
     console.log('SEARCH_FAILED=1');
     return;
   }
-  let list = [];
-  try {
-    list = JSON.parse(res.stdout || '[]');
-  } catch {
-    list = [];
-  }
   for (const it of list) {
     const labels = (it.labels ?? []).map((l) => l.name).join(', ');
-    console.log(`  #${it.number} ${it.title}${labels ? `  [${labels}]` : ''}`);
+    console.log(`  ${it.key ?? `#${it.number}`} ${it.title}${labels ? `  [${labels}]` : ''}`);
     console.log(`     ${it.url}`);
   }
   if (!list.length) console.log('  (유사한 열린 이슈 없음)');
@@ -212,18 +173,11 @@ function cmdSearch(query, root, opts) {
 
 /* ----------------------------------------------------------------- labels */
 
-function cmdLabels(root, opts) {
-  const args = ghArgs(['label', 'list', '--limit', '100', '--json', 'name,description'], opts);
-  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
-  if (res.status !== 0) {
+function cmdLabels(tracker) {
+  const list = tracker.labelList();
+  if (list === null) {
     console.log('LABELS=');
     return;
-  }
-  let list = [];
-  try {
-    list = JSON.parse(res.stdout || '[]');
-  } catch {
-    list = [];
   }
   for (const l of list) console.log(`  ${l.name}${l.description ? `  — ${l.description}` : ''}`);
   console.log('');
@@ -232,43 +186,33 @@ function cmdLabels(root, opts) {
 
 /* -------------------------------------------------------- label 점검·부착 */
 
-function cmdUnlabeled(root, opts) {
-  const args = ghArgs(
-    [
-      'issue', 'list',
-      '--state', opts.state ?? 'open',
-      '--limit', String(opts.limit ?? 50),
-      '--json', 'number,title,labels,url,createdAt',
-    ],
-    opts,
-  );
-  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
-  if (res.status !== 0) {
+/** 표준 라벨과 GitHub 기본 색상. ensure-label 이 만들 때 쓴다. */
+const STANDARD_LABELS = {
+  bug: { color: 'd73a4a', description: "Something isn't working" },
+  enhancement: { color: 'a2eeef', description: 'New feature or request' },
+  documentation: { color: '0075ca', description: 'Improvements or additions to documentation' },
+  chore: { color: 'cfd3d7', description: 'Maintenance and cleanup' },
+};
+
+function cmdUnlabeled(opts, tracker) {
+  const list = tracker.issueList({ state: opts.state ?? 'open', limit: Number(opts.limit ?? 50) });
+  if (list === null) {
     console.log('UNLABELED=0');
     console.log('LIST_FAILED=1');
     return;
   }
-  let list = [];
-  try {
-    list = JSON.parse(res.stdout || '[]');
-  } catch {
-    list = [];
-  }
-  // "라벨 0개"로 판정하면 status:* 만 붙은 이슈가 점검망에서 통째로 샌다.
-  // 성격 라벨 축과 진행 상태 축을 따로 센다.
-  const names = (it) => (it.labels ?? []).map((l) => l.name);
+  const names = (it) => (it.labels ?? []).map((label) => label.name);
   const bare = list.filter((it) => !typeLabels(names(it)).length);
   const noStatus = list.filter((it) => !names(it).some(isStatusLabel));
-
   console.log('성격 라벨 없음:');
   for (const it of bare) {
-    console.log(`  #${it.number} ${it.title}`);
+    console.log(`  ${it.key ?? `#${it.number}`} ${it.title}`);
     console.log(`     ${it.url}`);
   }
   if (!bare.length) console.log('  (없음)');
   console.log('');
   console.log('진행 상태 라벨 없음:');
-  for (const it of noStatus) console.log(`  #${it.number} ${it.title}`);
+  for (const it of noStatus) console.log(`  ${it.key ?? `#${it.number}`} ${it.title}`);
   if (!noStatus.length) console.log('  (없음)');
   console.log('');
   console.log(`SCANNED=${list.length}`);
@@ -278,7 +222,7 @@ function cmdUnlabeled(root, opts) {
   console.log(`NO_STATUS_NUMBERS=${noStatus.map((i) => i.number).join(' ')}`);
 }
 
-function cmdLabel(number, root, opts) {
+function cmdLabel(number, opts, tracker) {
   if (!number) {
     console.error('✗ 이슈 번호가 필요하다 (예: label 59 --label bug)');
     usage();
@@ -287,64 +231,75 @@ function cmdLabel(number, root, opts) {
     console.error('✗ --label 또는 --remove-label 이 하나 이상 필요하다.');
     usage();
   }
-  const args = ghArgs(['issue', 'edit', String(number)], opts);
-  for (const label of opts.labels) args.push('--add-label', label);
-  for (const label of opts.removeLabels) args.push('--remove-label', label);
+  const display = tracker.displayKey(number);
 
   if (opts.dryRun) {
-    console.log(`(dry-run) gh ${quoteArgs(args)}`);
+    console.log(`(dry-run) ${tracker.provider}: ${display} ← ${opts.labels.join(', ')}`);
     return;
   }
-  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
-  if (res.status !== 0) {
+  const res = opts.labels.length
+    ? tracker.issueAddLabels(number, opts.labels)
+    : tracker.issueRemoveLabels(number, opts.removeLabels);
+  if (!res.ok) {
     console.log(`LABELED=0`);
     console.log(`FAILED_ISSUE=${number}`);
     return;
   }
-  const added = opts.labels.length ? `← ${opts.labels.join(', ')}` : '';
-  const removed = opts.removeLabels.length ? `✂ ${opts.removeLabels.join(', ')}` : '';
-  console.log(`✓ #${number} ${[added, removed].filter(Boolean).join('  ')}`);
+  console.log(`✓ ${display} ${opts.labels.length ? `← ${opts.labels.join(', ')}` : `✂ ${opts.removeLabels.join(', ')}`}`);
   console.log('');
   console.log('LABELED=1');
   console.log(`ISSUE_NUMBER=${number}`);
 }
 
-function cmdEnsureLabel(name, root, opts) {
+function cmdEnsureLabel(name, opts, tracker) {
   if (!name) {
     console.error('✗ 라벨 이름이 필요하다 (예: ensure-label enhancement)');
     usage();
   }
-  if (opts.dryRun) {
-    console.log(`(dry-run) ${name} 이 없으면 만든다.`);
+  const existing = (tracker.labelList() ?? []).map((l) => l.name);
+  if (existing.includes(name)) {
+    console.log(`✓ 이미 있다: ${name}`);
+    console.log('');
     console.log('CREATED=0');
     console.log(`LABEL=${name}`);
     return;
   }
-  // 색·설명 프리셋과 존재 검증은 공용 모듈이 갖고 있다. 여기서는 출력 계약만 맞춘다.
-  const result = ensureLabel(root, name, {
-    repo: opts.repo, color: opts.color, description: opts.desc,
-  });
-  const msg = {
-    exists: `✓ 이미 있다: ${name}`,
-    created: `✓ 라벨 생성: ${name}`,
-    failed: `✗ 라벨 생성 실패: ${name}`,
+
+  const preset = STANDARD_LABELS[name] ?? {};
+  const spec = {
+    color: opts.color ?? preset.color ?? 'ededed',
+    description: opts.desc ?? preset.description,
   };
-  console.log(msg[result]);
+
+  if (opts.dryRun) {
+    console.log(`(dry-run) ${tracker.provider}: 라벨 생성 ${name} (color=${spec.color})`);
+    return;
+  }
+  const res = tracker.labelCreate(name, spec);
+  // Jira 는 라벨을 미리 만들지 않는다. 실패가 아니라 "할 일이 없다"이므로 그렇게 보고한다.
+  if (res.noop) {
+    console.log(`· 생성 생략: ${name} — ${res.note}`);
+    console.log('');
+    console.log('CREATED=0');
+    console.log(`NOOP=1`);
+    console.log(`LABEL=${name}`);
+    return;
+  }
+  console.log(res.created ? `✓ 라벨 생성: ${name}` : `✗ 라벨 생성 실패: ${name}`);
   console.log('');
-  console.log(`CREATED=${result === 'created' ? 1 : 0}`);
+  console.log(`CREATED=${res.created ? 1 : 0}`);
   console.log(`LABEL=${name}`);
 }
 
 /* ----------------------------------------------------------------- create */
 
-function cmdCreate(root, opts) {
+function cmdCreate(root, opts, tracker) {
   if (!opts.title || !opts.bodyFile) {
     console.error('✗ --title 과 --body-file 이 모두 필요하다.');
     usage();
   }
   // "만든 이슈에는 라벨을 반드시 하나 이상 붙인다"는 규칙을 문서에만 두면
   // --label 을 빠뜨린 호출이 조용히 통과한다. 여기서 막는다.
-  // status:* 는 진행 상태 축이라 이 게이트를 만족시키지 못한다 — 성격 라벨만 센다.
   if (!typeLabels(opts.labels).length && !opts.noLabel) {
     console.error('✗ 성격 라벨(--label)이 하나 이상 필요하다. 라벨 없는 이슈는 만들지 않는다.');
     console.error('  쓸 수 있는 라벨: node issue-create.mjs labels');
@@ -358,23 +313,27 @@ function cmdCreate(root, opts) {
     process.exit(1);
   }
 
-  const args = ghArgs(['issue', 'create', '--title', opts.title, '--body-file', bodyPath], opts);
-  for (const label of opts.labels) args.push('--label', label);
-  if (opts.assignee) args.push('--assignee', opts.assignee);
-
   if (opts.dryRun) {
-    console.log(`(dry-run) gh ${quoteArgs(args)}`);
+    const args = ['issue', 'create', '--title', opts.title, '--body-file', bodyPath];
+    for (const label of opts.labels) args.push('--label', label);
+    if (opts.assignee) args.push('--assignee', opts.assignee);
+    console.log(`(dry-run) gh ${args.map((arg) => (/\s/.test(arg) ? JSON.stringify(arg) : arg)).join(' ')}`);
     console.log('\n아무것도 생성하지 않았다.');
     return;
   }
 
-  const out = must('gh', args, { cwd: root });
-  const url = (out.split('\n').find((l) => l.includes('/issues/')) ?? out).trim();
-  const number = parseIssueNumber(url);
-  if (!number) {
-    console.error(`✗ 이슈 번호를 파싱하지 못했다. gh 출력:\n${out}`);
+  const res = tracker.issueCreate({
+    title: opts.title,
+    bodyFile: bodyPath,
+    labels: opts.labels,
+    assignee: opts.assignee,
+  });
+  if (!res.ok) {
+    console.error(`✗ 이슈 생성 실패: ${res.err}`);
     process.exit(1);
   }
+  const { number, url } = res;
+  const display = res.key ?? `#${number}`;
 
   const dir = issueDir(root, number);
   mkdirSync(dir, { recursive: true });
@@ -382,79 +341,22 @@ function cmdCreate(root, opts) {
   const request = existsSync(requestSrc) ? readFileSync(requestSrc, 'utf8') : '';
   writeFileSync(
     path.join(dir, 'request.md'),
-    `# #${number} 착수 요청 기록\n\n- 이슈: ${url}\n- 생성: issue-create\n\n---\n\n${request.trim()}\n`,
+    `# ${display} 착수 요청 기록\n\n- 이슈: ${url}\n- 트래커: ${tracker.provider}\n- 생성: issue-create\n\n---\n\n${request.trim()}\n`,
   );
 
   // 경고만 하지 않고 직접 등록한다. 사용자가 손댈 일을 남기지 않는다.
   if (ensureIgnoreBlock(root)) console.log(`  .gitignore 에 ${WORKSPACE_DIR} 블록을 추가했다.`);
+  if (!opts.noStatus) {
+    const status = setTrackerStatus(tracker, number, 'open', { quiet: true });
+    if (!status.ok) console.warn(`  ! status:open 전환을 건너뜁니다: ${status.err ?? '알 수 없는 오류'}`);
+  }
 
-  console.log(`✓ 이슈 생성 완료 — #${number} ${opts.title}`);
+  console.log(`✓ 이슈 생성 완료 — ${display} ${opts.title}`);
   console.log(`  요청 기록: ${path.relative(root, path.join(dir, 'request.md'))}`);
   console.log('');
-  // 성격 라벨과 달리 status 는 생성 후에 따로 붙인다.
-  // --label 로 같이 넘기면 라벨이 없을 때 이슈 생성 자체가 실패한다.
-  if (!opts.noStatus) setStatus(root, number, 'open', { repo: opts.repo });
-
   console.log(`ISSUE_NUMBER=${number}`);
   console.log(`ISSUE_URL=${url}`);
   console.log(`NEXT=/issue-start #${number}`);
-}
-
-/* ------------------------------------------------------------- 기본 브랜치 */
-
-/** 원격에서만 판별한다. 설정을 섞지 않아야 출처를 정확히 보고할 수 있다. */
-function detectFromRemote(root) {
-  const head = git(['symbolic-ref', '--quiet', 'refs/remotes/origin/HEAD'], { cwd: root }).out;
-  if (head) return head.replace('refs/remotes/origin/', '');
-  for (const b of ['main', 'master']) {
-    if (git(['show-ref', '--verify', '--quiet', `refs/remotes/origin/${b}`], { cwd: root }).code === 0) return b;
-  }
-  return null;
-}
-
-/**
- * 이 저장소의 기본 브랜치를 정하고 `.issue/settings.json` 에 남긴다.
- *
- * 저장소 실제 상태가 사용자 습관보다 우선이다. 원격에서 판별되면 그 값을 쓰고,
- * 판별이 안 될 때만 홈 설정의 기본값으로 넘어간다.
- * 둘 다 없으면 `DEFAULT_BASE_UNSET=1` 로 빠져 스킬이 사용자에게 한 번 묻는다.
- */
-function cmdBase(root, opts) {
-  if (opts.default) {
-    setDefaultBaseBranch(opts.default);
-    console.log(`✓ 자주 쓰는 기본 브랜치를 ${opts.default} 로 고정했다 (~/.issue-plugin/settings.json)`);
-  }
-
-  // 설정 파일이 커밋에 딸려 들어가지 않도록 무시 블록부터 보장한다.
-  if (ensureIgnoreBlock(root)) console.log(`  .gitignore 에 ${WORKSPACE_DIR} 블록을 추가했다`);
-
-  if (opts.set) {
-    const prev = readProjectSettings(root).git ?? {};
-    const written = writeProjectSettings(root, {
-      git: { ...prev, baseBranch: opts.set, decidedAt: new Date().toISOString() },
-    });
-    if (!written) {
-      console.error(`✗ ${PROJECT_SETTINGS_REL} 에 기록하지 못했다.`);
-      process.exit(1);
-    }
-    console.log(`✓ 이 저장소의 기본 브랜치를 ${opts.set} 로 기록했다 (${PROJECT_SETTINGS_REL})`);
-  }
-
-  const recorded = readProjectSettings(root).git?.baseBranch ?? null;
-  const fromRemote = detectFromRemote(root);
-  const homeDefault = getDefaultBaseBranch();
-  const base = detectBase(root, 'origin');
-
-  const source = recorded ? 'project' : fromRemote ? 'detected' : homeDefault ? 'home-default' : 'fallback';
-
-  console.log(`BASE=${base}`);
-  console.log(`SOURCE=${source}`);
-  console.log(`PROJECT_FILE=${PROJECT_SETTINGS_REL}`);
-  console.log(`HOME_DEFAULT=${homeDefault ?? ''}`);
-  if (source === 'fallback') {
-    console.log('DEFAULT_BASE_UNSET=1');
-    console.log('DEFAULT_BASE_CHOICES=main,master');
-  }
 }
 
 /* ------------------------------------------------------------------- main */
@@ -464,7 +366,7 @@ function main() {
   if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
   const mode = argv[0];
-  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status', 'base'].includes(mode)) {
+  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status'].includes(mode)) {
     console.error(`✗ 알 수 없는 모드: ${mode}`);
     usage();
   }
@@ -476,19 +378,17 @@ function main() {
     if (arg === '--dry-run') opts.dryRun = true;
     else if (arg === '--no-label') opts.noLabel = true;
     else if (arg === '--no-status') opts.noStatus = true;
-    else if (arg === '--remove-label') opts.removeLabels.push(argv[++i]);
     else if (arg === '--title') opts.title = argv[++i];
     else if (arg === '--body-file') opts.bodyFile = argv[++i];
     else if (arg === '--request-file') opts.requestFile = argv[++i];
     else if (arg === '--label') opts.labels.push(argv[++i]);
+    else if (arg === '--remove-label') opts.removeLabels.push(argv[++i]);
     else if (arg === '--assignee') opts.assignee = argv[++i];
     else if (arg === '--limit') opts.limit = argv[++i];
     else if (arg === '--state') opts.state = argv[++i];
     else if (arg === '--color') opts.color = argv[++i];
     else if (arg === '--desc') opts.desc = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
-    else if (arg === '--set') opts.set = argv[++i];
-    else if (arg === '--default') opts.default = argv[++i];
     else if (arg.startsWith('-')) {
       console.error(`✗ 알 수 없는 옵션: ${arg}`);
       usage();
@@ -496,16 +396,33 @@ function main() {
   }
 
   const positional = positionals[0] ?? null;
+
   const root = repoRoot();
-  if (mode === 'base') cmdBase(root, opts);
-  else if (mode === 'gate') cmdGate(root, opts);
-  else if (mode === 'search') cmdSearch(positional, root, opts);
-  else if (mode === 'labels') cmdLabels(root, opts);
-  else if (mode === 'unlabeled') cmdUnlabeled(root, opts);
-  else if (mode === 'label') cmdLabel(parseIssueNumber(positional), root, opts);
-  else if (mode === 'ensure-label') cmdEnsureLabel(positional, root, opts);
-  else if (mode === 'status') setStatus(root, positional, positionals[1], { repo: opts.repo, dryRun: opts.dryRun });
-  else cmdCreate(root, opts);
+  const tracker = createTracker(root, { repo: opts.repo });
+
+  // 이슈를 실제로 건드리는 모드는 인증이 안 되어 있으면 먼저 멈춘다.
+  // gate 는 인증 실패도 신호의 하나라 통과시킨다.
+  if (mode !== 'gate' && tracker.provider === 'jira' && !opts.dryRun && !(mode === 'create' && !typeLabels(opts.labels).length && !opts.noLabel)) {
+    const auth = tracker.auth();
+    if (!auth.ok) {
+      console.error(`✗ ${tracker.provider} 인증 실패: ${auth.detail}`);
+      if (auth.hint) console.error(`  ${auth.hint}`);
+      process.exit(4);
+    }
+  }
+
+  if (mode === 'gate') cmdGate(root, tracker);
+  else if (mode === 'search') cmdSearch(positional, opts, tracker);
+  else if (mode === 'labels') cmdLabels(tracker);
+  else if (mode === 'unlabeled') cmdUnlabeled(opts, tracker);
+  else if (mode === 'label') cmdLabel(parseIssueNumber(positional), opts, tracker);
+  else if (mode === 'ensure-label') cmdEnsureLabel(positional, opts, tracker);
+  else if (mode === 'status') {
+    const result = setTrackerStatus(tracker, positional, positionals[1], { dryRun: opts.dryRun });
+    if (!result.status) { console.error(`✗ 상태 전환 실패: ${result.err}`); process.exit(2); }
+    if (!result.ok) console.log('STATUS_FAILED=1');
+  }
+  else cmdCreate(root, opts, tracker);
 }
 
 if (process.argv[1] && import.meta.url === `file://${path.resolve(process.argv[1])}`) main();
