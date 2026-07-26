@@ -1,0 +1,356 @@
+{
+  "set": "tuning",
+  "source": "trigger-eval.json",
+  "model": "sonnet",
+  "repeat": 3,
+  "fixture_commits": 35,
+  "competing_skills": [
+    "issue-create",
+    "issue-start",
+    "issue-end",
+    "issue-merge",
+    "gh-setup"
+  ],
+  "description": "기능 추가·버그 수정·코드 삭제처럼 코드를 바꾸는 요청을 받았는데 연결된 GitHub 이슈가 없으면, 저장소가 이미 동작하는 단계인지 먼저 판정하고 유사 이슈를 검색한 뒤 issue-start 가 그대로 이어받을 형식의 이슈 초안을 만들어 승인받고 라벨과 함께 등록하며, 라벨이 빠진 기존 이슈까지 점검해 보정합니다. `/issue-create`, \"이슈 만들어줘\", \"이슈부터 등록\" 요청과 이슈 없이 시작되는 변경 작업에 사용합니다. 초기 스캐폴딩만 있는 신규 프로젝트나 이미 이슈 번호가 있는 작업에는 사용하지 않습니다.",
+  "metrics": {
+    "recall": 1,
+    "specificity": 0.8888888888888888,
+    "accuracy": 0.9444444444444444
+  },
+  "trials": {
+    "positive": 45,
+    "negative": 45,
+    "errors": 0
+  },
+  "queries": [
+    {
+      "query": "src/presentation/features/dashboardView/index.tsx 에 기간 필터 좀 넣어줘. 지금은 전체 기간 고정이라 최근 데이터만 보고 싶어도 방법이 없어. 시작일 종료일 datepicker 두 개면 될 것 같은데 기존에 쓰던 컴포넌트 있으면 그거 재사용해줘",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 1
+      }
+    },
+    {
+      "query": "관리자 페이지에 사용자 일괄 비활성화 기능 추가하고 싶습니다. 지금은 한 명씩 토글해야 해서 300명 처리하는 데 반나절 걸려요. 체크박스 다중 선택 후 상단 액션바에서 한 번에 처리하는 형태면 좋겠습니다",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 4
+      }
+    },
+    {
+      "query": "결제 실패했을 때 재시도 버튼이 없어서 사용자가 처음부터 다시 해야 함. 실패 화면에 재시도 CTA 하나 붙이고 직전 결제수단 그대로 유지되게 해줘",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 4
+      }
+    },
+    {
+      "query": "주문 목록이 가끔 비어서 렌더링돼. 새로고침(cmd+R) 직후에 0.5초 정도 빈 상태로 보였다가 채워지는데, 네트워크 느린 환경에서는 아예 '주문이 없습니다' 문구가 뜨고 그대로 멈춰버릴 때도 있어. Chrome 141, 로그인 상태, /orders 경로에서 재현됨",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 3
+      }
+    },
+    {
+      "query": "다크모드에서 토스트 알림 글자가 안 보입니다. 배경도 흰색 글자도 흰색이라 완전히 안 읽혀요. 라이트모드에서는 멀쩡합니다. ToastProvider 쪽에서 테마 토큰을 안 받는 것 같은데 확인 부탁드립니다",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 2,
+        "gh-setup-check-placeholder": 1
+      }
+    },
+    {
+      "query": "리스트 무한스크롤이 두 번씩 페치를 날림. 네트워크 탭 보면 page=2 요청이 정확히 2번 나가고 결과적으로 같은 아이템이 중복으로 붙어. 스크롤 빨리 내리면 더 심해짐",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 3
+      }
+    },
+    {
+      "query": "scripts/export-legacy.mjs 이거 이제 안 쓰는 것 같은데 지워도 될까? grep 해보니 호출하는 데가 없고 마지막 커밋이 작년 10월이야. 관련된 cron 설정이랑 환경변수도 같이 정리해줘",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {}
+    },
+    {
+      "query": "예전에 만들어둔 A/B 테스트 플래그들 다 걷어내주세요. experiment_new_checkout 이랑 experiment_banner_v2 두 개인데 둘 다 롤아웃 100% 끝났고 이제 분기 코드만 남아서 읽기 힘듭니다",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 2,
+        "bash": 1
+      }
+    },
+    {
+      "query": "대시보드에 기간 필터 넣고, 주문 목록 가끔 비는 것도 고치고, 안 쓰는 export 스크립트도 지워줘. 셋 다 이번 스프린트에 해야 하는 것들이야",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 1
+      }
+    },
+    {
+      "query": "몇 가지 요청드립니다. 1) 회원가입 폼에 이메일 중복 확인 붙여주세요 2) 프로필 이미지 업로드가 5MB 넘으면 에러 메시지 없이 조용히 실패하는 버그 있습니다 3) 사이드바 접힘 상태가 새로고침하면 초기화됩니다",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 2,
+        "run-shell": 1
+      }
+    },
+    {
+      "query": "이번에 할 거 두 개야. 하나는 검색 결과에 하이라이트 넣는 거고 하나는 검색어 입력할 때마다 API 때리는 거 디바운스 거는 거. 둘이 관련은 있는데 따로 해도 될 것 같아",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 2
+      }
+    },
+    {
+      "query": "결제 모듈 리팩터링 들어가려고 하는데 이슈부터 만들어줘. PaymentProvider 가 지금 상태 관리랑 API 호출이랑 UI 분기까지 다 들고 있어서 테스트가 안 돼",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 1,
+        "bash": 1
+      }
+    },
+    {
+      "query": "이슈 하나 등록해주세요. 모바일 사파리에서 하단 고정 버튼이 주소창 때문에 잘리는 문제입니다. iOS 17 이상에서만 나타나고 안드로이드 크롬은 괜찮습니다",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 3
+      }
+    },
+    {
+      "query": "탭 눌러도 url 안바뀜 고쳐줘여 새로고침하면 첫번째 탭으로 돌아감",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "bash": 1,
+        "run": 1,
+        "Bash": 1
+      }
+    },
+    {
+      "query": "헤더 로고 클릭했을때 홈으로 안감ㅠ 그리고 로고 옆에 서비스명도 같이 클릭되게 해줘",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 3
+      }
+    },
+    {
+      "query": "#59 작업 시작해줘. 워크트리 파고 분석부터 해주면 돼",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-start": 4
+      }
+    },
+    {
+      "query": "이슈 42번 내용 읽어보고 코드베이스랑 대조해서 계획 세워줘. 첨부된 스크린샷도 같이 봐야 할 것 같아",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-start": 6
+      }
+    },
+    {
+      "query": "https://github.com/myorg/myapp/issues/117 이거 착수하자. 라벨은 bug 로 되어 있고 프론트 작업일 것 같은데 확인해줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-start": 4
+      }
+    },
+    {
+      "query": "구현 다 끝났고 커밋도 했어. 증거 캡처하고 이슈에 리포트 남긴 다음에 PR 올려줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-end": 4
+      }
+    },
+    {
+      "query": "작업 마무리하자. before/after 스크린샷 찍어서 이슈 코멘트로 달고 PR 만들어주면 돼. merge 는 아직 하지 말고",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-end": 5,
+        "gh-setup": 2
+      }
+    },
+    {
+      "query": "지금 워크트리 네 개 굴리고 있는데 이거 다 통합해줘. 각각 PR 올라가 있고 충돌 없을 것 같긴 한데 확인하고 진행해줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-merge": 5
+      }
+    },
+    {
+      "query": "브랜치들 전부 main 으로 합치고 관련 이슈들 닫아줘. 통합 후에 테스트 한 번 더 돌려서 깨진 데 없는지 봐주고",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-merge": 3,
+        "gh-setup": 3
+      }
+    },
+    {
+      "query": "src/application/hooks/api/order/useOrderList.ts 이 훅이 왜 두 번 호출되는지 설명해줘. React Query 캐시 키 문제인지 리렌더 문제인지 모르겠어",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {}
+    },
+    {
+      "query": "이 프로젝트 인증 흐름이 어떻게 되어 있는지 정리해줘. AuthProvider 부터 시작해서 토큰 갱신까지 어디서 뭐가 일어나는지 알고 싶어",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {}
+    },
+    {
+      "query": "방금 올린 커밋 세 개 리뷰해줘. 특히 에러 핸들링 부분이 좀 찜찜한데 놓친 케이스 있는지 봐줘. 고치지는 말고 지적만 해줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 1,
+      "rate": 0.3333333333333333,
+      "other_skills": {}
+    },
+    {
+      "query": "방금 git init 했어. Next.js 14 앱라우터로 시작할 거고 일단 tsconfig 랑 eslint 설정, 기본 레이아웃 컴포넌트까지만 만들어줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {}
+    },
+    {
+      "query": "빈 폴더에서 시작하는 중입니다. package.json 만들고 express 서버 뼈대랑 health check 엔드포인트 하나만 잡아주세요",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 1,
+      "rate": 0.3333333333333333,
+      "other_skills": {
+        "init": 1
+      }
+    },
+    {
+      "query": "gh 명령어가 안 먹네요. command not found 뜨는데 맥이고 brew 는 깔려 있습니다. 설치하고 로그인까지 도와주세요",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "gh-setup": 5
+      }
+    },
+    {
+      "query": "우리 저장소 이슈들 라벨이 엉망이야. 라벨 없는 것들 찾아서 정리 좀 해줘. 새로 만들지는 말고 기존 이슈들만",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 4
+      }
+    },
+    {
+      "query": "지금 열려 있는 이슈 목록 보여줘. 라벨이랑 담당자까지 같이 나오면 좋겠고 오래된 순으로 정렬해줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "gh-setup": 5,
+        "bash": 1
+      }
+    }
+  ]
+}
