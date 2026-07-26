@@ -1,0 +1,38 @@
+{
+    "env": {
+        "OMC_SKIP_HOOKS": "keyword-detector"
+    },
+    "skillOverrides": {
+        "ask": "off",
+        "ccg": "off",
+        "omc-doctor": "off",
+        "omc-reference": "off",
+        "omc-setup": "off",
+        "setup": "off",
+        "release": "off",
+        "merge-readiness": "off",
+        "wiki": "off"
+    },
+    "permissions": {
+        "deny": [
+            "Skill(ask)",
+            "Skill(ask *)",
+            "Skill(ccg)",
+            "Skill(ccg *)",
+            "Skill(omc-doctor)",
+            "Skill(omc-doctor *)",
+            "Skill(omc-reference)",
+            "Skill(omc-reference *)",
+            "Skill(setup)",
+            "Skill(setup *)",
+            "Skill(omc-setup)",
+            "Skill(omc-setup *)",
+            "Skill(release)",
+            "Skill(release *)",
+            "Skill(wiki)",
+            "Skill(wiki *)",
+            "Skill(merge-readiness)",
+            "Skill(merge-readiness *)"
+        ]
+    }
+}
