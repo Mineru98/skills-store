@@ -741,9 +741,56 @@ $issue-start #59
 | layout | 경로 |
 | --- | --- |
 | `sibling` | `../<repo>-issue-<번호>` |
-| `nested` | `<repo>/.issue/worktrees/<번호>-<slug>` |
+| `children` | `<repo>/.issue/worktrees/<번호>-<slug>` |
 
-`nested`는 워크트리가 프로젝트 안에 생기므로, 스크립트가 `git check-ignore`로 실제 무시 여부를 확인하고 안 걸리면 생성을 중단합니다.
+`children`은 워크트리가 프로젝트 안에 생기므로, 스크립트가 `git check-ignore`로 실제 무시 여부를 확인하고 안 걸리면 생성을 중단합니다.
+
+예전 이름이던 `nested`가 설정에 남아 있으면 모르는 값으로 취급해 배치를 한 번만 다시 묻습니다. 같은 뜻이므로 `children`을 고르면 됩니다.
+
+보고에 경로를 적을 때는 배치에 맞는 형태를 씁니다 — `children`은 상대 경로, `sibling`은 절대 경로. `sibling`을 상대 경로로 적으면 `../repo-issue-59`가 되어 터미널에서 `ctrl+클릭`했을 때 없는 경로가 열립니다.
+
+### 기본 브랜치는 저장소별로 기억합니다
+
+`main`인지 `master`인지를 단계마다 다시 알아내지 않습니다.
+
+```text
+1. --base 인자                     이번 실행만
+2. <repo>/.issue/settings.json     git.baseBranch          ← 저장소별 기록
+3. origin/HEAD → main → master     판별하고 2에 적어 둔다
+4. ~/.issue-plugin/settings.json   git.defaultBaseBranch   ← 3이 실패할 때만
+```
+
+저장소 실제 상태가 사용자 습관보다 우선입니다. `.issue/settings.json`은 기존 `.issue/**` 무시 규칙에 걸려 커밋되지 않습니다.
+
+```bash
+node issue-create.mjs base                  # 지금 무엇으로 정해지는지
+node issue-create.mjs base --set master     # 이 저장소를 고정
+node issue-create.mjs base --default master # 사용자 기본값을 고정
+```
+
+### 증거를 올린 뒤 메인 폴더를 최신으로 맞춥니다
+
+증거는 임시 워크트리에서 기본 브랜치로 곧장 push되므로, 사용자의 메인 체크아웃은 그 커밋을 모른 채 뒤처집니다. `issue-start`와 `issue-end`가 미러 직후 `sync-base`로 받아옵니다.
+
+```bash
+node issue-start.mjs sync-base
+node issue-end.mjs sync-base
+```
+
+안전할 때만 받아옵니다 — 브랜치를 갈아타지 않고, 임의로 치워두지 않고, 실패하면 원래 상태로 되돌립니다. 막히면 그 사유(`dirty` / `conflict` / `other-branch` / `error`)를 쉬운 말로 설명하고 AskUserQuestion으로 해결 방법을 함께 정합니다.
+
+### 스킬이 끝날 때 다음 할 일을 제안합니다
+
+네 스킬 모두 마지막에 4지선다를 냅니다. 상황에 따라 권장 항목이 바뀝니다 — 라벨이 덜 붙었으면 라벨 정리를, 계획에 남은 항목이 있으면 이어서 작업을, 통합 테스트에서 회귀가 나왔으면 새 이슈 등록을 위로 올립니다.
+
+| 스킬 | 기본 권장 |
+| --- | --- |
+| `issue-create` | 바로 착수 (`issue-start`) |
+| `issue-start` | 마무리하고 PR (`issue-end`) |
+| `issue-end` | 다른 이슈 착수 |
+| `issue-merge` | 다른 이슈 착수 |
+
+선택은 항상 사용자가 합니다. 묻지 않고 다음 스킬로 넘어가지 않습니다.
 
 ### 증거 이미지는 webp + 바운딩 박스
 

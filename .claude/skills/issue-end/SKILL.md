@@ -39,10 +39,12 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
     <rule>증거가 없으면 PR 을 만들지 않는다. 왜 만들 수 없는지 보고하고 멈춘다.</rule>
     <rule>merge 를 실행하지 않는다. 요청받으면 `issue-merge` 로 위임한다.</rule>
     <rule>워크트리를 삭제하지 않는다. 정리는 `issue-merge` 가 통합 후에 한다.</rule>
-    <rule>push 와 PR 생성은 각각 따로 확인받는다. 묶어서 승인받지 않는다.</rule>
+    <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
+    <rule>push 와 PR 생성은 각각 따로 AskUserQuestion 으로 확인받는다. 묶어서 승인받지 않는다.</rule>
     <rule>현재 워크트리에서 브랜치를 갈아타지 않는다. 기본 브랜치 작업은 임시 워크트리에서 한다.</rule>
     <rule>이슈 번호를 확정하지 못한 상태에서 임의의 이슈에 코멘트하지 않는다.</rule>
     <rule>측정값과 캡처를 지어내지 않는다. 악화된 지표도 그대로 적는다.</rule>
+    <rule>미러 push 뒤 메인 체크아웃 최신화를 시도한다. 막히면 사용자와 함께 정하고, 확인 없이 치워두거나 브랜치를 갈아타지 않는다.</rule>
   </hard-rules>
 
   <non-goals>
@@ -59,7 +61,12 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
     3. 무엇이 잘못됐는지 말한다.
     4. 잘못되지 않은 것도 말한다 — 무엇은 멀쩡한지 짚어 준다.
     5. 사용자가 정해야 할 것을 고를 수 있게 물어본다. AskUserQuestion 을 쓴다.
+    6. 이슈·PR·코멘트는 `[설명](링크)` 로, 워크트리 경로는 배치에 맞는 형태로 쓴다. `링크와 경로 쓰는 법` 참고.
   </reporting>
+
+  <next>
+    끝날 때는 항상 다음에 무엇을 할지 골라 준다. references/next-actions.md 의 4지선다를 그대로 쓴다.
+  </next>
 </skill>
 
 # 전체 흐름
@@ -78,7 +85,9 @@ flowchart TD
     F --> G[comment.md 작성·보강]
     G --> H[증거 커밋 + 브랜치 push]
     H --> I["evidence mirror --push  ← 필수"]
-    I --> J["gh issue comment  ← 필수"]
+    I --> I1[sync-base: 메인 체크아웃 최신화]
+    I1 -- 막힘 --> I2[AskUserQuestion: 어떻게 받아올지] --> J
+    I1 -- 성공 --> J["gh issue comment  ← 필수"]
     J --> K{코멘트 이미지 렌더링 확인}
     K -- 깨짐 --> K1[mirrorRef·private 여부 점검] --> I
     K -- 정상 --> L{PR 만들까?}
@@ -157,6 +166,56 @@ codex   .codex/agents/issue-verifier.toml  (model = "gpt-5.6-luna")
 - 증거 없이 진행               이미지 없이 글로만 남깁니다. 나중에 확인이 어려워집니다.
 ```
 
+# 링크와 경로 쓰는 법
+
+보고·질문·마무리 요약에서 이슈·PR·워크트리를 가리킬 때 아래를 지킨다. 네 스킬(issue-create / issue-start / issue-end / issue-merge)이 같은 규칙을 쓴다.
+
+## 이슈 · PR · 코멘트는 항상 클릭되게
+
+맨 URL 을 그대로 붙이거나 번호만 적지 않는다. `[설명](링크)` 형식으로 쓴다.
+
+```text
+나쁜 예   이슈    #59 탭 활성 상태 초기화
+          코멘트  https://github.com/owner/repo/issues/59#issuecomment-123
+
+좋은 예   이슈    [#59 탭 활성 상태 초기화](https://github.com/owner/repo/issues/59)
+          PR      [#103 fix(tab): 활성 상태 유지](https://github.com/owner/repo/pull/103)
+          코멘트  [리포트 보기](https://github.com/owner/repo/issues/59#issuecomment-123)
+```
+
+주소는 이미 손에 들어온다. 직접 조립하지 않는다.
+
+```text
+gh issue view <n> --json url          이슈 주소
+gh pr view <n> --json url             PR 주소
+gh issue comment ... 의 출력           방금 단 코멘트 주소
+issue-end   context   출력의 issueUrl / openPr.url
+issue-merge inventory 출력의 issueUrl / pr.url
+```
+
+저장소를 식별하지 못해 주소를 만들 수 없으면 **번호만 적고** 그 사실을 한 줄 남긴다. 없는 링크를 지어내지 않는다.
+
+## 워크트리 경로는 배치에 맞는 형태로
+
+`ctrl+클릭` 으로 열리려면 형태가 배치와 맞아야 한다.
+
+```text
+children   저장소 안  → 상대 경로   .issue/worktrees/59-tab-active-state
+sibling    저장소 밖  → 절대 경로   /Users/me/work/repo-issue-59
+```
+
+sibling 을 상대 경로로 적으면 `../repo-issue-59` 가 되어 **없는 경로로 열린다.** 반대로 children 을 절대 경로로 적으면 쓸데없이 길다.
+
+스크립트가 계산해 둔 값을 그대로 쓴다.
+
+```text
+issue-start.mjs worktree   출력의 WORKTREE_DISPLAY=
+issue-end.mjs   context    출력의 worktrees[].display
+issue-merge.mjs inventory  출력의 worktrees[].display / excluded[].display
+```
+
+직접 판단해야 하면 설정이 아니라 **실제 경로**를 본다. `git worktree list` 로 경로를 얻어 저장소 루트 아래면 children, 아니면 sibling 이다. 설정값은 새로 만들 때만 쓰이므로, 이미 있는 워크트리는 예전 설정으로 만들어졌을 수 있다.
+
 # 실행 순서
 
 ## 0단계 — 상황 판단
@@ -170,7 +229,7 @@ node <skill>/scripts/issue-end.mjs context
 
 ## 1단계 — 체크리스트 생성
 
-TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
+TodoWrite 로 아래 11개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
 
 ```text
 1.  상황 판단 (context)
@@ -179,13 +238,14 @@ TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완
 4.  현재 커밋 상태로 after 재캡처·보강
 5.  리포트 작성·보강 (comment.md)
 6.  증거·리포트를 기본 브랜치에 커밋·푸시   [필수]
-7.  이슈에 증거 기반 코멘트                [필수]
-8.  코멘트 렌더링 확인
-9.  PR 생성
-10. 다음 행동 선택
+7.  메인 체크아웃의 기본 브랜치 최신화
+8.  이슈에 증거 기반 코멘트                [필수]
+9.  코멘트 렌더링 확인
+10. PR 생성
+11. 다음 행동 선택
 ```
 
-6번과 7번의 `[필수]` 표시를 그대로 남긴다. 사용자가 진행 상황을 볼 때 이 둘이 선택이 아님이 드러나야 한다.
+6번과 8번의 `[필수]` 표시를 그대로 남긴다. 사용자가 진행 상황을 볼 때 이 둘이 선택이 아님이 드러나야 한다.
 
 ## 2~4단계 — 증거 재확인
 
@@ -193,9 +253,9 @@ TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완
 `evidenceComplete: false` 면 `pure-tree` 로 변경 직전 상태를 만들어 before 를 다시 찍는다.
 세부는 `references/evidence-recheck.md`.
 
-## 5~9단계 — 리포트·미러 커밋·코멘트·PR
+## 5~10단계 — 리포트·미러 커밋·최신화·코멘트·PR
 
-`references/report-and-pr.md` 를 따른다. 6·7단계는 조건부가 아니다.
+`references/report-and-pr.md` 를 따른다. 6·8단계는 조건부가 아니다.
 
 9단계에서 PR 을 만든 직후 진행 상태를 `status:review` 로 옮긴다. 다른 전환과 달리 이건 자동이 아니다.
 
@@ -203,20 +263,24 @@ TodoWrite 로 아래 10개를 만든다. **단계가 끝날 때마다 즉시 완
 node <skill>/scripts/issue-end.mjs status {issue_number} review
 ```
 
-## 10단계 — 다음 행동
+7단계(메인 체크아웃 최신화)는 흐름을 막지 않는다. 안전하지 않아 건너뛰었으면 사용자와 함께 정하고, 결정이 늦어지면 나머지를 먼저 끝낸 뒤 마무리 보고에 결과를 적는다.
+
+## 11단계 — 다음 행동
 
 `references/next-actions.md` 의 4지선다를 그대로 제시한다.
 
 ## 마무리 보고
 
 ```text
-이슈      #{issue_number} <제목>
+이슈      [#{issue_number} <제목>](<이슈 URL>)
 브랜치    <이름>
+워크트리   <context 의 worktrees[].display 값>
+기본 브랜치 <base> (<판별 출처>)
 증거      before <n>장 / after <n>장 (박스 <n>개)
 미러      <mirrorRef> (fallback 이면 그 사실 명시)
-코멘트    <이슈 코멘트 URL> (신규 / 기존 갱신)
-PR        <PR URL 또는 "만들지 않음 — 사유">
+코멘트    [리포트 보기](<이슈 코멘트 URL>) (신규 / 기존 갱신)
+PR        [#<번호> <제목>](<PR URL>) 또는 "만들지 않음 — 사유"
 상태      status:review (실패했으면 그 사실)
-동기화    기본 브랜치 체크아웃에서 `git pull --rebase origin <base>` 필요
+동기화    <메인 최신화 결과 또는 건너뛴 사유>
 다음      <사용자가 고른 행동>
 ```

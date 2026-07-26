@@ -12,6 +12,7 @@
  *   6) label     : 기존 이슈에 라벨을 붙이거나 뗀다.
  *   7) ensure-label : 표준 라벨이 없을 때 만든다 (사용자 승인 후에만 호출).
  *   8) status    : 진행 상태 라벨을 교체한다 (open|plan|in-process|review|close).
+ *   9) base      : 이 저장소의 기본 브랜치를 정해 `.issue/settings.json` 에 남긴다.
  *
  * 라벨은 두 축이다 — 성격(bug/enhancement/…) 과 진행 상태(status:*).
  * create 는 성격 라벨을 강제하고, status:open 은 생성 직후 자동으로 붙인다.
@@ -32,8 +33,10 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR,
+  git, repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR,
   ensureLabel, setStatus, typeLabels, isStatusLabel, STATUS_ORDER,
+  detectBase, readProjectSettings, writeProjectSettings,
+  getDefaultBaseBranch, setDefaultBaseBranch, PROJECT_SETTINGS_REL,
 } from './issue-common.mjs';
 
 export { parseIssueNumber };
@@ -73,6 +76,7 @@ function usage(exitCode = 1) {
   node issue-create.mjs label <issue-number> [--label <name>...] [--remove-label <name>...]
   node issue-create.mjs ensure-label <name> [--color <hex>] [--desc <설명>]
   node issue-create.mjs status <issue-number> <${STATUS_ORDER.map((s) => s.slice(7)).join('|')}>
+  node issue-create.mjs base [--set <branch>] [--default <branch>]
 
 gate:
   커밋 수·원격·이슈 이력·빌드 설정·소스 규모를 확인해
@@ -396,6 +400,63 @@ function cmdCreate(root, opts) {
   console.log(`NEXT=/issue-start #${number}`);
 }
 
+/* ------------------------------------------------------------- 기본 브랜치 */
+
+/** 원격에서만 판별한다. 설정을 섞지 않아야 출처를 정확히 보고할 수 있다. */
+function detectFromRemote(root) {
+  const head = git(['symbolic-ref', '--quiet', 'refs/remotes/origin/HEAD'], { cwd: root }).out;
+  if (head) return head.replace('refs/remotes/origin/', '');
+  for (const b of ['main', 'master']) {
+    if (git(['show-ref', '--verify', '--quiet', `refs/remotes/origin/${b}`], { cwd: root }).code === 0) return b;
+  }
+  return null;
+}
+
+/**
+ * 이 저장소의 기본 브랜치를 정하고 `.issue/settings.json` 에 남긴다.
+ *
+ * 저장소 실제 상태가 사용자 습관보다 우선이다. 원격에서 판별되면 그 값을 쓰고,
+ * 판별이 안 될 때만 홈 설정의 기본값으로 넘어간다.
+ * 둘 다 없으면 `DEFAULT_BASE_UNSET=1` 로 빠져 스킬이 사용자에게 한 번 묻는다.
+ */
+function cmdBase(root, opts) {
+  if (opts.default) {
+    setDefaultBaseBranch(opts.default);
+    console.log(`✓ 자주 쓰는 기본 브랜치를 ${opts.default} 로 고정했다 (~/.issue-plugin/settings.json)`);
+  }
+
+  // 설정 파일이 커밋에 딸려 들어가지 않도록 무시 블록부터 보장한다.
+  if (ensureIgnoreBlock(root)) console.log(`  .gitignore 에 ${WORKSPACE_DIR} 블록을 추가했다`);
+
+  if (opts.set) {
+    const prev = readProjectSettings(root).git ?? {};
+    const written = writeProjectSettings(root, {
+      git: { ...prev, baseBranch: opts.set, decidedAt: new Date().toISOString() },
+    });
+    if (!written) {
+      console.error(`✗ ${PROJECT_SETTINGS_REL} 에 기록하지 못했다.`);
+      process.exit(1);
+    }
+    console.log(`✓ 이 저장소의 기본 브랜치를 ${opts.set} 로 기록했다 (${PROJECT_SETTINGS_REL})`);
+  }
+
+  const recorded = readProjectSettings(root).git?.baseBranch ?? null;
+  const fromRemote = detectFromRemote(root);
+  const homeDefault = getDefaultBaseBranch();
+  const base = detectBase(root, 'origin');
+
+  const source = recorded ? 'project' : fromRemote ? 'detected' : homeDefault ? 'home-default' : 'fallback';
+
+  console.log(`BASE=${base}`);
+  console.log(`SOURCE=${source}`);
+  console.log(`PROJECT_FILE=${PROJECT_SETTINGS_REL}`);
+  console.log(`HOME_DEFAULT=${homeDefault ?? ''}`);
+  if (source === 'fallback') {
+    console.log('DEFAULT_BASE_UNSET=1');
+    console.log('DEFAULT_BASE_CHOICES=main,master');
+  }
+}
+
 /* ------------------------------------------------------------------- main */
 
 function main() {
@@ -403,7 +464,7 @@ function main() {
   if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
   const mode = argv[0];
-  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status'].includes(mode)) {
+  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status', 'base'].includes(mode)) {
     console.error(`✗ 알 수 없는 모드: ${mode}`);
     usage();
   }
@@ -426,6 +487,8 @@ function main() {
     else if (arg === '--color') opts.color = argv[++i];
     else if (arg === '--desc') opts.desc = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
+    else if (arg === '--set') opts.set = argv[++i];
+    else if (arg === '--default') opts.default = argv[++i];
     else if (arg.startsWith('-')) {
       console.error(`✗ 알 수 없는 옵션: ${arg}`);
       usage();
@@ -434,7 +497,8 @@ function main() {
 
   const positional = positionals[0] ?? null;
   const root = repoRoot();
-  if (mode === 'gate') cmdGate(root, opts);
+  if (mode === 'base') cmdBase(root, opts);
+  else if (mode === 'gate') cmdGate(root, opts);
   else if (mode === 'search') cmdSearch(positional, root, opts);
   else if (mode === 'labels') cmdLabels(root, opts);
   else if (mode === 'unlabeled') cmdUnlabeled(root, opts);

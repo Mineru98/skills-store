@@ -1,0 +1,4 @@
+interface:
+  display_name: "Install Skill"
+  short_description: "Install a Codex skill from a GitHub folder URL"
+  default_prompt: "Use $install-skill to install a Codex skill from this GitHub folder URL."

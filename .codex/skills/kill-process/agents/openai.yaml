@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kill Process"
+  short_description: "Find and stop processes listening on specified ports"
+  default_prompt: "Use $kill-process to stop the process listening on port 3000 and verify that the port is free."

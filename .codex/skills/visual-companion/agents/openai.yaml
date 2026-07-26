@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visual Companion"
+  short_description: "Show interactive browser mockups, diagrams, and choices"
+  default_prompt: "Use $visual-companion to show interactive browser options for this visual design decision."

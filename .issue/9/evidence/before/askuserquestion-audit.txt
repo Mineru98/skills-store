@@ -1,0 +1,66 @@
+# AskUserQuestion 지시 감사 — issue-start / issue-end / issue-merge
+
+결정 지점        25
+지시 있음        6
+지시 누락        19
+
+## 누락 목록
+
+.claude/skills/issue-start/SKILL.md:48
+  <rule>커밋은 `guard` 가 통과할 때만 사용자 확인 없이 한다. 실패하면 커밋하지 않고 확인을 받는다.</rule>
+
+.claude/skills/issue-start/SKILL.md:286
+  통과하면 **사용자에게 묻지 않고** 커밋한다. 실패하면(exit 3) 이유를 보고하고 확인을 받는다.
+
+.claude/skills/issue-start/references/evidence-capture.md:211
+  코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** 확인받는다. 깨졌다면 원인은 셋 중 하나다.
+
+.claude/skills/issue-start/references/implementation.md:43
+  하나라도 실패하면 exit 3 이고 `reason` 이 나온다. 이때는 **커밋하지 말고** 이유를 보고한 뒤 사용자 확인을 받는다.
+
+.claude/skills/issue-start/references/implementation.md:66
+  `issue-start` 는 워크트리 안에서만 동작하고, 그 워크트리는 이 스킬이 방금 이슈 번호로 만든 것이다. 되돌리기도 쉽다(`git reset`, 워크트리 삭제). 매 커밋마다 확인을 받으면 여러 이슈를 동시에 굴리는 흐름이 끊긴다.
+
+.claude/skills/issue-start/references/implementation.md:68
+  반대로 가드가 하나라도 깨졌다는 것은 **여기가 그 워크트리가 아니라는 뜻**이므로, 그때는 예외 없이 확인을 받는다. 이것이 무확인 커밋을 허용하는 유일한 근거다.
+
+.claude/skills/issue-start/references/intake.md:98
+  초안에는 배경 / 요구사항 / 현재와 기대 / 완료 기준 / 영향 범위를 담는다. 등록 전에 사용자 승인을 받는다.
+
+.claude/skills/issue-end/references/report-and-pr.md:143
+  코멘트 URL 을 사용자에게 보여주고 이미지가 실제로 보이는지 확인받는다. 깨졌다면 원인은 셋이다.
+
+.claude/skills/issue-end/references/report-and-pr.md:153
+  `context` 의 `openPr` 가 있으면 새로 만들지 않고 그 PR 에 코멘트할지 묻는다.
+
+.claude/skills/issue-end/references/report-and-pr.md:179
+  PR 생성은 push 와 **따로** 확인받는다.
+
+.claude/skills/issue-merge/references/inventory.md:55
+  이런 워크트리는 **통합 대상에서 제외하되 사용자에게 묻는다.** 실제 작업이 들어 있으므로 조용히 버리면 안 된다. 목록을 보여주고 이슈 번호를 알려줄지, 이번에는 건너뛸지 묻는다. 추측으로 이슈를 붙이지 않는다.
+
+.claude/skills/issue-merge/references/inventory.md:112
+  - `issueState: CLOSED` 인데 워크트리가 남아 있으면 정리 대상이다. merge 하지 않고 7단계에서 워크트리만 제거할지 묻는다.
+
+.claude/skills/issue-merge/references/inventory.md:118
+  후보 목록을 확정하기 전에 한 번 보여주고 승인받는다. `excludedCount` 가 0 이 아니면 무엇을 자동으로 걸렀는지도 함께 보여준다.
+
+.claude/skills/issue-merge/references/inventory.md:126
+  - 일부 제외        → 어떤 것을 뺄지 다시 묻는다
+
+.claude/skills/issue-merge/references/merge-plan.md:113
+  `plan.md` 와 `review.md` 를 요약해 보여주고 승인받는다.
+
+.claude/skills/issue-merge/references/verify-and-close.md:45
+  merge 가 실패하면 출력의 `reason` 을 읽는다. 충돌이면 계획의 순서 판단이 틀린 것이다. 그 PR 을 보류로 돌리고 나머지를 계속할지 사용자에게 묻는다.
+
+.claude/skills/issue-merge/references/verify-and-close.md:106
+  3. 되돌릴지 후속 수정할지 사용자에게 묻는다.
+
+.claude/skills/issue-merge/references/verify-and-close.md:170
+  - **원격 작업 브랜치** — 삭제는 따로 확인받는다. 증거 URL 이 의존할 수 있다.
+
+.claude/skills/issue-merge/references/verify-and-close.md:174
+  정리 전에 무엇을 지울지 목록으로 보여주고 확인받는다.
+
+MISSING=19

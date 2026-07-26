@@ -1,0 +1,23 @@
+### 변경 후 테스트 전체
+
+$ node scripts/test-common.mjs
+test-common: 통과
+
+$ node scripts/test-tracker.mjs
+test-tracker: 통과
+
+$ sh scripts/test-flow.sh
+test-flow: 통과
+
+$ sh scripts/check-shared.sh
+check-shared: 통과
+
+$ sh scripts/verify-ignore.sh
+verify-ignore: 통과 (11개 무시, 5개 커밋)
+
+### 인증 실패 시 안내 (jira 설정이 비었을 때)
+
+$ ISSUE_SETTINGS=jira(빈 설정) node issue-create.mjs labels
+✗ jira 인증 실패: Jira 설정이 비어 있습니다: provider.jira.baseUrl (예: https://acme.atlassian.net), provider.jira.projectKey (예: ACME), provider.jira.email, 환경변수 JIRA_API_TOKEN (provider.jira.tokenEnv 로 이름을 바꿀 수 있다)
+  ~/.issue/settings.json 의 provider.jira 를 채우고 토큰을 환경변수로 내보내세요.
+EXIT=4
