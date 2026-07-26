@@ -10,8 +10,10 @@
 set -u
 
 DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-SETTINGS_DIR="$HOME/.issue-plugin"
+SETTINGS_DIR="$HOME/.issue"
 SETTINGS_PATH="$SETTINGS_DIR/settings.json"
+# 구 경로. 새 경로가 없을 때만 읽어서 1회 옮긴다. gh-env.mjs 와 같은 규칙이다.
+LEGACY_SETTINGS_PATH="$HOME/.issue-plugin/settings.json"
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
@@ -100,7 +102,16 @@ else
   GH_AUTHENTICATED=0
 fi
 
+migrate_settings() {
+  if [ ! -f "$SETTINGS_PATH" ] && [ -f "$LEGACY_SETTINGS_PATH" ]; then
+    mkdir -p "$SETTINGS_DIR"
+    cp "$LEGACY_SETTINGS_PATH" "$SETTINGS_PATH"
+    echo "! 설정을 $LEGACY_SETTINGS_PATH 에서 $SETTINGS_PATH 로 옮겼다. 구 파일은 그대로 둔다." >&2
+  fi
+}
+
 write_settings() {
+  migrate_settings
   mkdir -p "$SETTINGS_DIR"
   # 다운로더가 하나도 없으면 빈 배열로 둔다. "none" 을 선호값으로 남기지 않는다.
   if [ "$DOWNLOADER" = none ]; then DL_JSON='[]'; else DL_JSON="[\"$DOWNLOADER\"]"; fi

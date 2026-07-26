@@ -17,7 +17,7 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과 — 실패하면 `gh-setup` 스킬로 먼저 해결</item>
+    <item>트래커 인증 통과 — `~/.issue/settings.json` 의 `provider.type` 이 github 면 `gh auth status`, jira 면 baseUrl·projectKey·토큰. github 인증 실패는 `gh-setup` 스킬로 먼저 해결</item>
     <item>Node 18+. 재캡처가 필요하면 Playwright 와 sharp/cwebp/ffmpeg 중 하나</item>
   </preconditions>
 

@@ -10,41 +10,44 @@
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-SRC="$ROOT/tools/issue-common.mjs"
 CHECK=0
 [ "${1:-}" = "--check" ] && CHECK=1
 
-[ -f "$SRC" ] || { echo "정본이 없다: $SRC"; exit 1; }
-
+SHARED="issue-common.mjs issue-tracker.mjs"
 SKILLS="issue-create issue-start issue-end issue-merge"
 FLAVORS=".claude .codex"
 
-BANNER='// !!! VENDORED FILE — DO NOT EDIT !!!
-// canonical: tools/issue-common.mjs
-// resync   : sh scripts/sync-shared.sh
-'
-
 TMP=$(mktemp)
 trap 'rm -f "$TMP"' EXIT
-printf '%s' "$BANNER" > "$TMP"
-cat "$SRC" >> "$TMP"
 
 drift=0
 copied=0
-for flavor in $FLAVORS; do
-  for skill in $SKILLS; do
-    dir="$ROOT/$flavor/skills/$skill/scripts"
-    [ -d "$dir" ] || continue
-    dest="$dir/issue-common.mjs"
-    if [ "$CHECK" -eq 1 ]; then
-      if ! cmp -s "$TMP" "$dest" 2>/dev/null; then
-        echo "DRIFT  $flavor/skills/$skill/scripts/issue-common.mjs"
-        drift=1
+for name in $SHARED; do
+  SRC="$ROOT/tools/$name"
+  [ -f "$SRC" ] || { echo "정본이 없다: $SRC"; exit 1; }
+
+  {
+    echo '// !!! VENDORED FILE — DO NOT EDIT !!!'
+    echo "// canonical: tools/$name"
+    echo '// resync   : sh scripts/sync-shared.sh'
+    cat "$SRC"
+  } > "$TMP"
+
+  for flavor in $FLAVORS; do
+    for skill in $SKILLS; do
+      dir="$ROOT/$flavor/skills/$skill/scripts"
+      [ -d "$dir" ] || continue
+      dest="$dir/$name"
+      if [ "$CHECK" -eq 1 ]; then
+        if ! cmp -s "$TMP" "$dest" 2>/dev/null; then
+          echo "DRIFT  $flavor/skills/$skill/scripts/$name"
+          drift=1
+        fi
+      else
+        cp "$TMP" "$dest"
+        copied=$((copied + 1))
       fi
-    else
-      cp "$TMP" "$dest"
-      copied=$((copied + 1))
-    fi
+    done
   done
 done
 

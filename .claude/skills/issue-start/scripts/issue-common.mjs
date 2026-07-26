@@ -166,16 +166,13 @@ export function listWorktrees(root) {
     .filter(Boolean);
 }
 
-/** gh 로 owner/name + private 여부. gh 실패 시 origin URL 파싱(이때 isPrivate 는 null). */
-export function repoSlug(root) {
-  const r = run('gh', ['repo', 'view', '--json', 'nameWithOwner,isPrivate,defaultBranchRef'], root ? { cwd: root } : {});
-  if (r.code === 0) {
-    try {
-      return JSON.parse(r.out);
-    } catch {
-      /* fallthrough */
-    }
-  }
+/**
+ * origin URL 만으로 owner/name 을 뽑는다. private 여부는 알 수 없어 null.
+ *
+ * gh 를 쓰는 정식 판별은 issue-tracker.mjs 의 `gitHost.repoInfo()` 다.
+ * 이 모듈은 트래커 종류와 무관해야 하므로 여기서는 호스트 CLI 를 부르지 않는다.
+ */
+export function repoSlugFromRemote(root) {
   const url = git(['remote', 'get-url', 'origin'], root ? { cwd: root } : {}).out;
   const m = url.match(/[:/]([^/:]+)\/([^/]+?)(?:\.git)?$/);
   return m ? { nameWithOwner: `${m[1]}/${m[2]}`, isPrivate: null } : null;
@@ -203,12 +200,21 @@ export function prefixFromLabels(labels = []) {
   return 'fix';
 }
 
-/** "59", "#59", 이슈 URL 에서 번호를 뽑는다. */
+/**
+ * "59", "#59", GitHub 이슈 URL, Jira 키("ACME-59"), Jira browse URL 에서 번호를 뽑는다.
+ *
+ * Jira 를 쓰더라도 브랜치 이름과 `.issue/<n>/` 경로는 숫자로 유지한다.
+ * 프로젝트 키는 설정에 있으므로 번호만 있으면 키를 다시 조립할 수 있다.
+ */
 export function parseIssueNumber(raw) {
   if (raw === null || raw === undefined) return null;
   const s = String(raw).trim();
-  const url = s.match(/\/issues\/(\d+)/);
-  if (url) return Number(url[1]);
+  const ghUrl = s.match(/\/issues\/(\d+)/);
+  if (ghUrl) return Number(ghUrl[1]);
+  const jiraUrl = s.match(/\/browse\/[A-Za-z][A-Za-z0-9_]*-(\d+)/);
+  if (jiraUrl) return Number(jiraUrl[1]);
+  const jiraKey = s.match(/^([A-Za-z][A-Za-z0-9_]*)-(\d{1,6})$/);
+  if (jiraKey) return Number(jiraKey[2]);
   const m = s.match(/^#?(\d{1,6})$/);
   return m ? Number(m[1]) : null;
 }
@@ -311,16 +317,43 @@ export function ensureIgnoreBlock(root) {
 
 /* --------------------------------------------------------------- settings */
 
-export const SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
+export const SETTINGS_DIR = path.join(os.homedir(), '.issue');
 export const SETTINGS_PATH = path.join(SETTINGS_DIR, 'settings.json');
 
-export function readIssueSettings() {
-  if (!existsSync(SETTINGS_PATH)) return {};
+/** 구 경로. 새 경로가 없을 때만 읽어서 1회 옮긴다. */
+export const LEGACY_SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
+export const LEGACY_SETTINGS_PATH = path.join(LEGACY_SETTINGS_DIR, 'settings.json');
+
+function parseSettingsFile(file) {
   try {
-    return JSON.parse(readFileSync(SETTINGS_PATH, 'utf8'));
+    return JSON.parse(readFileSync(file, 'utf8'));
   } catch {
-    return {};
+    return null;
   }
+}
+
+/**
+ * 구 경로의 설정을 새 경로로 한 번 옮긴다.
+ *
+ * 복사만 하고 원본은 지우지 않는다. 구 버전 스킬이 아직 깔려 있는 환경에서
+ * 설정을 통째로 잃는 것보다 파일이 두 벌 남는 쪽이 안전하다.
+ */
+export function migrateIssueSettings() {
+  if (existsSync(SETTINGS_PATH) || !existsSync(LEGACY_SETTINGS_PATH)) return false;
+  const prev = parseSettingsFile(LEGACY_SETTINGS_PATH);
+  if (!prev) return false;
+  mkdirSync(SETTINGS_DIR, { recursive: true });
+  writeFileSync(SETTINGS_PATH, `${JSON.stringify(prev, null, 2)}\n`, 'utf8');
+  console.error(`! 설정을 ${LEGACY_SETTINGS_PATH} 에서 ${SETTINGS_PATH} 로 옮겼습니다. 구 파일은 그대로 둡니다.`);
+  return true;
+}
+
+export function readIssueSettings() {
+  migrateIssueSettings();
+  if (existsSync(SETTINGS_PATH)) return parseSettingsFile(SETTINGS_PATH) ?? {};
+  // 마이그레이션이 실패했어도(권한 등) 구 파일이 있으면 읽기는 된다.
+  if (existsSync(LEGACY_SETTINGS_PATH)) return parseSettingsFile(LEGACY_SETTINGS_PATH) ?? {};
+  return {};
 }
 
 /**
@@ -452,29 +485,15 @@ export function mirrorEvidence({ root, key, issue, push = false, base: explicitB
   return result;
 }
 
-/** 증거 파일들의 raw.githubusercontent URL 을 만든다. */
-export function evidenceUrls({ root, key, issue, branch, mirrorRef, base }) {
-  const repo = repoSlug(root);
-  if (!repo?.nameWithOwner) fail('저장소 식별 실패. gh 로그인 상태 또는 origin 설정을 확인하세요.');
-  const ref = mirrorRef || detectBase(root, 'origin', base);
-  const files = listEvidence(root, key);
-  if (files.length === 0) fail(`증거 파일이 없습니다: ${evidenceRel(root, key)}`);
-
-  const raw = (r, p) => `https://raw.githubusercontent.com/${repo.nameWithOwner}/${r}/${p}`;
-  return {
-    repo: repo.nameWithOwner,
-    isPrivate: repo.isPrivate,
-    issue,
-    branch,
-    mirrorRef: ref,
-    note: repo.isPrivate
-      ? 'private 저장소는 raw URL 이 코멘트에서 렌더링되지 않습니다. 이미지를 웹 UI 로 직접 첨부하고 raw URL 은 보조 링크로만 남기세요.'
-      : null,
-    images: files.map((p) => ({
-      path: p,
-      phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
-      branchUrl: branch ? raw(branch, p) : null,
-      mirrorUrl: raw(ref, p),
-    })),
-  };
+/**
+ * 증거 파일 목록에 phase 를 붙여 돌려준다.
+ *
+ * raw URL 조립은 git 호스트에 달린 일이라 issue-tracker.mjs 의 `evidenceUrls()` 가 맡는다.
+ * 여기서는 호스트와 무관한 부분만 만든다.
+ */
+export function evidenceManifest(root, key) {
+  return listEvidence(root, key).map((p) => ({
+    path: p,
+    phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
+  }));
 }

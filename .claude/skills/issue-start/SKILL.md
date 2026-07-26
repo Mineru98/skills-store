@@ -18,7 +18,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
 
   <preconditions>
     <item>현재 디렉터리가 git 저장소</item>
-    <item>`gh auth status` 통과 — 실패하면 `gh-setup` 스킬로 설치·로그인을 먼저 끝낸다</item>
+    <item>트래커 인증 통과 — `~/.issue/settings.json` 의 `provider.type` 이 github 면 `gh auth status`, jira 면 baseUrl·projectKey·토큰. github 인증 실패는 `gh-setup` 스킬로 먼저 끝낸다</item>
     <item>git, curl, Node 18+</item>
   </preconditions>
 
@@ -202,10 +202,16 @@ sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-verifier -
 
 ```bash
 git rev-parse --show-toplevel
-gh auth status
 ```
 
-`gh` 쪽이 실패하면 **`gh-setup` 스킬을 실행해** 설치·로그인을 끝낸 뒤 이어서 진행한다.
+트래커 인증은 `fetch` 가 알아서 확인한다. 실패하면 **exit 4** 로 빠지면서 무엇이 비었는지 알려 준다.
+
+```text
+provider.type = github   gh 인증. 실패하면 `gh-setup` 스킬로 설치·로그인을 끝낸 뒤 이어서 진행
+provider.type = jira     ~/.issue/settings.json 의 provider.jira + tokenEnv 환경변수
+```
+
+PR 은 트래커와 무관하게 GitHub 에 올라간다. Jira 를 쓰더라도 `gh` 로그인은 여전히 필요하다.
 
 ## 1단계 — 체크리스트 생성
 

@@ -18,12 +18,15 @@
  *   node issue-start.mjs evidence-mirror 59 --push
  *
  * 규칙:
- *   - 워크트리 경로는 ~/.issue-plugin/settings.json 의 worktree.layout 이 결정한다.
+ *   - 워크트리 경로는 ~/.issue/settings.json 의 worktree.layout 이 결정한다.
  *     미결정이면 WORKTREE_LAYOUT_UNSET=1 을 출력하고 exit 2 로 빠진다 (사용자에게 물어야 함).
  *   - 기본 브랜치는 origin/HEAD 로 자동 판별(없으면 main → master)
  *   - 이미 존재하는 브랜치/워크트리는 재사용(멱등)
  *
- * 요구사항: git, gh(로그인 상태), curl, Node 18+
+ * 이슈 백엔드는 ~/.issue/settings.json 의 provider 설정이 정한다 (github 기본 | jira).
+ * 트래커 호출은 전부 issue-tracker.mjs 를 거친다. 이 파일은 gh 를 직접 부르지 않는다.
+ *
+ * 요구사항: git, curl, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
 import { spawnSync } from 'node:child_process';
 import {
@@ -32,13 +35,14 @@ import {
 import path from 'node:path';
 import process from 'node:process';
 import {
-  run, git, fail, must, repoRoot, currentBranch, isLinkedWorktree, detectRemote, detectBase,
+  git, fail, must, repoRoot, currentBranch, isLinkedWorktree, detectRemote, detectBase,
   branchExists, remoteBranchExists, existingWorktreeFor, isIgnored,
   slugify, prefixFromLabels, parseIssueNumber, inferIssue,
   issueDir, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, evidenceUrls, resolveWorktreePath, getWorktreeLayout,
+  mirrorEvidence, resolveWorktreePath, getWorktreeLayout,
   WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 } from './issue-common.mjs';
+import { createTracker, evidenceUrls } from './issue-tracker.mjs';
 
 function usage(exitCode = 1) {
   console.error(`Usage:
@@ -95,13 +99,14 @@ const EXT_BY_TYPE = {
   'image/svg+xml': '.svg',
 };
 
-export function downloadImage(url, dir, index, token) {
+export function downloadImage(url, dir, index, auth) {
   const stem = path.join(dir, `image-${String(index).padStart(2, '0')}`);
   const tmp = `${stem}.download`;
   // curl 은 호스트가 바뀌는 리다이렉트에서 Authorization 헤더를 자동으로 제거한다.
   // (GitHub user-attachments → S3 서명 URL 패턴에 필요)
   const args = ['-sSL', '--max-time', '60', '-o', tmp, '-w', '%{content_type}'];
-  if (token) args.push('-H', `Authorization: Bearer ${token}`);
+  // GitHub 은 Bearer 토큰, Jira 는 Basic 인증이라 스킴까지 트래커가 정한다.
+  if (auth?.token) args.push('-H', `Authorization: ${auth.scheme} ${auth.token}`);
   args.push(url);
   const res = spawnSync('curl', args, { encoding: 'utf8' });
   if (res.status !== 0) {
@@ -121,14 +126,9 @@ export function downloadImage(url, dir, index, token) {
   return { url, ok: true, path: target };
 }
 
-function cmdFetch(number, root, opts) {
-  const fields = [
-    'number', 'title', 'state', 'body', 'labels', 'assignees',
-    'milestone', 'comments', 'url', 'createdAt', 'updatedAt',
-  ].join(',');
-  const args = ['issue', 'view', String(number), '--json', fields];
-  if (opts.repo) args.push('--repo', opts.repo);
-  const issue = JSON.parse(must('gh', args, { cwd: root }));
+function cmdFetch(number, root, tracker) {
+  const issue = tracker.issueView(number);
+  if (!issue) fail(`이슈 ${tracker.displayKey(number)} 를 읽지 못했습니다. 번호와 트래커 설정을 확인하세요.`);
 
   const dir = issueDir(root, number);
   const imagesDir = path.join(dir, 'images');
@@ -138,10 +138,11 @@ function cmdFetch(number, root, opts) {
   writeFileSync(path.join(dir, 'issue.json'), `${JSON.stringify(issue, null, 2)}\n`);
 
   const labels = (issue.labels ?? []).map((l) => l.name);
+  const display = issue.key ?? `#${issue.number}`;
   const md = [
-    `# #${issue.number} ${issue.title}`,
+    `# ${display} ${issue.title}`,
     '',
-    `- 상태: ${issue.state}`,
+    `- 상태: ${issue.state}${issue.statusName ? ` (${issue.statusName})` : ''}`,
     `- URL: ${issue.url}`,
     `- 라벨: ${labels.join(', ') || '(없음)'}`,
     `- 담당: ${(issue.assignees ?? []).map((a) => a.login).join(', ') || '(없음)'}`,
@@ -157,15 +158,15 @@ function cmdFetch(number, root, opts) {
   }
   writeFileSync(path.join(dir, 'issue.md'), `${md.join('\n')}\n`);
 
-  const token = run('gh', ['auth', 'token']).out;
+  const auth = tracker.attachmentAuth();
   const urls = collectImageUrls([issue.body, ...(issue.comments ?? []).map((c) => c.body)].join('\n'));
-  const downloads = urls.map((url, i) => downloadImage(url, imagesDir, i + 1, token));
+  const downloads = urls.map((url, i) => downloadImage(url, imagesDir, i + 1, auth));
 
   const rel = (p) => {
     const r = path.relative(root, p);
     return r.startsWith('..') ? p : r;
   };
-  console.log(`✓ 이슈 #${number} 수집 완료 — ${issue.title}`);
+  console.log(`✓ 이슈 ${display} 수집 완료 — ${issue.title}`);
   console.log(`  라벨: ${labels.join(', ') || '(없음)'} / 상태: ${issue.state}`);
   console.log(`  본문: ${rel(path.join(dir, 'issue.md'))}`);
   if (!urls.length) console.log('  이미지: 없음');
@@ -466,7 +467,17 @@ function main() {
 
   const root = repoRoot();
   switch (mode) {
-    case 'fetch': cmdFetch(number, root, opts); break;
+    case 'fetch': {
+      const tracker = createTracker(root, { repo: opts.repo });
+      const auth = tracker.auth();
+      if (!auth.ok) {
+        console.error(`✗ ${tracker.provider} 인증 실패: ${auth.detail}`);
+        if (auth.hint) console.error(`  ${auth.hint}`);
+        process.exit(4);
+      }
+      cmdFetch(number, root, tracker);
+      break;
+    }
     case 'worktree': cmdWorktree(number, root, opts); break;
     case 'guard': cmdGuard(root, { ...opts, issue: number }); break;
     case 'evidence-init': cmdEvidenceInit(number, root); break;

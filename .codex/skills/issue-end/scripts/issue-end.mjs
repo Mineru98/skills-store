@@ -26,16 +26,20 @@
  *
  * 증거는 .issue/<key>/evidence/ 에 쌓이고, 이 경로만 .gitignore 예외로 커밋된다.
  *
- * 요구사항: git, gh(로그인), Node 18+
+ * 이슈 백엔드는 ~/.issue/settings.json 의 provider 설정이 정한다 (github 기본 | jira).
+ * PR 은 코드 호스트(GitHub) 의 것이라 트래커와 무관하게 gitHost 를 쓴다.
+ *
+ * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
 import { mkdirSync, existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  run, git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
-  repoSlug, evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, evidenceUrls, listWorktrees, issueDir, WORKSPACE_DIR,
+  git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
+  evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
+  mirrorEvidence, listWorktrees, issueDir, WORKSPACE_DIR,
 } from './issue-common.mjs';
+import { createTracker, gitHost, evidenceUrls } from './issue-tracker.mjs';
 
 const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree> [options]
 
@@ -70,7 +74,9 @@ function cmdContext(args) {
   const branch = currentBranch();
   const base = detectBase(root, 'origin', args.base);
   const { key, issue } = evidenceKey(args, branch);
-  const repo = repoSlug(root);
+  const repo = gitHost.repoInfo(root);
+  const tracker = createTracker(root);
+  const trackerAuth = tracker.auth();
   const evidence = evidenceSummary(root, key);
 
   const ctx = {
@@ -91,7 +97,11 @@ function cmdContext(args) {
     dirty: git(['status', '--porcelain']).out.split('\n').filter(Boolean).length,
     ahead: null,
     upstream: git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']).out || null,
-    ghAuth: run('gh', ['auth', 'status']).code === 0,
+    provider: tracker.provider,
+    trackerAuth: trackerAuth.ok,
+    trackerAuthDetail: trackerAuth.ok ? null : trackerAuth.detail,
+    // 하위호환: 기존 소비자가 ghAuth 를 읽는다. github 트래커면 같은 값이다.
+    ghAuth: gitHost.auth().ok,
     issueState: null,
     issueTitle: null,
     issueUrl: null,
@@ -105,29 +115,19 @@ function cmdContext(args) {
     ctx.ahead = c.code === 0 ? Number(c.out) : null;
   }
 
-  if (ctx.ghAuth && issue) {
-    const r = run('gh', ['issue', 'view', String(issue), '--json', 'number,title,state,url']);
-    if (r.code === 0) {
-      try {
-        const j = JSON.parse(r.out);
-        ctx.issueState = j.state;
-        ctx.issueTitle = j.title;
-        ctx.issueUrl = j.url;
-      } catch {
-        /* ignore */
-      }
+  if (ctx.trackerAuth && issue) {
+    const j = tracker.issueView(issue);
+    if (j) {
+      ctx.issueState = j.state;
+      ctx.issueTitle = j.title;
+      ctx.issueUrl = j.url;
+      ctx.issueKey = j.key;
     }
   }
 
+  // PR 은 코드 호스트 소관이다. 트래커가 Jira 여도 여기는 GitHub 을 본다.
   if (ctx.ghAuth && branch) {
-    const r = run('gh', ['pr', 'list', '--head', branch, '--state', 'all', '--json', 'number,state,url,isDraft']);
-    if (r.code === 0) {
-      try {
-        ctx.openPr = JSON.parse(r.out)[0] ?? null;
-      } catch {
-        /* ignore */
-      }
-    }
+    ctx.openPr = gitHost.prForBranch(branch);
   }
 
   console.log(JSON.stringify(ctx, null, 2));

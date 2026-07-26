@@ -58,5 +58,5 @@ GitHub Enterprise          --hostname 을 사내 도메인으로 바꾼다
 ## 금지
 
 - 토큰 값을 대화에 출력하지 않는다.
-- 토큰을 저장소 안 파일이나 설정 파일(`~/.issue-plugin/settings.json`)에 쓰지 않는다.
+- 토큰을 저장소 안 파일이나 설정 파일(`~/.issue/settings.json`)에 쓰지 않는다.
 - `gh auth login` 을 에이전트가 직접 실행하지 않는다.
