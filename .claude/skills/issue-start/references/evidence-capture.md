@@ -117,6 +117,12 @@ psql -c "EXPLAIN (ANALYZE, BUFFERS) SELECT ..." | tee .issue/59/evidence/before/
 
 ## 5. 커밋과 미러
 
+### Confluence 게시
+
+`~/.issue/settings.json`의 `docs.type: "confluence"`가 켜져 있으면 `evidence-commit`은 `comment.md`와 webp 증거를 같은 Confluence 페이지에 게시합니다. 같은 이슈는 기존 페이지를 version 갱신으로 재사용하며, 성공한 URL은 `comment.md`의 Confluence 항목에 자동 기록됩니다.
+
+설정에는 `baseUrl`, `spaceKey`, `parentPageId`, `email`, `tokenEnv`가 필요합니다. 토큰 값은 환경변수에만 둡니다. Confluence 게시 실패는 경고일 뿐 증거 커밋·GitHub 코멘트 흐름을 막지 않습니다.
+
 ```bash
 node <skill>/scripts/issue-start.mjs evidence-commit {issue_number}
 git push -u origin "$(git branch --show-current)"

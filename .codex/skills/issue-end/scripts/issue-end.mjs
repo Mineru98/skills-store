@@ -40,6 +40,7 @@ import {
   mirrorEvidence, listWorktrees, issueDir, WORKSPACE_DIR,
 } from './issue-common.mjs';
 import { createTracker, gitHost, evidenceUrls, setTrackerStatus } from './issue-tracker.mjs';
+import { publishDocumentation } from './issue-docs.mjs';
 
 const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|status> [options]
 
@@ -149,6 +150,10 @@ function cmdInit(args) {
 function cmdCommit(args) {
   const root = repoRoot();
   const { key, issue } = evidenceKey(args, currentBranch());
+  const reportFile = path.join(evidenceDir(root, key), 'comment.md');
+  const docs = publishDocumentation({ root, key, reportFile });
+  if (!docs.ok) console.error(`! Confluence 게시 건너뜀: ${docs.warning}`);
+  else if (!docs.skipped) console.log(`✓ Confluence 리포트 게시: ${docs.url}`);
   const files = listEvidence(root, key);
   if (files.length === 0) fail(`증거 파일이 없습니다: ${evidenceRel(root, key)}`);
 

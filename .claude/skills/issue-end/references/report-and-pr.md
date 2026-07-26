@@ -63,6 +63,12 @@
 
 ## 6단계 — 기본 브랜치에 증거 커밋 [필수]
 
+### Confluence 게시
+
+`docs.type: "confluence"`이면 `commit`이 최신 `comment.md`와 webp 증거를 같은 이슈의 Confluence 페이지로 갱신합니다. 페이지 URL은 `comment.md`에 기록되어 이후 GitHub 이슈 코멘트와 PR 본문에서 그대로 쓸 수 있습니다.
+
+Confluence 설정·권한·네트워크 오류는 경고로만 출력합니다. 증거 커밋과 PR 준비는 계속해야 합니다.
+
 작업 브랜치 push는 증거 미러와 별도로 AskUserQuestion으로 확인받는다.
 
 ```text
