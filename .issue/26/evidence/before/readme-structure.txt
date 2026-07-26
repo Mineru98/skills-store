@@ -26,3 +26,32 @@ Missing or failing criteria:
 
 Evidence type:
 - Text evidence is used because this issue changes documentation only; a browser screenshot or performance measurement would not prove the requested Markdown content more reliably.
+
+Paired verification command:
+
+```bash
+git show 3b24068^:README.md | rg -n '^<summary><strong>(1|2|3|4|5|14|15|16|17)\\.'
+git show 3b24068^:README.md | rg -n 'Codex용 설치 프롬프트|Claude Code용 설치 프롬프트|agents   issue-verifier|홈 설치:|프로젝트 설치:|공통 전제와 이슈 백엔드|권장 사용 흐름|단일 작업은|여러 작업은'
+git show 3b24068^:README.md | rg -c '^<details(?: open)?>$'
+git show 3b24068^:README.md | rg -c '^</details>$'
+git show 3b24068^:README.md | rg -c '^```'
+```
+
+Paired command result before implementation:
+
+```text
+50:1. visual-companion
+101:2. kill-process
+136:3. install-skill
+175:4. migrate-skill-agent
+220:5. irasutoya-search
+592:14. issue-create
+725:15. issue-start
+869:16. issue-end
+943:17. issue-merge
+
+Installation/workflow coverage matches: 0
+details_open=24
+details_close=24
+fences=150
+```
