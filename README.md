@@ -613,13 +613,49 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 명시적으로 부르지 않아도, 이슈 없이 변경 요청이 들어오면 스스로 발동합니다.
 
+### 라벨 체계
+
+라벨은 두 축입니다. 한 이슈에 성격 라벨 하나와 진행 상태 라벨 하나가 함께 붙습니다.
+
+```text
+성격 라벨         의미                issue-start 브랜치 prefix
+bug              동작이 잘못됨        fix/
+enhancement      기능 추가·개선       feat/
+documentation    문서                docs/
+chore            정리·설정·의존성      chore/
+```
+
+```text
+진행 상태 라벨      전환 시점                              전환 주체
+status:open        이슈 등록 직후                          issue-create  (자동)
+status:plan        이슈 수집 직후 — 분석·계획 시작           issue-start   (자동)
+status:in-process  워크트리 생성 직후 — 구현 시작            issue-start   (자동)
+status:review      PR 생성 직후                            issue-end     (수동 호출)
+status:close       이슈 close 직전                         issue-merge   (자동)
+```
+
+```text
+issue-create        issue-start              issue-end     issue-merge
+    │                   │        │                │             │
+  open ──────────────► plan ► in-process ─────► review ──────► close
+```
+
+진행 상태 라벨은 상호배타입니다. 전환은 항상 "기존 `status:*` 제거 + 새 것 추가"가 한 번에 일어나며,
+네 스킬 모두 같은 `status` 서브커맨드를 노출합니다.
+
+```bash
+node <skill>/scripts/issue-start.mjs status 59 in-process   # 접두사 생략 가능
+```
+
+전환 실패는 흐름을 막지 않습니다(`STATUS_FAILED=1`). 라벨은 메타데이터이지 게이트가 아닙니다.
+
 ### 동작
 
 1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
 2. `search`로 유사한 열린 이슈를 찾고, 있으면 새로 만들지 않고 그 번호를 제시
 3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정
-4. 초안 전문을 보여주고 승인받은 뒤 라벨과 함께 `gh issue create`
-5. `unlabeled`로 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
+4. 초안 전문을 보여주고 승인받은 뒤 성격 라벨과 함께 `gh issue create`, 이어서 `status:open` 자동 부착
+5. `unlabeled`로 성격 라벨 / 진행 상태 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
 6. `.issue/<번호>/request.md`에 원본 요청을 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 `issue-start`로 인계
 
 전제 확인·중복 검사·성격 판정은 `issue-verifier` 서브에이전트에 맡깁니다 (Claude는 `haiku`, Codex는 `gpt-5.6-luna`).
@@ -628,7 +664,7 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 - 코드 수정. 이슈 생성까지만 합니다
 - 승인 없는 등록, 승인 없는 라벨 생성, 이슈 상태 변경·코멘트·PR 생성
-- 이미 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다)
+- 이미 성격 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다. `status:*`는 상호배타라 예외적으로 교체합니다)
 - 게이트가 SKIP이면 아무 말 없이 빠집니다
 
 ### 관련 파일
@@ -636,7 +672,7 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 ```text
 .claude/skills/issue-create/SKILL.md
 .claude/skills/issue-create/references/{maturity-gate,issue-draft,label-audit,create-and-handoff}.md
-.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label
+.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label / status
 .claude/skills/issue-create/scripts/issue-common.mjs   # 공용 모듈 (vendored)
 .codex/skills/issue-create/  (같은 구성 + agents/openai.yaml)
 ```
@@ -705,9 +741,56 @@ $issue-start #59
 | layout | 경로 |
 | --- | --- |
 | `sibling` | `../<repo>-issue-<번호>` |
-| `nested` | `<repo>/.issue/worktrees/<번호>-<slug>` |
+| `children` | `<repo>/.issue/worktrees/<번호>-<slug>` |
 
-`nested`는 워크트리가 프로젝트 안에 생기므로, 스크립트가 `git check-ignore`로 실제 무시 여부를 확인하고 안 걸리면 생성을 중단합니다.
+`children`은 워크트리가 프로젝트 안에 생기므로, 스크립트가 `git check-ignore`로 실제 무시 여부를 확인하고 안 걸리면 생성을 중단합니다.
+
+예전 이름이던 `nested`가 설정에 남아 있으면 모르는 값으로 취급해 배치를 한 번만 다시 묻습니다. 같은 뜻이므로 `children`을 고르면 됩니다.
+
+보고에 경로를 적을 때는 배치에 맞는 형태를 씁니다 — `children`은 상대 경로, `sibling`은 절대 경로. `sibling`을 상대 경로로 적으면 `../repo-issue-59`가 되어 터미널에서 `ctrl+클릭`했을 때 없는 경로가 열립니다.
+
+### 기본 브랜치는 저장소별로 기억합니다
+
+`main`인지 `master`인지를 단계마다 다시 알아내지 않습니다.
+
+```text
+1. --base 인자                     이번 실행만
+2. <repo>/.issue/settings.json     git.baseBranch          ← 저장소별 기록
+3. origin/HEAD → main → master     판별하고 2에 적어 둔다
+4. ~/.issue-plugin/settings.json   git.defaultBaseBranch   ← 3이 실패할 때만
+```
+
+저장소 실제 상태가 사용자 습관보다 우선입니다. `.issue/settings.json`은 기존 `.issue/**` 무시 규칙에 걸려 커밋되지 않습니다.
+
+```bash
+node issue-create.mjs base                  # 지금 무엇으로 정해지는지
+node issue-create.mjs base --set master     # 이 저장소를 고정
+node issue-create.mjs base --default master # 사용자 기본값을 고정
+```
+
+### 증거를 올린 뒤 메인 폴더를 최신으로 맞춥니다
+
+증거는 임시 워크트리에서 기본 브랜치로 곧장 push되므로, 사용자의 메인 체크아웃은 그 커밋을 모른 채 뒤처집니다. `issue-start`와 `issue-end`가 미러 직후 `sync-base`로 받아옵니다.
+
+```bash
+node issue-start.mjs sync-base
+node issue-end.mjs sync-base
+```
+
+안전할 때만 받아옵니다 — 브랜치를 갈아타지 않고, 임의로 치워두지 않고, 실패하면 원래 상태로 되돌립니다. 막히면 그 사유(`dirty` / `conflict` / `other-branch` / `error`)를 쉬운 말로 설명하고 AskUserQuestion으로 해결 방법을 함께 정합니다.
+
+### 스킬이 끝날 때 다음 할 일을 제안합니다
+
+네 스킬 모두 마지막에 4지선다를 냅니다. 상황에 따라 권장 항목이 바뀝니다 — 라벨이 덜 붙었으면 라벨 정리를, 계획에 남은 항목이 있으면 이어서 작업을, 통합 테스트에서 회귀가 나왔으면 새 이슈 등록을 위로 올립니다.
+
+| 스킬 | 기본 권장 |
+| --- | --- |
+| `issue-create` | 바로 착수 (`issue-start`) |
+| `issue-start` | 마무리하고 PR (`issue-end`) |
+| `issue-end` | 다른 이슈 착수 |
+| `issue-merge` | 다른 이슈 착수 |
+
+선택은 항상 사용자가 합니다. 묻지 않고 다음 스킬로 넘어가지 않습니다.
 
 ### 증거 이미지는 webp + 바운딩 박스
 

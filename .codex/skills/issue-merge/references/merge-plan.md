@@ -110,7 +110,7 @@ merge 후 통합 테스트가 실패하면:
 
 ## 5. 사용자 승인
 
-`plan.md` 와 `review.md` 를 요약해 보여주고 승인받는다.
+`plan.md` 와 `review.md` 를 요약해 보여주고 AskUserQuestion 으로 승인받는다.
 
 ```text
 질문: issue-merge 6단계(merge · 통합 테스트)입니다. 아래 순서로 <n>개를 merge 할까요?
@@ -118,8 +118,8 @@ merge 후 통합 테스트가 실패하면:
   비판 검토: proceed / warnings 2건 반영됨
 
 - 이대로 진행 (권장)
-- 순서 조정
-- 일부만 merge
+- 순서 조정        → 원하는 순서를 Other 로 입력받는다
+- 일부만 merge     → 뺄 대상을 Other 로 입력받는다
 - 중단
 ```
 

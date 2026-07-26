@@ -8,9 +8,14 @@
  *   2) search    : 같은 내용의 이슈가 이미 있는지 찾는다.
  *   3) labels    : 저장소에 실제로 존재하는 라벨만 쓰기 위해 목록을 뽑는다.
  *   4) create    : 이슈를 만들고 issue-start 가 이어받을 request.md 를 남긴다.
- *   5) unlabeled : 라벨이 하나도 없는 기존 이슈를 찾는다.
- *   6) label     : 기존 이슈에 라벨을 붙인다.
+ *   5) unlabeled : 성격 라벨 / 진행 상태 라벨이 빠진 기존 이슈를 찾는다.
+ *   6) label     : 기존 이슈에 라벨을 붙이거나 뗀다.
  *   7) ensure-label : 표준 라벨이 없을 때 만든다 (사용자 승인 후에만 호출).
+ *   8) status    : 진행 상태 라벨을 교체한다 (open|plan|in-process|review|close).
+ *   9) base      : 이 저장소의 기본 브랜치를 정해 `.issue/settings.json` 에 남긴다.
+ *
+ * 라벨은 두 축이다 — 성격(bug/enhancement/…) 과 진행 상태(status:*).
+ * create 는 성격 라벨을 강제하고, status:open 은 생성 직후 자동으로 붙인다.
  *
  * 사용:
  *   node issue-create.mjs gate
@@ -28,7 +33,10 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR,
+  git, repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR,
+  ensureLabel, setStatus, typeLabels, isStatusLabel, STATUS_ORDER,
+  detectBase, readProjectSettings, writeProjectSettings,
+  getDefaultBaseBranch, setDefaultBaseBranch, PROJECT_SETTINGS_REL,
 } from './issue-common.mjs';
 
 export { parseIssueNumber };
@@ -65,8 +73,10 @@ function usage(exitCode = 1) {
   node issue-create.mjs labels [--repo <owner/name>]
   node issue-create.mjs create --title <제목> --body-file <파일> [options]
   node issue-create.mjs unlabeled [--state open|all] [--limit <n>] [--repo <o/n>]
-  node issue-create.mjs label <issue-number> --label <name> [--label <name>...]
+  node issue-create.mjs label <issue-number> [--label <name>...] [--remove-label <name>...]
   node issue-create.mjs ensure-label <name> [--color <hex>] [--desc <설명>]
+  node issue-create.mjs status <issue-number> <${STATUS_ORDER.map((s) => s.slice(7)).join('|')}>
+  node issue-create.mjs base [--set <branch>] [--default <branch>]
 
 gate:
   커밋 수·원격·이슈 이력·빌드 설정·소스 규모를 확인해
@@ -75,8 +85,9 @@ gate:
 create options:
   --title <t>          이슈 제목 (필수)
   --body-file <f>      이슈 본문 마크다운 파일 (필수)
-  --label <name>       라벨 (필수, 여러 번 지정 가능, 저장소에 있는 것만)
+  --label <name>       성격 라벨 (필수, 여러 번 지정 가능, 저장소에 있는 것만)
   --no-label           라벨 없이 만든다. 의도적으로 규칙을 벗어날 때만 쓴다
+  --no-status          생성 후 status:open 자동 부착을 생략한다
   --assignee <login>   담당자 (@me 가능)
   --request-file <f>   원본 요청 기록. 생략 시 --body-file 을 복사
   --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin)
@@ -221,14 +232,6 @@ function cmdLabels(root, opts) {
 
 /* -------------------------------------------------------- label 점검·부착 */
 
-/** 표준 라벨과 GitHub 기본 색상. ensure-label 이 만들 때 쓴다. */
-const STANDARD_LABELS = {
-  bug: { color: 'd73a4a', description: "Something isn't working" },
-  enhancement: { color: 'a2eeef', description: 'New feature or request' },
-  documentation: { color: '0075ca', description: 'Improvements or additions to documentation' },
-  chore: { color: 'cfd3d7', description: 'Maintenance and cleanup' },
-};
-
 function cmdUnlabeled(root, opts) {
   const args = ghArgs(
     [
@@ -251,16 +254,28 @@ function cmdUnlabeled(root, opts) {
   } catch {
     list = [];
   }
-  const bare = list.filter((it) => !(it.labels ?? []).length);
+  // "라벨 0개"로 판정하면 status:* 만 붙은 이슈가 점검망에서 통째로 샌다.
+  // 성격 라벨 축과 진행 상태 축을 따로 센다.
+  const names = (it) => (it.labels ?? []).map((l) => l.name);
+  const bare = list.filter((it) => !typeLabels(names(it)).length);
+  const noStatus = list.filter((it) => !names(it).some(isStatusLabel));
+
+  console.log('성격 라벨 없음:');
   for (const it of bare) {
     console.log(`  #${it.number} ${it.title}`);
     console.log(`     ${it.url}`);
   }
-  if (!bare.length) console.log('  (라벨 없는 이슈 없음)');
+  if (!bare.length) console.log('  (없음)');
+  console.log('');
+  console.log('진행 상태 라벨 없음:');
+  for (const it of noStatus) console.log(`  #${it.number} ${it.title}`);
+  if (!noStatus.length) console.log('  (없음)');
   console.log('');
   console.log(`SCANNED=${list.length}`);
   console.log(`UNLABELED=${bare.length}`);
   console.log(`UNLABELED_NUMBERS=${bare.map((i) => i.number).join(' ')}`);
+  console.log(`NO_STATUS=${noStatus.length}`);
+  console.log(`NO_STATUS_NUMBERS=${noStatus.map((i) => i.number).join(' ')}`);
 }
 
 function cmdLabel(number, root, opts) {
@@ -268,12 +283,13 @@ function cmdLabel(number, root, opts) {
     console.error('✗ 이슈 번호가 필요하다 (예: label 59 --label bug)');
     usage();
   }
-  if (!opts.labels.length) {
-    console.error('✗ --label 이 하나 이상 필요하다.');
+  if (!opts.labels.length && !opts.removeLabels.length) {
+    console.error('✗ --label 또는 --remove-label 이 하나 이상 필요하다.');
     usage();
   }
   const args = ghArgs(['issue', 'edit', String(number)], opts);
   for (const label of opts.labels) args.push('--add-label', label);
+  for (const label of opts.removeLabels) args.push('--remove-label', label);
 
   if (opts.dryRun) {
     console.log(`(dry-run) gh ${quoteArgs(args)}`);
@@ -285,7 +301,9 @@ function cmdLabel(number, root, opts) {
     console.log(`FAILED_ISSUE=${number}`);
     return;
   }
-  console.log(`✓ #${number} ← ${opts.labels.join(', ')}`);
+  const added = opts.labels.length ? `← ${opts.labels.join(', ')}` : '';
+  const removed = opts.removeLabels.length ? `✂ ${opts.removeLabels.join(', ')}` : '';
+  console.log(`✓ #${number} ${[added, removed].filter(Boolean).join('  ')}`);
   console.log('');
   console.log('LABELED=1');
   console.log(`ISSUE_NUMBER=${number}`);
@@ -296,37 +314,24 @@ function cmdEnsureLabel(name, root, opts) {
     console.error('✗ 라벨 이름이 필요하다 (예: ensure-label enhancement)');
     usage();
   }
-  const listed = run('gh', ghArgs(['label', 'list', '--limit', '100', '--json', 'name'], opts), {
-    cwd: root,
-    stdio: ['ignore', 'pipe', 'inherit'],
-  });
-  let existing = [];
-  try {
-    existing = JSON.parse(listed.stdout || '[]').map((l) => l.name);
-  } catch {
-    existing = [];
-  }
-  if (existing.includes(name)) {
-    console.log(`✓ 이미 있다: ${name}`);
-    console.log('');
+  if (opts.dryRun) {
+    console.log(`(dry-run) ${name} 이 없으면 만든다.`);
     console.log('CREATED=0');
     console.log(`LABEL=${name}`);
     return;
   }
-
-  const preset = STANDARD_LABELS[name] ?? {};
-  const args = ghArgs(['label', 'create', name], opts);
-  args.push('--color', opts.color ?? preset.color ?? 'ededed');
-  if (opts.desc ?? preset.description) args.push('--description', opts.desc ?? preset.description);
-
-  if (opts.dryRun) {
-    console.log(`(dry-run) gh ${quoteArgs(args)}`);
-    return;
-  }
-  const res = run('gh', args, { cwd: root, stdio: ['ignore', 'pipe', 'inherit'] });
-  console.log(res.status === 0 ? `✓ 라벨 생성: ${name}` : `✗ 라벨 생성 실패: ${name}`);
+  // 색·설명 프리셋과 존재 검증은 공용 모듈이 갖고 있다. 여기서는 출력 계약만 맞춘다.
+  const result = ensureLabel(root, name, {
+    repo: opts.repo, color: opts.color, description: opts.desc,
+  });
+  const msg = {
+    exists: `✓ 이미 있다: ${name}`,
+    created: `✓ 라벨 생성: ${name}`,
+    failed: `✗ 라벨 생성 실패: ${name}`,
+  };
+  console.log(msg[result]);
   console.log('');
-  console.log(`CREATED=${res.status === 0 ? 1 : 0}`);
+  console.log(`CREATED=${result === 'created' ? 1 : 0}`);
   console.log(`LABEL=${name}`);
 }
 
@@ -339,8 +344,9 @@ function cmdCreate(root, opts) {
   }
   // "만든 이슈에는 라벨을 반드시 하나 이상 붙인다"는 규칙을 문서에만 두면
   // --label 을 빠뜨린 호출이 조용히 통과한다. 여기서 막는다.
-  if (!opts.labels.length && !opts.noLabel) {
-    console.error('✗ --label 이 하나 이상 필요하다. 라벨 없는 이슈는 만들지 않는다.');
+  // status:* 는 진행 상태 축이라 이 게이트를 만족시키지 못한다 — 성격 라벨만 센다.
+  if (!typeLabels(opts.labels).length && !opts.noLabel) {
+    console.error('✗ 성격 라벨(--label)이 하나 이상 필요하다. 라벨 없는 이슈는 만들지 않는다.');
     console.error('  쓸 수 있는 라벨: node issue-create.mjs labels');
     console.error('  없으면 만들기:   node issue-create.mjs ensure-label <이름>   (사용자 승인 후)');
     console.error('  의도적으로 생략하려면 --no-label 을 명시하라.');
@@ -385,9 +391,70 @@ function cmdCreate(root, opts) {
   console.log(`✓ 이슈 생성 완료 — #${number} ${opts.title}`);
   console.log(`  요청 기록: ${path.relative(root, path.join(dir, 'request.md'))}`);
   console.log('');
+  // 성격 라벨과 달리 status 는 생성 후에 따로 붙인다.
+  // --label 로 같이 넘기면 라벨이 없을 때 이슈 생성 자체가 실패한다.
+  if (!opts.noStatus) setStatus(root, number, 'open', { repo: opts.repo });
+
   console.log(`ISSUE_NUMBER=${number}`);
   console.log(`ISSUE_URL=${url}`);
   console.log(`NEXT=/issue-start #${number}`);
+}
+
+/* ------------------------------------------------------------- 기본 브랜치 */
+
+/** 원격에서만 판별한다. 설정을 섞지 않아야 출처를 정확히 보고할 수 있다. */
+function detectFromRemote(root) {
+  const head = git(['symbolic-ref', '--quiet', 'refs/remotes/origin/HEAD'], { cwd: root }).out;
+  if (head) return head.replace('refs/remotes/origin/', '');
+  for (const b of ['main', 'master']) {
+    if (git(['show-ref', '--verify', '--quiet', `refs/remotes/origin/${b}`], { cwd: root }).code === 0) return b;
+  }
+  return null;
+}
+
+/**
+ * 이 저장소의 기본 브랜치를 정하고 `.issue/settings.json` 에 남긴다.
+ *
+ * 저장소 실제 상태가 사용자 습관보다 우선이다. 원격에서 판별되면 그 값을 쓰고,
+ * 판별이 안 될 때만 홈 설정의 기본값으로 넘어간다.
+ * 둘 다 없으면 `DEFAULT_BASE_UNSET=1` 로 빠져 스킬이 사용자에게 한 번 묻는다.
+ */
+function cmdBase(root, opts) {
+  if (opts.default) {
+    setDefaultBaseBranch(opts.default);
+    console.log(`✓ 자주 쓰는 기본 브랜치를 ${opts.default} 로 고정했다 (~/.issue-plugin/settings.json)`);
+  }
+
+  // 설정 파일이 커밋에 딸려 들어가지 않도록 무시 블록부터 보장한다.
+  if (ensureIgnoreBlock(root)) console.log(`  .gitignore 에 ${WORKSPACE_DIR} 블록을 추가했다`);
+
+  if (opts.set) {
+    const prev = readProjectSettings(root).git ?? {};
+    const written = writeProjectSettings(root, {
+      git: { ...prev, baseBranch: opts.set, decidedAt: new Date().toISOString() },
+    });
+    if (!written) {
+      console.error(`✗ ${PROJECT_SETTINGS_REL} 에 기록하지 못했다.`);
+      process.exit(1);
+    }
+    console.log(`✓ 이 저장소의 기본 브랜치를 ${opts.set} 로 기록했다 (${PROJECT_SETTINGS_REL})`);
+  }
+
+  const recorded = readProjectSettings(root).git?.baseBranch ?? null;
+  const fromRemote = detectFromRemote(root);
+  const homeDefault = getDefaultBaseBranch();
+  const base = detectBase(root, 'origin');
+
+  const source = recorded ? 'project' : fromRemote ? 'detected' : homeDefault ? 'home-default' : 'fallback';
+
+  console.log(`BASE=${base}`);
+  console.log(`SOURCE=${source}`);
+  console.log(`PROJECT_FILE=${PROJECT_SETTINGS_REL}`);
+  console.log(`HOME_DEFAULT=${homeDefault ?? ''}`);
+  if (source === 'fallback') {
+    console.log('DEFAULT_BASE_UNSET=1');
+    console.log('DEFAULT_BASE_CHOICES=main,master');
+  }
 }
 
 /* ------------------------------------------------------------------- main */
@@ -397,17 +464,19 @@ function main() {
   if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
   const mode = argv[0];
-  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label'].includes(mode)) {
+  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status', 'base'].includes(mode)) {
     console.error(`✗ 알 수 없는 모드: ${mode}`);
     usage();
   }
 
-  const opts = { dryRun: false, labels: [] };
-  let positional = null;
+  const opts = { dryRun: false, labels: [], removeLabels: [] };
+  const positionals = [];
   for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--dry-run') opts.dryRun = true;
     else if (arg === '--no-label') opts.noLabel = true;
+    else if (arg === '--no-status') opts.noStatus = true;
+    else if (arg === '--remove-label') opts.removeLabels.push(argv[++i]);
     else if (arg === '--title') opts.title = argv[++i];
     else if (arg === '--body-file') opts.bodyFile = argv[++i];
     else if (arg === '--request-file') opts.requestFile = argv[++i];
@@ -418,19 +487,24 @@ function main() {
     else if (arg === '--color') opts.color = argv[++i];
     else if (arg === '--desc') opts.desc = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
+    else if (arg === '--set') opts.set = argv[++i];
+    else if (arg === '--default') opts.default = argv[++i];
     else if (arg.startsWith('-')) {
       console.error(`✗ 알 수 없는 옵션: ${arg}`);
       usage();
-    } else positional = arg;
+    } else positionals.push(arg);
   }
 
+  const positional = positionals[0] ?? null;
   const root = repoRoot();
-  if (mode === 'gate') cmdGate(root, opts);
+  if (mode === 'base') cmdBase(root, opts);
+  else if (mode === 'gate') cmdGate(root, opts);
   else if (mode === 'search') cmdSearch(positional, root, opts);
   else if (mode === 'labels') cmdLabels(root, opts);
   else if (mode === 'unlabeled') cmdUnlabeled(root, opts);
   else if (mode === 'label') cmdLabel(parseIssueNumber(positional), root, opts);
   else if (mode === 'ensure-label') cmdEnsureLabel(positional, root, opts);
+  else if (mode === 'status') setStatus(root, positional, positionals[1], { repo: opts.repo, dryRun: opts.dryRun });
   else cmdCreate(root, opts);
 }
 

@@ -8,7 +8,7 @@ AskUserQuestion 으로 제시한다. 순서를 바꾸지 않는다. 새 작업�
 질문 본문에 현재 단계를 함께 적는다 — 여기가 이 스킬의 마지막 단계라는 사실 자체가 사용자에게 필요한 정보다.
 
 ```text
-질문   issue-end 10단계(다음 행동 선택)입니다. PR 까지 끝났습니다. 다음으로 무엇을 할까요?
+질문   issue-end 11단계(다음 행동 선택)입니다. PR 까지 끝났습니다. 다음으로 무엇을 할까요?
 
 1. 다른 이슈 착수 (권장)   등록된 열린 이슈 중 하나를 골라 /issue-start
 2. 워크트리 전부 merge     지금까지 쌓인 워크트리를 모아 /issue-merge
@@ -19,12 +19,14 @@ AskUserQuestion 으로 제시한다. 순서를 바꾸지 않는다. 새 작업�
 선택지를 제시하기 전에 재료를 모아 함께 보여준다.
 
 ```bash
-gh issue list --state open --limit 10 --json number,title,labels
+gh issue list --state open --limit 10 --json number,title,url,labels
 git worktree list
 ```
 
 - 열린 이슈가 없으면 1번 대신 3번을 권장으로 올린다.
 - 워크트리가 이 작업 하나뿐이면 2번 설명에 "현재 1개"라고 적는다.
+
+이슈·PR 은 `[설명](링크)` 형식으로, 워크트리 경로는 `context` 출력의 `worktrees[].display` 값으로 보여준다. 세부는 SKILL.md 의 `링크와 경로 쓰는 법`.
 
 ## 1번 — 다른 이슈 착수
 

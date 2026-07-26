@@ -9,6 +9,8 @@
  *   mirror    [--issue <n>]     기본 브랜치 사본에 증거만 커밋. push 실패 시 evidence 브랜치 폴백
  *   urls      [--issue <n>]     이슈 코멘트에 붙일 raw 이미지 URL 출력
  *   pure-tree [--issue <n>]     변경 직전 상태의 detached 워크트리를 만든다 (before 재캡처용)
+ *   status <n> <상태>           진행 상태 라벨을 교체한다 (open|plan|in-process|review|close)
+ *   sync-base                   미러 push 뒤 주 체크아웃의 기본 브랜치를 최신으로 맞춘다
  *
  * 공통 옵션
  *   --issue <n>   이슈 번호. 생략 시 브랜치 이름에서 추론, 그래도 없으면 브랜치 slug 사용
@@ -34,10 +36,13 @@ import process from 'node:process';
 import {
   run, git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
   repoSlug, evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, evidenceUrls, listWorktrees, issueDir, WORKSPACE_DIR,
+  mirrorEvidence, evidenceUrls, listWorktrees, issueDir, WORKSPACE_DIR, setStatus, STATUS_ORDER,
+  syncBaseCheckout, worktreeDisplayPath,
 } from './issue-common.mjs';
 
-const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree> [options]
+const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|status|sync-base> [options]
+
+  status <n> <상태>  ${STATUS_ORDER.join(' | ')} (접두사 생략 가능)
 
   --issue <n>        이슈 번호 (생략 시 브랜치에서 추론)
   --base <branch>    기준 브랜치 고정
@@ -45,6 +50,11 @@ const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-t
   --mirrorRef <ref>  urls 에서 쓸 미러 ref
   --ref <ref>        pure-tree 기준 ref
   --remove           pure-tree 정리`;
+
+/** 워크트리 목록에 `ctrl+클릭` 으로 열리는 표시용 경로를 붙인다. */
+function withDisplay(root, worktrees) {
+  return worktrees.map((w) => ({ ...w, display: worktreeDisplayPath(root, w.path) }));
+}
 
 /** before/after 각각에 파일이 있는지 — 증거 완결성 판단의 근거 */
 function evidenceSummary(root, key) {
@@ -97,7 +107,7 @@ function cmdContext(args) {
     issueUrl: null,
     openPr: null,
     pureTree: existsSync(pureTreePath(root, key)) ? pureTreePath(root, key) : null,
-    worktrees: listWorktrees(root),
+    worktrees: withDisplay(root, listWorktrees(root)),
   };
 
   if (ctx.upstream) {
@@ -234,13 +244,32 @@ function cmdPureTree(args) {
   }, null, 2));
 }
 
+/**
+ * 미러 push 뒤 주 체크아웃을 최신으로 맞춘다.
+ *
+ * 안전하지 않은 상황(다른 브랜치 / 저장 안 된 변경 / 갈라짐)에서는 아무것도 하지 않고
+ * 사유만 돌려준다. 그 판단은 사람이 해야 하므로 스킬이 AskUserQuestion 으로 이어간다.
+ * 흐름을 막는 단계가 아니라서 어떤 경우에도 exit 0 이다.
+ */
+function cmdSyncBase(args) {
+  const root = repoRoot();
+  console.log(JSON.stringify(syncBaseCheckout({ root, base: args.base }), null, 2));
+}
+
 // ---------------------------------------------------------------- entry
 
 const [, , sub, ...rest] = process.argv;
 const args = parseArgs(rest, ['push', 'json', 'dry-run', 'remove']);
 
+/** 진행 상태 라벨 교체. 구현은 공용 모듈에 있고 여기서는 인자만 넘긴다. */
+function cmdStatus(a) {
+  setStatus(repoRoot(), a._[0] ?? a.issue, a._[1], { repo: a.repo, dryRun: a.dryRun });
+}
+
 switch (sub) {
+  case 'status': cmdStatus(args); break;
   case 'context': cmdContext(args); break;
+  case 'sync-base': cmdSyncBase(args); break;
   case 'init': cmdInit(args); break;
   case 'commit': cmdCommit(args); break;
   case 'mirror': cmdMirror(args); break;
