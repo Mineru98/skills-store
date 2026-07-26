@@ -1,0 +1,19 @@
+Issue #23 — after format audit
+
+This documentation-only change has no meaningful UI screenshot. The text audit
+below verifies the required user-visible question format after the source change.
+
+question-colon=0
+spaced-question=0
+canonical-ask-files=2
+canonical-question-headers=18
+numbered-recommended=18
+claude-codex-skill-trees=identical
+
+Validation:
+- sh scripts/check-shared.sh: pass
+- sh scripts/test-flow.sh: pass
+- git diff --check origin/main...HEAD: pass
+
+The two ask.md files are intentionally mirrored: one in each runtime skill
+directory. Each file is the single canonical source for that skill copy.
