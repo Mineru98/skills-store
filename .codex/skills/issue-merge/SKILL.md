@@ -25,6 +25,7 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <always>references/inventory.md — 워크트리 수집과 이슈 연결</always>
     <always>references/merge-plan.md — 서브에이전트 팬아웃과 계획 수립·검토</always>
     <always>references/verify-and-close.md — merge · 통합 테스트 · 이슈 close</always>
+    <always>references/next-actions.md — 통합 뒤 다음 행동 4지선다</always>
   </routing>
 
   <subagents>
@@ -44,7 +45,8 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <rule>merge 전에 PR 본문의 `Closes/Fixes/Resolves #N` 을 제거한다. 두면 merge 순간 자동 close 되어 위 순서가 깨진다. 제거 실패 시 merge 하지 않는다.</rule>
     <rule>CI 가 실패한 PR 은 merge 하지 않는다.</rule>
     <rule>`evidence/issue-*` 브랜치는 삭제하지 않는다. 증거 URL 이 의존한다.</rule>
-    <rule>merge 는 사용자 승인 후에 한다. 여러 PR 을 묶어서 한 번에 승인받지 않는다.</rule>
+    <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
+    <rule>merge 는 AskUserQuestion 으로 승인받은 뒤에 한다. 여러 PR 을 묶어서 한 번에 승인받지 않는다.</rule>
   </hard-rules>
 
   <non-goals>
@@ -61,7 +63,12 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     3. 무엇이 잘못됐는지 말한다.
     4. 잘못되지 않은 것도 말한다 — 무엇은 멀쩡한지 짚어 준다.
     5. 사용자가 정해야 할 것을 고를 수 있게 물어본다. AskUserQuestion 을 쓴다.
+    6. 이슈·PR·코멘트는 `[설명](링크)` 로, 워크트리 경로는 배치에 맞는 형태로 쓴다. `링크와 경로 쓰는 법` 참고.
   </reporting>
+
+  <next>
+    끝날 때는 항상 다음에 무엇을 할지 골라 준다. references/next-actions.md 의 4지선다를 그대로 쓴다.
+  </next>
 </skill>
 
 # 전체 흐름
@@ -91,7 +98,7 @@ flowchart TD
     L -- 실패 --> L1[원인 보고 · 후속 이슈 제안] --> M
     L -- 통과 --> M[통과분 이슈 close]
     M --> N[워크트리 정리 · base-tree 제거]
-    N --> O[보고]
+    N --> O[보고 + 다음 행동 4지선다]
 ```
 
 # 스크립트 경로
@@ -169,11 +176,61 @@ sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-merge-crit
 - 증거 없이 진행               이미지 없이 글로만 남깁니다. 나중에 확인이 어려워집니다.
 ```
 
+# 링크와 경로 쓰는 법
+
+보고·질문·마무리 요약에서 이슈·PR·워크트리를 가리킬 때 아래를 지킨다. 네 스킬(issue-create / issue-start / issue-end / issue-merge)이 같은 규칙을 쓴다.
+
+## 이슈 · PR · 코멘트는 항상 클릭되게
+
+맨 URL 을 그대로 붙이거나 번호만 적지 않는다. `[설명](링크)` 형식으로 쓴다.
+
+```text
+나쁜 예   이슈    #59 탭 활성 상태 초기화
+          코멘트  https://github.com/owner/repo/issues/59#issuecomment-123
+
+좋은 예   이슈    [#59 탭 활성 상태 초기화](https://github.com/owner/repo/issues/59)
+          PR      [#103 fix(tab): 활성 상태 유지](https://github.com/owner/repo/pull/103)
+          코멘트  [리포트 보기](https://github.com/owner/repo/issues/59#issuecomment-123)
+```
+
+주소는 이미 손에 들어온다. 직접 조립하지 않는다.
+
+```text
+gh issue view <n> --json url          이슈 주소
+gh pr view <n> --json url             PR 주소
+gh issue comment ... 의 출력           방금 단 코멘트 주소
+issue-end   context   출력의 issueUrl / openPr.url
+issue-merge inventory 출력의 issueUrl / pr.url
+```
+
+저장소를 식별하지 못해 주소를 만들 수 없으면 **번호만 적고** 그 사실을 한 줄 남긴다. 없는 링크를 지어내지 않는다.
+
+## 워크트리 경로는 배치에 맞는 형태로
+
+`ctrl+클릭` 으로 열리려면 형태가 배치와 맞아야 한다.
+
+```text
+children   저장소 안  → 상대 경로   .issue/worktrees/59-tab-active-state
+sibling    저장소 밖  → 절대 경로   /Users/me/work/repo-issue-59
+```
+
+sibling 을 상대 경로로 적으면 `../repo-issue-59` 가 되어 **없는 경로로 열린다.** 반대로 children 을 절대 경로로 적으면 쓸데없이 길다.
+
+스크립트가 계산해 둔 값을 그대로 쓴다.
+
+```text
+issue-start.mjs worktree   출력의 WORKTREE_DISPLAY=
+issue-end.mjs   context    출력의 worktrees[].display
+issue-merge.mjs inventory  출력의 worktrees[].display / excluded[].display
+```
+
+직접 판단해야 하면 설정이 아니라 **실제 경로**를 본다. `git worktree list` 로 경로를 얻어 저장소 루트 아래면 children, 아니면 sibling 이다. 설정값은 새로 만들 때만 쓰이므로, 이미 있는 워크트리는 예전 설정으로 만들어졌을 수 있다.
+
 # 실행 순서
 
 ## 0단계 — 체크리스트와 base 워크트리
 
-TodoWrite 로 아래 8개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
+TodoWrite 로 아래 9개를 만든다. **단계가 끝날 때마다 즉시 완료로 갱신한다.**
 
 ```text
 0. base 전용 워크트리 준비
@@ -184,6 +241,7 @@ TodoWrite 로 아래 8개를 만든다. **단계가 끝날 때마다 즉시 완�
 5. 비판 서브에이전트로 모호성 검토
 6. 승인 → merge → 통합 테스트
 7. 재검증 통과분 이슈 close
+8. 다음 행동 선택
 ```
 
 기본 브랜치로 "변경 이력을 가져가지 않고 checkout" 하되, **사용자의 작업 트리는 건드리지 않는다.**
@@ -224,14 +282,21 @@ node <skill>/scripts/issue-merge.mjs plan-dir 16 21 53 64
 
 `references/verify-and-close.md` 를 따른다.
 
+## 8단계 — 다음 행동
+
+`references/next-actions.md` 의 4지선다를 그대로 제시한다.
+
 ## 마무리 보고
 
 ```text
-대상        <n>개 워크트리 / 이슈 #16 #21 #53 #64
-merge 됨    #16 #21 #53
-보류        #64 — <사유>
+대상        <n>개 워크트리 / [#16](url) [#21](url) [#53](url) [#64](url)
+merge 됨    [#16](url) [#21](url) [#53](url)
+보류        [#64](url) — <사유>
 통합 테스트  <통과/실패 요약>
-close 됨    #16 #21 #53
+close 됨    [#16](url) [#21](url) [#53](url)
 정리        워크트리 <n>개 제거 / base-tree 제거
 남은 것     <다음에 해야 할 것>
+다음        <사용자가 고른 행동>
 ```
+
+이슈 번호는 `inventory` 출력의 `issueUrl` 로 링크를 만든다. 워크트리 경로는 `display` 값을 쓴다.

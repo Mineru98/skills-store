@@ -24,7 +24,8 @@ excluded        제외 목록 — { path, branch, reason }
 후보 하나하나는 이렇게 생겼다.
 
 ```text
-path            워크트리 경로
+path            워크트리 경로 (실제 절대 경로)
+display         보고에 쓸 경로 — children 이면 상대, sibling 이면 절대
 branch          브랜치 이름
 issue           브랜치에서 추론한 이슈 번호 (null 이면 연결 불명)
 issueState      OPEN / CLOSED
@@ -52,7 +53,14 @@ overlapsWith    같은 파일을 건드린 다른 브랜치들
 
 여기까지 남았다는 것은 **커밋은 있는데 이슈를 못 찾았다**는 뜻이다. 브랜치 이름에 이슈 번호가 없거나 형식이 맞지 않는다. 숫자 앞은 `/` 나 `_` 여야 인식된다 — `fix/59-login` 은 되고 `fix-59-login` 은 안 된다.
 
-이런 워크트리는 **통합 대상에서 제외하되 사용자에게 묻는다.** 실제 작업이 들어 있으므로 조용히 버리면 안 된다. 목록을 보여주고 이슈 번호를 알려줄지, 이번에는 건너뛸지 묻는다. 추측으로 이슈를 붙이지 않는다.
+이런 워크트리는 **통합 대상에서 제외하되 사용자에게 묻는다.** 실제 작업이 들어 있으므로 조용히 버리면 안 된다. 목록을 보여주고 AskUserQuestion 으로 받는다. 추측으로 이슈를 붙이지 않는다.
+
+```text
+질문: 아래 워크트리는 커밋은 있는데 연결된 이슈를 찾지 못했습니다. 어떻게 할까요?
+- 이번에는 건너뛴다 (권장)   통합 대상에서 빼고 다음 회차로 넘깁니다
+- 이슈 번호를 알려준다        Other 로 번호를 입력받아 후보에 넣습니다
+- 이슈 없이 포함              이슈 연결 없이 merge 후보로 넣습니다. 해결 판정은 못 합니다
+```
 
 ## 2. 이슈 내용 확인
 
@@ -93,6 +101,15 @@ gh issue view <번호> --json number,title,state,body,labels,comments
 #64   feat/64-export-csv     b0/a1 ✗    #104  pass   보류 — before 없음
 ```
 
+표는 폭이 좁아야 읽히므로 번호만 쓴다. **표 아래에 링크 목록을 따로 붙인다.**
+
+```text
+- [#16 로그인 후 리디렉트 실패](https://github.com/owner/repo/issues/16) · [PR #101](https://github.com/owner/repo/pull/101) · `.issue/worktrees/16-login-redirect`
+- [#64 CSV 내보내기](https://github.com/owner/repo/issues/64) · [PR #104](https://github.com/owner/repo/pull/104) · `/Users/me/work/repo-issue-64`
+```
+
+주소는 `issueUrl` / `pr.url` 을, 경로는 `display` 를 그대로 쓴다.
+
 `resolved: false` 인 것은 후보에서 뺀다. 사유를 반드시 남긴다. 사용자가 "그래도 넣자"고 하면 넣되, 계획 문서에 예외임을 기록한다.
 
 ## 4. 충돌 후보 파악
@@ -109,13 +126,13 @@ fix/16-login-redirect  ↔  feat/21-search-filter   (src/shared/api.ts)
 
 ## 5. 이미 닫힌 이슈 / 이미 merge 된 PR
 
-- `issueState: CLOSED` 인데 워크트리가 남아 있으면 정리 대상이다. merge 하지 않고 7단계에서 워크트리만 제거할지 묻는다.
+- `issueState: CLOSED` 인데 워크트리가 남아 있으면 정리 대상이다. merge 하지 않고 넘긴다. 제거 여부는 `verify-and-close.md` 6절의 정리 질문에서 AskUserQuestion 으로 한 번에 묻는다. 여기서 따로 묻지 않는다.
 - `pr.state: MERGED` 면 이미 통합된 것이다. 워크트리 정리 대상으로만 넘긴다.
 - `pr: null` 인데 증거는 충분하면 `issue-end` 로 PR 을 먼저 만들라고 안내한다. 이 스킬이 PR 을 만들지는 않는다.
 
 ## 6. 사용자 확인
 
-후보 목록을 확정하기 전에 한 번 보여주고 승인받는다. `excludedCount` 가 0 이 아니면 무엇을 자동으로 걸렀는지도 함께 보여준다.
+후보 목록을 확정하기 전에 한 번 보여주고 AskUserQuestion 으로 승인받는다. `excludedCount` 가 0 이 아니면 무엇을 자동으로 걸렀는지도 함께 보여준다.
 
 ```text
 후보   #16 #21 #53
@@ -123,7 +140,7 @@ fix/16-login-redirect  ↔  feat/21-search-filter   (src/shared/api.ts)
 
 질문: 아래 <n>개를 이번 통합 대상으로 잡았습니다. 진행할까요?
 - 이대로 진행 (권장)
-- 일부 제외        → 어떤 것을 뺄지 다시 묻는다
+- 일부 제외        → 뺄 대상을 Other 로 입력받는다
 - 보류분도 포함     → 증거가 없는 것도 넣는다. 예외로 기록된다
 - 중단
 ```

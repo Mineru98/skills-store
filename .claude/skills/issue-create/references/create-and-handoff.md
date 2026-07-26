@@ -63,15 +63,16 @@ cp /tmp/issue-draft.md .issue/<번호>/request.md
 
 ## 인계
 
-등록 직후 AskUserQuestion 으로 묻는다.
-
-```text
-바로 착수     issue-start 를 #<번호> 로 이어서 실행 (워크트리까지 생성)
-나중에        번호와 `/issue-start #<번호>` 만 안내하고 종료
-```
+등록과 라벨 점검이 끝나면 `references/next-actions.md` 의 4지선다를 제시한다. 2지선다로 줄이지 않는다 — 라벨이 덜 붙었거나 등록할 건이 더 남은 상황이 흔하다.
 
 "바로 착수" 를 고르면 `issue-start` 는 방금 만든 이슈를 `gh` 로 다시 받아온다.
 초안 내용을 대화 컨텍스트에서 재사용하지 않고, 실제 등록된 본문을 기준으로 분석하게 둔다.
+
+이슈를 보여줄 때는 `ISSUE_URL` 로 링크를 만든다.
+
+```text
+등록됨   [#59 탭 활성 상태가 새로고침 후 초기화됨](https://github.com/owner/repo/issues/59)
+```
 
 ## 실패 처리
 
