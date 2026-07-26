@@ -24,7 +24,7 @@
 
 문서 전용 변경이라 화면 캡처와 성능 측정이 성립하지 않습니다. 대신 같은 지점의 텍스트를 전후로 발췌해 증거로 남겼습니다.
 
-원본: [`before/stage-banner-absent.txt`](../../.issue/11/evidence/before/stage-banner-absent.txt) · [`after/stage-banner-present.txt`](../../.issue/11/evidence/after/stage-banner-present.txt)
+원본: [`before/stage-banner-absent.txt`](https://github.com/Mineru98/skills-store/blob/main/.issue/11/evidence/before/stage-banner-absent.txt) · [`after/stage-banner-present.txt`](https://github.com/Mineru98/skills-store/blob/main/.issue/11/evidence/after/stage-banner-present.txt)
 
 ### issue-start — 워크트리 배치 질문
 
