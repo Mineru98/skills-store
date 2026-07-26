@@ -44,7 +44,8 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <rule>merge 전에 PR 본문의 `Closes/Fixes/Resolves #N` 을 제거한다. 두면 merge 순간 자동 close 되어 위 순서가 깨진다. 제거 실패 시 merge 하지 않는다.</rule>
     <rule>CI 가 실패한 PR 은 merge 하지 않는다.</rule>
     <rule>`evidence/issue-*` 브랜치는 삭제하지 않는다. 증거 URL 이 의존한다.</rule>
-    <rule>merge 는 사용자 승인 후에 한다. 여러 PR 을 묶어서 한 번에 승인받지 않는다.</rule>
+    <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
+    <rule>merge 는 AskUserQuestion 으로 승인받은 뒤에 한다. 여러 PR 을 묶어서 한 번에 승인받지 않는다.</rule>
   </hard-rules>
 
   <non-goals>
