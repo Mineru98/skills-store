@@ -1,6 +1,6 @@
 ---
 name: issue-merge
-description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니다. 각 워크트리와 연결된 이슈를 확인하고 증거로 실제 해결 여부를 판정한 뒤, 워크트리 수만큼 분석 서브에이전트를 띄워 merge 계획을 세우고 비판 서브에이전트로 모호성을 걸러낸 다음, PR 을 merge 하고 통합 테스트로 재검증하고 이슈를 닫습니다. `/issue-merge`, "워크트리 전부 merge", "이슈들 통합" 요청과 issue-end 에서 merge 를 선택했을 때 사용합니다.
+description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니다. 각 워크트리와 연결된 이슈를 확인하고 증거로 실제 해결 여부를 판정한 뒤, merge 를 시도하기 전에 충돌을 확정하고 계획한 순서대로 누적 검증해 순서 때문에 깨지는 경우까지 잡아냅니다. 충돌은 작업 브랜치 쪽에서 양쪽 의도를 보존하는 방향으로 해소해 승인받고, 비판 서브에이전트로 모호성을 걸러낸 다음 PR 을 merge 하고 통합 테스트로 재검증하고 이슈를 닫습니다. `/issue-merge`, "워크트리 전부 merge", "이슈들 통합", "PR 충돌 해결하고 합쳐줘" 요청과 issue-end 에서 merge 를 선택했을 때 사용합니다.
 ---
 
 <skill>
@@ -33,8 +33,11 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <agent name="issue-merge-analyst" claude-model="haiku" codex-model="gpt-5.6-luna">
       워크트리 하나씩 분석. 워크트리 개수만큼 병렬로 스폰
     </agent>
+    <agent name="issue-merge-resolver" claude-model="sonnet" codex-model="gpt-5.6-terra">
+      충돌 헌크를 양쪽 의도를 보존하는 방향으로 해소. 충돌이 있는 워크트리마다 스폰
+    </agent>
     <agent name="issue-merge-critic" claude-model="haiku" codex-model="gpt-5.6-luna">
-      계획의 모호성·검증되지 않은 전제·되돌릴 수 없는 순서를 지적
+      계획의 모호성·검증되지 않은 전제·되돌릴 수 없는 순서를 지적. 해소 결과도 검토
     </agent>
   </subagents>
 
@@ -42,6 +45,11 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <rule>사용자의 작업 트리에서 브랜치를 갈아타지 않는다. base 전용 임시 워크트리에서만 움직인다.</rule>
     <rule>증거로 해결이 확인되지 않은 이슈는 merge 후보에서 뺀다. 커밋 메시지는 근거가 아니다.</rule>
     <rule>비판 서브에이전트가 `block` 을 내면 계획을 고치기 전에는 merge 하지 않는다.</rule>
+    <rule>`preflight` 로 충돌을 확정하기 전에 merge 하지 않는다. `overlapsWith` 는 추측이지 확인이 아니다.</rule>
+    <rule>충돌 해소는 작업 브랜치의 워크트리에서 한다. base 브랜치나 base 워크트리에서 해소하지 않는다.</rule>
+    <rule>해소 결과는 diff 를 보여주고 승인받은 뒤에만 push 한다. 해소한 쪽이 스스로 승인하지 않는다 — 비판 서브에이전트도 함께 본다.</rule>
+    <rule>해소 서브에이전트가 `escalate` 한 파일은 자동으로 합치지 않는다. 그 PR 을 보류한다.</rule>
+    <rule>같은 PR 에 대한 해소 재시도는 최대 2회. 그 뒤에는 보류로 넘긴다.</rule>
     <rule>이슈 close 는 통합 테스트 뒤에 한다. 순서를 바꾸지 않는다.</rule>
     <rule>merge 전에 PR 본문의 `Closes/Fixes/Resolves #N` 을 제거한다. 두면 merge 순간 자동 close 되어 위 순서가 깨진다. 제거 실패 시 merge 하지 않는다.</rule>
     <rule>CI 가 실패한 PR 은 merge 하지 않는다.</rule>
@@ -83,9 +91,21 @@ flowchart TD
     E -- 아니오 --> E1[후보에서 제외 · 사유 기록] --> F
     E -- 예 --> E2[merge 후보 리스트업] --> F
 
-    F[plan-dir: .issue/merge/16-21-53-64/] --> G[분석 서브에이전트 N개 병렬]
-    G --> H[plan.md 작성]
-    H --> I[비판 서브에이전트]
+    F[plan-dir: .issue/merge/16-21-53-64/] --> F1[preflight: 후보별 · 순서대로 누적]
+    F1 --> G[분석 서브에이전트 N개 병렬]
+    G --> H[plan.md 작성 · 충돌 현황 포함]
+    H --> P{충돌 있음?}
+    P -- 없음 --> I
+    P -- 있음 --> R0[resolve: 작업 브랜치에서 판 깔기]
+    R0 --> R1[해소 서브에이전트 병렬]
+    R1 -- escalate --> R2[해당 PR 보류 · 사용자 확인] --> I
+    R1 -- resolved --> R3{diff 승인}
+    R3 -- 거부 --> R4[resolve --abort] --> R2
+    R3 -- 승인 --> R5[--continue --push] --> R6[preflight 재확인]
+    R6 -- 여전히 충돌 --> R0
+    R6 -- clean --> I
+
+    I[비판 서브에이전트: 계획 + 해소 결과]
     I -- block --> H
     I -- revise --> H
     I -- proceed --> J{사용자 승인}
@@ -116,21 +136,28 @@ flowchart TD
 # 서브에이전트
 
 ```text
-claude  .claude/agents/issue-merge-analyst.md   (model: haiku)
-        .claude/agents/issue-merge-critic.md    (model: haiku)
-codex   .codex/agents/issue-merge-analyst.toml  (model = "gpt-5.6-luna")
-        .codex/agents/issue-merge-critic.toml   (model = "gpt-5.6-luna")
+claude  .claude/agents/issue-merge-analyst.md    (model: haiku)
+        .claude/agents/issue-merge-resolver.md   (model: sonnet)
+        .claude/agents/issue-merge-critic.md     (model: haiku)
+codex   .codex/agents/issue-merge-analyst.toml   (model = "gpt-5.6-luna")
+        .codex/agents/issue-merge-resolver.toml  (model = "gpt-5.6-terra")
+        .codex/agents/issue-merge-critic.toml    (model = "gpt-5.6-luna")
 ```
+
+analyst 와 critic 은 판정만 하므로 작은 모델로 충분하다.
+**resolver 는 코드를 고친다.** 잘못 합치면 아무도 모르는 회귀가 남으므로 모델을 낮추지 않는다.
 
 없으면 설치한다.
 
 ```bash
-sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-merge-analyst --target home --link --clone
-sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-merge-critic  --target home --link --clone
+sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-merge-analyst  --target home --link --clone
+sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-merge-resolver --target home --link --clone
+sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh --agent issue-merge-critic   --target home --link --clone
 ```
 
 설치가 안 되면 기본 서브에이전트로 진행하되 "모델 고정 실패"를 한 줄 보고한다.
 **비판 단계 자체는 건너뛰지 않는다.** 모델이 무엇이든 계획을 한 번은 깨뜨려 봐야 한다.
+resolver 를 고정하지 못했으면 그 사실을 해소 diff 를 보여줄 때 함께 알린다 — 사용자가 더 꼼꼼히 볼 근거가 된다.
 
 # 실행 순서
 
@@ -169,9 +196,18 @@ node <skill>/scripts/issue-merge.mjs inventory
 
 ```bash
 node <skill>/scripts/issue-merge.mjs plan-dir 16 21 53 64
+node <skill>/scripts/issue-merge.mjs preflight --branch <브랜치>            # 후보마다
+node <skill>/scripts/issue-merge.mjs preflight --branch <브랜치> --onto <commit>   # 계획 순서대로 누적
 ```
 
 `.issue/merge/16-21-53-64/` 가 생긴다. 여기에 `plan.md` 와 `review.md` 를 쓴다.
+
+**`preflight` 를 먼저 돌린다.** merge 순서는 파일 수가 아니라 여기서 확정된 충돌 관계로 정한다.
+`--onto` 로 앞 회차의 `commit` 을 이어 넘겨야 "혼자서는 통과하는데 순서 때문에 깨지는" 경우가 잡힌다.
+
+충돌이 있으면 `resolve` 로 작업 브랜치 쪽에서 해소하고, diff 를 승인받은 뒤에 push 한다.
+충돌이 0건이면 해소 절을 통째로 건너뛴다.
+
 세부는 `references/merge-plan.md`.
 
 ## 6~7단계
@@ -188,6 +224,7 @@ node <skill>/scripts/issue-merge.mjs plan-dir 16 21 53 64
 
 ```text
 대상        <n>개 워크트리 / [#16](url) [#21](url) [#53](url) [#64](url)
+충돌        <n>건 감지 / <n>건 해소 / <n>건 보류
 merge 됨    [#16](url) [#21](url) [#53](url)
 보류        [#64](url) — <사유>
 통합 테스트  <통과/실패 요약>
