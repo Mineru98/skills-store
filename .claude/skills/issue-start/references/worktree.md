@@ -25,10 +25,11 @@ WORKTREE_LAYOUT_UNSET=1
 WORKTREE_LAYOUT_CHOICES=sibling,nested
 ```
 
-이때 **딱 한 번** AskUserQuestion 으로 묻는다.
+이때 **딱 한 번** AskUserQuestion 으로 묻는다. 질문 본문에 현재 단계를 함께 적는다.
 
 ```text
-질문   워크트리를 어디에 만들까요? 한 번 정하면 이후 계속 이 방식을 씁니다.
+질문   issue-start 5단계(워크트리 생성)입니다.
+       워크트리를 어디에 만들까요? 한 번 정하면 이후 계속 이 방식을 씁니다.
 
 1. sibling   ../<repo>-issue-<번호>. 소스 폴더 옆에 나란히 생깁니다.
 2. nested    <repo>/.issue/worktrees/<번호>-<slug>. 프로젝트 안에 모이고 git 이 무시합니다.

@@ -64,6 +64,11 @@ node <skill>/scripts/issue-end.mjs pure-tree --issue 59
 
 pure-tree 안에서 의존성을 설치하고 서버를 띄운다. 명령은 추측하지 말고 `plan.md` 의 검증 방법에 적힌 것을 쓴다. 없으면 AskUserQuestion 으로 묻는다.
 
+```text
+질문   issue-end 3단계(before 재캡처)입니다.
+       변경 직전 상태를 띄울 명령을 계획에서 찾지 못했습니다. 무엇으로 띄울까요?
+```
+
 ```bash
 cd .issue/59/pure-tree
 <설치 명령>

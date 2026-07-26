@@ -69,6 +69,12 @@ git push -u origin "$(git branch --show-current)"        # 사용자 확인 후
 node <skill>/scripts/issue-end.mjs mirror --issue 59 --push
 ```
 
+이 단계는 묻지 않지만 **전이 보고로 단계는 밝힌다.** 중간의 `git push` 만 확인받는다.
+
+```text
+질문   issue-end 6단계(증거 커밋·푸시)입니다. 작업 브랜치를 origin 에 push 할까요?
+```
+
 ### issue-start 가 이미 미러했는데 왜 또 하는가
 
 `issue-start` 이후에 수정 커밋이 더 쌓였을 수 있고, 방금 4단계에서 after 를 다시 찍었다. **최신 증거 기준으로 다시 미러해야 코멘트가 실제 최종 상태를 가리킨다.** 내용이 같으면 커밋이 비어 `noChange: true` 로 끝나므로 비용은 없다.
@@ -140,7 +146,13 @@ gh issue view 59 --json comments \
 
 ## 8단계 — 렌더링 확인
 
-코멘트 URL 을 사용자에게 보여주고 이미지가 실제로 보이는지 확인받는다. 깨졌다면 원인은 셋이다.
+코멘트 URL 을 사용자에게 보여주고 이미지가 실제로 보이는지 확인받는다. 현재 단계를 함께 적는다.
+
+```text
+issue-end 8단계(코멘트 렌더링 확인)입니다. 아래 링크에서 이미지가 보이는지 확인해 주세요.
+```
+
+깨졌다면 원인은 셋이다.
 
 1. 미러 push 가 안 됐다 → `mirror` 출력의 `pushed` 확인
 2. `--mirrorRef` 를 안 넘겼다 → 폴백인데 기본 브랜치 URL 을 썼다
@@ -176,7 +188,11 @@ gh pr create --base "$BASE" --head "$(git branch --show-current)" \
 <이슈 코멘트 URL>
 ```
 
-PR 생성은 push 와 **따로** 확인받는다.
+PR 생성은 push 와 **따로** 확인받는다. 질문 본문에 현재 단계를 적는다.
+
+```text
+질문   issue-end 9단계(PR 생성)입니다. 증거와 코멘트가 모두 올라갔습니다. PR 을 만들까요?
+```
 
 ## merge 하지 않는다
 

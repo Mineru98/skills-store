@@ -208,7 +208,13 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 
 ## 8. 확인
 
-코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** 확인받는다. 깨졌다면 원인은 셋 중 하나다.
+코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** 확인받는다. 현재 단계를 함께 적는다.
+
+```text
+issue-start 11단계(이슈 리포트 코멘트)입니다. 아래 링크에서 이미지가 보이는지 확인해 주세요.
+```
+
+깨졌다면 원인은 셋 중 하나다.
 
 1. 미러 push 가 안 됐다 → `evidence-mirror` 출력의 `pushed` 확인
 2. `--mirrorRef` 를 안 넘겼다 → 폴백 브랜치인데 기본 브랜치 URL 을 썼다

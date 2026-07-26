@@ -44,6 +44,17 @@ node <skill>/scripts/issue-merge.mjs merge --pr 103 --method squash
 
 merge 가 실패하면 출력의 `reason` 을 읽는다. 충돌이면 계획의 순서 판단이 틀린 것이다. 그 PR 을 보류로 돌리고 나머지를 계속할지 사용자에게 묻는다.
 
+```text
+질문   issue-merge 6단계(merge · 통합 테스트)입니다. #21 의 merge 가 충돌로 실패했습니다.
+       나머지를 계속할까요?
+```
+
+여러 건을 순서대로 처리하므로 **지금 몇 번째를 다루는지 함께 적는다.**
+
+```text
+현재 단계 — issue-merge 6단계(merge · 통합 테스트) · #16 #21 #53 중 #21 처리 중
+```
+
 ## 2. base-tree 갱신
 
 merge 한 결과를 받아온다.
@@ -106,7 +117,7 @@ oha -n 200 -c 10 http://localhost:8180/api/orders | tee .issue/merge/16-21-53-64
 3. 되돌릴지 후속 수정할지 사용자에게 묻는다.
 
 ```text
-질문: #21 이 통합 후 깨졌습니다. 어떻게 할까요?
+질문: issue-merge 6단계(merge · 통합 테스트)입니다. #21 이 통합 후 깨졌습니다. 어떻게 할까요?
 - revert 하고 다시 작업 (권장)   git revert <merge commit> 후 /issue-start 로 재착수
 - 이대로 두고 후속 이슈 등록      /issue-create 로 회귀 이슈를 만든다
 - 무시하고 진행                   권장하지 않음. 기록만 남긴다
@@ -172,6 +183,10 @@ node <skill>/scripts/issue-merge.mjs base-tree --remove
 - **`.issue/<번호>/evidence/`** — 기본 브랜치에 커밋된 증거는 영구 보존이다.
 
 정리 전에 무엇을 지울지 목록으로 보여주고 확인받는다.
+
+```text
+질문   issue-merge 7단계(이슈 close · 정리)입니다. 아래를 지울까요?
+```
 
 ## 7. 남은 것 정리
 
