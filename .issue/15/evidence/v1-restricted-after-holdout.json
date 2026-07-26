@@ -1,0 +1,132 @@
+{
+  "set": "holdout",
+  "source": "holdout-eval.json",
+  "model": "sonnet",
+  "repeat": 3,
+  "fixture_commits": 35,
+  "competing_skills": [
+    "issue-create",
+    "issue-start",
+    "issue-end",
+    "issue-merge",
+    "gh-setup"
+  ],
+  "description": "코드를 바꾸는 요청이면 크기와 무관하게, 파일을 건드리기 전에 이 스킬로 GitHub 이슈부터 등록합니다. 기능 추가, 버그 수정, 화면이 깨지거나 안 보이거나 잘리거나 새로고침하면 초기화되는 문제, 중복 호출·느린 응답 같은 동작 개선, 안 쓰는 코드·플래그·스크립트 삭제가 전부 해당합니다. 증상만 적어 보낸 버그 리포트, \"이거 지워도 될까?\" 처럼 물음표로 끝나는 정리 요청, 특정 파일·컴포넌트를 콕 집어 고쳐 달라는 요청도 똑같이 해당합니다. 사용자가 고칠 파일 경로와 구현 방법까지 지정해 줬더라도 바로 편집에 들어가지 않고 이슈부터 만듭니다. 사용자가 \"이슈\" 를 한 마디도 꺼내지 않아도, 요청이 한 줄짜리로 보여도, 이슈 번호가 함께 오지 않았다면 코드를 읽기 전에 먼저 이 스킬을 탑니다. 한 요청에 독립 작업이 여러 개 섞여 있으면 그만큼 이슈를 나눠 만듭니다. 저장소가 이슈를 만들 단계인지 판정하고, 항목마다 유사 이슈를 검색하고, issue-start 가 그대로 이어받을 형식으로 초안을 만들어 승인받고 라벨과 함께 등록합니다. 등록을 마친 뒤에는 라벨이 빠진 기존 이슈까지 이어서 점검해 보정합니다. `/issue-create`, \"이슈 만들어줘\", \"이슈부터 등록\" 요청에도 씁니다. 이미 이슈 번호를 받은 착수 요청은 issue-start, 구현이 끝나 증거·PR 차례면 issue-end, 워크트리 통합은 issue-merge 를 쓰고, 코드는 그대로 둔 채 이슈 목록 조회나 라벨 정리만 원하거나 커밋이 거의 없는 새 스캐폴딩 프로젝트라면 쓰지 않습니다.",
+  "metrics": {
+    "recall": 1,
+    "specificity": 1,
+    "accuracy": 1
+  },
+  "trials": {
+    "positive": 15,
+    "negative": 15,
+    "errors": 0
+  },
+  "queries": [
+    {
+      "query": "설정 페이지에 알림 수신 시간대 선택 넣어주세요. 지금은 하루 아무 때나 푸시가 가서 새벽에 받았다는 CS 가 이번 주에만 네 건 들어왔습니다. 09시~21시 같은 범위를 사용자가 직접 고르게 하고 싶어요",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {}
+    },
+    {
+      "query": "장바구니에서 수량을 0으로 내리면 아이템이 안 지워지고 그냥 0개로 남아. 새로고침해야 사라짐. CartItem 쪽인 것 같은데 봐줄래",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "run": 1,
+        "Bash": 1,
+        "gh-setup": 1
+      }
+    },
+    {
+      "query": "src/infrastructure/api/billing.ts 에 있는 legacy 결제 어댑터 걷어내자. 신규 PG 로 다 넘어갔고 이제 호출하는 데가 없어",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {}
+    },
+    {
+      "query": "두 가지요. 검색 필터 초기화 버튼 하나 추가해주시고, 목록 헤더가 스크롤할 때 안 붙어있는 것도 고쳐주세요",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {
+        "gh-setup": 2,
+        "bash": 1
+      }
+    },
+    {
+      "query": "프로필 수정하고 저장 누르면 성공 토스트는 뜨는데 값이 반영이 안돼요 뒤로갔다 오면 옛날 값 그대로임",
+      "should_trigger": true,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 3,
+      "rate": 1,
+      "other_skills": {}
+    },
+    {
+      "query": "77번 이슈 보고 작업 들어가줘. 브랜치 파고 구현까지 부탁해",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-start": 4,
+        "gh-setup": 2
+      }
+    },
+    {
+      "query": "다 만들었으니까 스크린샷 찍고 이슈에 결과 정리해서 올린 다음 PR 까지 부탁해",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-end": 5
+      }
+    },
+    {
+      "query": "지금 떠 있는 워크트리들 정리하면서 PR 순서대로 합쳐줘. 다 끝나면 해당 이슈들 닫아주고",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {
+        "issue-merge": 3,
+        "gh-setup": 3
+      }
+    },
+    {
+      "query": "우리 프로젝트에서 zustand 스토어랑 react-query 캐시가 각각 뭘 담당하고 있는지 알려줘. 경계가 헷갈려서",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {}
+    },
+    {
+      "query": "새로 만드는 사이드 프로젝트인데 방금 폴더 만들었어. vite + react + ts 로 초기 세팅이랑 라우터까지만 잡아줘",
+      "should_trigger": false,
+      "trials": 3,
+      "errors": 0,
+      "triggered": 0,
+      "rate": 0,
+      "other_skills": {}
+    }
+  ]
+}
