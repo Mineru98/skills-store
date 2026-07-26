@@ -1,0 +1,19 @@
+최신 main 통합 검증
+=====================
+
+명령과 결과:
+  node scripts/test-common.mjs                         test-common: 통과
+  node scripts/test-tracker.mjs                        test-tracker: 통과
+  sh scripts/test-issue-create.sh                      test-issue-create: 통과
+  sh scripts/test-flow.sh                              test-flow: 통과
+  sh scripts/check-shared.sh                           check-shared: 통과
+  sh scripts/verify-ignore.sh                          verify-ignore: 통과
+  node .issue/merge/5/verify/status-integration.mjs   STATUS_INTEGRATION=PASS assertions=98
+  stage-banner-audit.mjs                               STAGE_BANNER_AUDIT=PASS
+
+검증 범위:
+  - #5 상태 라벨 전환과 실패 비차단 동작
+  - #9 승인 질문 규칙을 포함한 최신 스킬 문서
+  - #11 단계 배너 규칙
+  - #14 복합 요청 분리와 issue-create 회귀
+  - .claude/.codex vendored 사본 동기화
