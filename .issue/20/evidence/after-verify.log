@@ -1,0 +1,10 @@
+$ node -e "<완료 기준 5개 항목 검증>"
+PASS  JSON 파싱 가능
+PASS  env.OMC_SKIP_HOOKS 에 keyword-detector
+PASS  skillOverrides 9개 모두 off (실제 9개)
+PASS  permissions.deny 18개 짝 완비 (실제 18개)
+
+ALL PASS
+
+$ git check-ignore -v .claude/settings.json ; echo exit=$?
+exit=1 (1 = 무시되지 않음 → 커밋 가능)

@@ -1,0 +1,11 @@
+$ git branch --show-current
+feat/20-issue-20
+
+$ ls .claude/settings.json
+ls: /Users/mineru/Documents/Github/skills-store-issue-20/.claude/settings.json: No such file or directory
+
+$ git ls-files .claude/settings.json
+(출력 없음 — 추적되는 파일이 아니다)
+
+$ git status --short
+(출력 없음 — 파일을 하나도 고치지 않은 pure 상태)
