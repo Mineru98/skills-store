@@ -44,6 +44,22 @@ eq('prefixFromLabels(bug)', C.prefixFromLabels(['bug']), 'fix');
 eq('prefixFromLabels(enhancement)', C.prefixFromLabels(['enhancement']), 'feat');
 eq('prefixFromLabels(없음)', C.prefixFromLabels([]), 'fix');
 
+/* 진행 상태 라벨 — 성격 라벨과 직교해야 한다 */
+eq('isStatusLabel("status:open")', C.isStatusLabel('status:open'), true);
+eq('isStatusLabel("bug")', C.isStatusLabel('bug'), false);
+// "status" 로 시작하는 다른 라벨을 삼키면 남의 라벨을 지운다
+eq('isStatusLabel("statusbar")', C.isStatusLabel('statusbar'), false);
+eq('typeLabels(혼합)', C.typeLabels(['bug', 'status:plan', 'frontend']), ['bug', 'frontend']);
+eq('prefixFromLabels(status 만)', C.prefixFromLabels(['status:in-process']), 'fix');
+eq('prefixFromLabels(status + 성격)', C.prefixFromLabels(['status:open', 'enhancement']), 'feat');
+eq('resolveStatus("plan")', C.resolveStatus('plan'), 'status:plan');
+eq('resolveStatus("status:plan")', C.resolveStatus('status:plan'), 'status:plan');
+eq('resolveStatus("IN-PROCESS")', C.resolveStatus('IN-PROCESS'), 'status:in-process');
+eq('resolveStatus("bogus")', C.resolveStatus('bogus'), null);
+eq('resolveStatus("")', C.resolveStatus(''), null);
+// 라벨 프리셋은 순서 배열과 키가 정확히 일치해야 한다 (한쪽만 고치는 사고 방지)
+eq('STATUS_LABELS 키 == STATUS_ORDER', Object.keys(C.STATUS_LABELS), C.STATUS_ORDER);
+
 /* evidenceKey */
 eq('evidenceKey(인자 우선)', C.evidenceKey({ issue: '7' }, 'fix/59-x'), { key: '7', issue: '7' });
 eq('evidenceKey(브랜치 추론)', C.evidenceKey({}, 'fix/59-x'), { key: '59', issue: '59' });
@@ -84,16 +100,46 @@ try {
   writeFileSync(path.join(tmp, '.issue/worktrees/59-x/pkg.json'), '');
   eq('isIgnored(plan.md)', C.isIgnored(tmp, '.issue/59/plan.md'), true);
   eq('isIgnored(evidence)', C.isIgnored(tmp, '.issue/59/evidence/after/a.webp'), false);
-  eq('isIgnored(nested 워크트리)', C.isIgnored(tmp, '.issue/worktrees/59-x/pkg.json'), true);
+  eq('isIgnored(children 워크트리)', C.isIgnored(tmp, '.issue/worktrees/59-x/pkg.json'), true);
   eq('listEvidence', C.listEvidence(tmp, '59'), ['.issue/59/evidence/after/a.webp']);
 
   /* resolveWorktreePath */
   const repo = path.join(tmp, 'myapp');
   eq('resolveWorktreePath(sibling)', C.resolveWorktreePath(repo, 59, 'fix-login', 'sibling'),
     path.join(tmp, 'myapp-issue-59'));
-  eq('resolveWorktreePath(nested)', C.resolveWorktreePath(repo, 59, 'fix-login', 'nested'),
+  eq('resolveWorktreePath(children)', C.resolveWorktreePath(repo, 59, 'fix-login', 'children'),
     path.join(repo, '.issue/worktrees/59-fix-login'));
   eq('resolveWorktreePath(미결정)', C.resolveWorktreePath(repo, 59, 'x', null), null);
+  // 폐기된 이름은 조용히 sibling 으로 떨어지지 않고 재질문 대상이 된다
+  eq('resolveWorktreePath(폐기된 nested)', C.resolveWorktreePath(repo, 59, 'x', 'nested'), null);
+
+  /* 워크트리 표시 경로 — ctrl+클릭이 열리는 형태 */
+  eq('detectLayoutFromPath(안쪽)', C.detectLayoutFromPath(tmp, path.join(tmp, '.issue/worktrees/59-x')), 'children');
+  eq('detectLayoutFromPath(바깥)', C.detectLayoutFromPath(tmp, path.join(tmp, '..', 'other-issue-59')), 'sibling');
+  eq('detectLayoutFromPath(자기 자신)', C.detectLayoutFromPath(tmp, tmp), 'sibling');
+  eq('worktreeDisplayPath(children=상대)',
+    C.worktreeDisplayPath(tmp, path.join(tmp, '.issue/worktrees/59-x')), '.issue/worktrees/59-x');
+  eq('worktreeDisplayPath(sibling=절대)',
+    C.worktreeDisplayPath(tmp, path.join(tmp, '..', 'other-issue-59')),
+    path.resolve(tmp, '..', 'other-issue-59'));
+
+  /* 프로젝트 설정과 기본 브랜치 우선순위 */
+  eq('readProjectSettings(없을 때)', C.readProjectSettings(tmp), {});
+  const written = C.writeProjectSettings(tmp, { git: { baseBranch: 'master' } });
+  eq('writeProjectSettings(기록됨)', written?.git?.baseBranch, 'master');
+  eq('설정 파일은 무시 대상', C.isIgnored(tmp, C.PROJECT_SETTINGS_REL), true);
+  // 원격이 없는 저장소여도 프로젝트 기록이 있으면 그것을 쓴다
+  eq('detectBase(프로젝트 기록 우선)', C.detectBase(tmp, 'origin'), 'master');
+  eq('detectBase(explicit 이 최우선)', C.detectBase(tmp, 'origin', 'origin/develop'), 'develop');
+  // 최상위 키 병합 — 다른 키를 지우지 않는다
+  C.writeProjectSettings(tmp, { note: 'keep-me' });
+  eq('writeProjectSettings(병합)', C.readProjectSettings(tmp).git?.baseBranch, 'master');
+  eq('writeProjectSettings(새 키)', C.readProjectSettings(tmp).note, 'keep-me');
+
+  /* syncBaseCheckout — 안전하지 않으면 아무것도 하지 않는다 */
+  const sync = C.syncBaseCheckout({ root: tmp, base: 'master' });
+  eq('syncBaseCheckout(다른 브랜치면 건너뜀)', sync.ok, false);
+  eq('syncBaseCheckout(사유를 남김)', typeof sync.reason === 'string' && sync.reason.length > 0, true);
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }

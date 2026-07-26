@@ -81,9 +81,20 @@ references × 11     실제 질문·확인 지점의 예시 문구에 단계 표
 
 ```text
 ✓ 공통 블록 존재          6개 SKILL.md 모두 1건
+✓ hard-rule 반영          3개 SKILL.md 모두 1건
+✓ 마무리 보고 템플릿       3개 SKILL.md 모두 '현재 단계 — ' 줄 보유
+✓ 지점별 예시 문구         references 11개 파일 전부 1건 이상 (합계 20건)
 ✓ .claude / .codex 동기화  agents/ 를 제외하면 완전 일치
 ✓ issue-create 무변경      커밋에 issue-create 경로 0건
 ✓ 증거 혼입 없음           구현 커밋에 .issue/ 경로 0건
+```
+
+지점별 내역은 after 증거 6절에 있습니다.
+
+```text
+intake 1  worktree 1  implementation 2  evidence-capture 1
+context-triage 2  evidence-recheck 1  report-and-pr 3  next-actions 1
+inventory 3  merge-plan 1  verify-and-close 4
 ```
 
 저장소에 빌드·테스트 스크립트가 없는 문서 저장소라 lint·build 단계는 해당 없습니다.

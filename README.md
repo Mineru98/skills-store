@@ -597,7 +597,9 @@ $gh-setup
 
 "이거 고쳐줘 / 이 기능 추가해줘 / 이거 지워줘"로 작업이 시작되면 이슈 없이 바로 코드로 들어가기 쉽습니다. 그러면 착수 분석도, 이슈 번호 기반 브랜치도, 증거 코멘트도 붙일 곳이 없어집니다.
 
-이 스킬은 변경성 요청을 받았는데 연결된 이슈가 없을 때 발동합니다. 먼저 저장소가 이슈를 만들 만큼 자리 잡았는지 신호로 판정하고, 유사한 열린 이슈를 검색한 뒤, `issue-start`가 그대로 읽을 수 있는 형식으로 초안을 만들어 승인을 받고 등록합니다.
+이 스킬은 변경성 요청을 받았는데 연결된 이슈가 없을 때 발동합니다. 먼저 저장소가 이슈를 만들 만큼 자리 잡았는지 신호로 판정하고, **요청 안에 독립 작업이 여러 개면 그만큼 이슈를 나눈 뒤**, 항목마다 유사한 열린 이슈를 검색하고, `issue-start`가 그대로 읽을 수 있는 형식으로 초안을 만들어 승인을 받고 등록합니다.
+
+`이슈 하나 = 워크트리 하나 = PR 하나`가 뒤 단계의 전제입니다. 여러 작업을 이슈 하나에 뭉치면 `issue-start`가 브랜치 하나로 여러 가지를 건드리고, `issue-end`의 증거가 무엇을 증명하는지 흐려지고, `issue-merge`가 되돌릴 단위를 잃습니다.
 
 ### Codex 호출 예시
 
@@ -611,16 +613,45 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 /issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 ```
 
+복합 요청도 그대로 넘기면 됩니다.
+
+```text
+대시보드에 기간 필터 넣고, 주문 목록 가끔 비는 것도 고치고, 안 쓰는 export 스크립트도 지워줘
+→ 이슈 3건으로 분할안 제시 → 승인 → 초안 3건 일괄 승인 → 순차 등록
+```
+
 명시적으로 부르지 않아도, 이슈 없이 변경 요청이 들어오면 스스로 발동합니다.
+
+### 라벨 체계
+
+라벨은 두 축입니다. 한 이슈에 성격 라벨 하나와 진행 상태 라벨 하나가 함께 붙습니다.
+
+```text
+성격 라벨         의미                issue-start 브랜치 prefix
+bug              동작이 잘못됨        fix/
+enhancement      기능 추가·개선       feat/
+documentation    문서                docs/
+chore            정리·설정·의존성      chore/
+```
+
+```text
+진행 상태 라벨      전환 시점                              전환 주체
+status:open        이슈 등록 직후                          issue-create  (자동)
+status:plan        이슈 수집 직후 — 분석·계획 시작           issue-start   (자동)
+status:in-process  워크트리 생성 직후 — 구현 시작            issue-start   (자동)
+status:review      PR 생성 직후                            issue-end     (수동 호출)
+status:close       이슈 close 직전                         issue-merge   (자동)
+```
 
 ### 동작
 
 1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
-2. `search`로 유사한 열린 이슈를 찾고, 있으면 새로 만들지 않고 그 번호를 제시
-3. frontend / backend / both를 판정해 본문 항목과 라벨을 결정
-4. 초안 전문을 보여주고 승인받은 뒤 라벨과 함께 `gh issue create`
-5. `unlabeled`로 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
-6. `.issue/<번호>/request.md`에 원본 요청을 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 `issue-start`로 인계
+2. 요청을 독립성 테스트(따로 머지 가능 / 완료 기준 안 겹침 / 하나 취소돼도 성립 / 라벨 성격 갈림)로 분해하고, **제목·요약·예상 라벨 목록만** 먼저 보여줘 분할안 승인 (상한 5건)
+3. 항목마다 `search`로 유사한 열린 이슈를 찾고, 걸린 항목만 건너뛴 채 나머지는 계속 진행
+4. 항목마다 frontend / backend / both를 판정해 본문 항목과 라벨을 결정
+5. 초안 전문을 한 번에 보여주고 일괄 승인받은 뒤, 항목마다 성격 라벨과 함께 `gh issue create`, 이어서 `status:open` 자동 부착 (한 건이 실패해도 나머지는 계속)
+6. `unlabeled`로 성격·진행 상태 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
+7. `.issue/<번호>/request.md`에 원본 요청과 그 이슈가 맡는 범위를 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 첫 번호로 `issue-start` 인계 (나머지 번호는 안내만)
 
 전제 확인·중복 검사·성격 판정은 `issue-verifier` 서브에이전트에 맡깁니다 (Claude는 `haiku`, Codex는 `gpt-5.6-luna`).
 
@@ -628,17 +659,21 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 - 코드 수정. 이슈 생성까지만 합니다
 - 승인 없는 등록, 승인 없는 라벨 생성, 이슈 상태 변경·코멘트·PR 생성
-- 이미 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다)
+- 이미 성격 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다. `status:*`는 상호배타라 예외적으로 교체합니다)
 - 게이트가 SKIP이면 아무 말 없이 빠집니다
+- 억지 분할. 독립성 테스트를 통과하지 못하면 이슈 하나에 체크리스트로 묶습니다
+- 형제 이슈 간 `#N` 상호 참조. 등록 시점에 서로의 번호를 모르고, 등록 후 본문 수정은 이 스킬의 권한 밖입니다
+- 여러 이슈 동시 착수. 워크트리가 충돌하므로 첫 번호로만 인계합니다
 
 ### 관련 파일
 
 ```text
 .claude/skills/issue-create/SKILL.md
-.claude/skills/issue-create/references/{maturity-gate,issue-draft,label-audit,create-and-handoff}.md
-.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label
+.claude/skills/issue-create/references/{maturity-gate,split-requests,issue-draft,label-audit,create-and-handoff}.md
+.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label / status
 .claude/skills/issue-create/scripts/issue-common.mjs   # 공용 모듈 (vendored)
 .codex/skills/issue-create/  (같은 구성 + agents/openai.yaml)
+scripts/test-issue-create.sh                           # gh 를 부르지 않는 경로의 회귀 테스트
 ```
 
 요구사항은 `git`, 로그인된 `gh`, Node 18 이상입니다.

@@ -11,7 +11,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import {
-  mkdirSync, existsSync, readFileSync, writeFileSync, cpSync, readdirSync, rmSync,
+  mkdirSync, existsSync, readFileSync, writeFileSync, cpSync, readdirSync, rmSync, realpathSync,
 } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -55,7 +55,50 @@ export const LABEL_PREFIX = [
   [/^(chore|maintenance)$/i, 'chore'],
 ];
 
-export const WORKTREE_LAYOUTS = ['sibling', 'nested'];
+/** 성격 라벨의 색·설명 프리셋. ensureLabel 이 만들 때 쓴다. */
+export const STANDARD_LABELS = {
+  bug: { color: 'd73a4a', description: "Something isn't working" },
+  enhancement: { color: 'a2eeef', description: 'New feature or request' },
+  documentation: { color: '0075ca', description: 'Improvements or additions to documentation' },
+  chore: { color: 'cfd3d7', description: 'Maintenance and cleanup' },
+};
+
+/**
+ * 진행 상태 라벨. 파이프라인 순서대로.
+ *
+ * 성격 라벨(bug 등)과 축이 다르다. 한 이슈에 성격 라벨 하나 + status 하나가 공존하고,
+ * status 끼리는 상호배타다 — 전환은 항상 "기존 status 전부 제거 + 새 것 하나 추가".
+ */
+export const STATUS_ORDER = [
+  'status:open',
+  'status:plan',
+  'status:in-process',
+  'status:review',
+  'status:close',
+];
+
+export const STATUS_LABELS = {
+  'status:open': { color: 'ededed', description: '등록됨 — 아직 착수 전' },
+  'status:plan': { color: 'fbca04', description: 'issue-start 가 분석·계획 중' },
+  'status:in-process': { color: '0e8a16', description: '워크트리에서 구현 중' },
+  'status:review': { color: '5319e7', description: 'PR 이 열려 리뷰·merge 대기 중' },
+  'status:close': { color: '6a737d', description: 'merge 되어 종료됨' },
+};
+
+/**
+ * 워크트리 배치.
+ *
+ *   sibling  : 저장소 폴더 옆에 나란히      <repo 부모>/<repo>-issue-<번호>
+ *   children : 저장소 폴더 안에 모여서      <repo>/.issue/worktrees/<번호>-<slug>
+ *
+ * 예전 이름 `nested` 는 더 쓰지 않는다. 화이트리스트에 없으므로 `getWorktreeLayout()` 이
+ * null 을 돌려주고, 스킬이 배치를 한 번 더 묻는다.
+ */
+export const WORKTREE_LAYOUTS = ['sibling', 'children'];
+
+/** 프로젝트 단위 설정 파일. `.issue/settings.json` — 기존 `.issue/**` 무시 규칙에 그대로 걸린다. */
+export const PROJECT_SETTINGS_FILE = 'settings.json';
+export const PROJECT_SETTINGS_REL = `${WORKSPACE_DIR}/${PROJECT_SETTINGS_FILE}`;
 
 /* ------------------------------------------------------------- 프로세스 */
 
@@ -120,16 +163,64 @@ export function detectRemote(root) {
   return list.includes('origin') ? 'origin' : list[0] || 'origin';
 }
 
-/** 기본 브랜치 판별: origin/HEAD → main → master */
+/**
+ * 기본 브랜치 판별. main 인지 master 인지를 매번 다시 알아내지 않게 한다.
+ *
+ *   1. explicit 인자                                    이번 실행만
+ *   2. <repo>/.issue/settings.json  git.baseBranch      프로젝트 기록 — 있으면 여기서 끝
+ *   3. origin/HEAD → main → master                      실제 저장소에서 판별
+ *   4. ~/.issue-plugin/settings.json  git.defaultBaseBranch   사용자 습관, 최후 폴백
+ *
+ * 3 으로 알아낸 값은 2 에 적어 둔다. 다음 실행부터는 판별 비용이 사라진다.
+ * 저장소 상태가 사용자 습관보다 우선이므로 4 는 3 이 아무것도 못 찾을 때만 쓴다.
+ */
 export function detectBase(root, remote = 'origin', explicit) {
   if (explicit) return String(explicit).replace(new RegExp(`^${remote}/`), '');
+
+  const recorded = readProjectSettings(root).git?.baseBranch;
+  if (recorded) return recorded;
+
   const opts = root ? { cwd: root } : {};
+  let detected = null;
   const head = git(['symbolic-ref', '--quiet', `refs/remotes/${remote}/HEAD`], opts).out;
-  if (head) return head.replace(`refs/remotes/${remote}/`, '');
-  for (const b of ['main', 'master']) {
-    if (git(['show-ref', '--verify', '--quiet', `refs/remotes/${remote}/${b}`], opts).code === 0) return b;
+  if (head) detected = head.replace(`refs/remotes/${remote}/`, '');
+  else {
+    for (const b of ['main', 'master']) {
+      if (git(['show-ref', '--verify', '--quiet', `refs/remotes/${remote}/${b}`], opts).code === 0) {
+        detected = b;
+        break;
+      }
+    }
   }
-  return 'main';
+
+  if (detected) {
+    recordBaseBranch(root, detected);
+    return detected;
+  }
+  return getDefaultBaseBranch() ?? 'main';
+}
+
+/**
+ * 판별한 기본 브랜치를 프로젝트 설정에 남긴다.
+ *
+ * detectBase 는 읽기처럼 보이는 함수이므로 여기서 `.gitignore` 를 건드리지 않는다.
+ * `.issue/settings.json` 이 아직 무시 대상이 아니면 조용히 넘어가고,
+ * `issue-create` 가 `ensureIgnoreBlock` 을 돌린 뒤 다음 호출에서 기록된다.
+ */
+function recordBaseBranch(root, branch) {
+  if (!root) return;
+  const prev = readProjectSettings(root).git ?? {};
+  if (prev.baseBranch === branch) return;
+  writeProjectSettings(
+    root,
+    { git: { ...prev, baseBranch: branch, detectedAt: new Date().toISOString() } },
+    { ensureIgnored: false },
+  );
+}
+
+/** 주 체크아웃 경로. `git worktree list` 의 첫 항목이 항상 주 체크아웃이다. */
+export function mainCheckout(root) {
+  return listWorktrees(root)[0]?.path ?? null;
 }
 
 export function branchExists(root, branch) {
@@ -164,20 +255,100 @@ export function listWorktrees(root) {
 }
 
 /**
- * origin URL 만으로 owner/name 을 뽑는다. private 여부는 알 수 없어 null.
+ * gh 로 owner/name + private 여부. gh 실패 시 origin URL 파싱(이때 isPrivate 는 null).
  *
- * gh 를 쓰는 정식 판별은 issue-tracker.mjs 의 `gitHost.repoInfo()` 다.
- * 이 모듈은 트래커 종류와 무관해야 하므로 여기서는 호스트 CLI 를 부르지 않는다.
+ * 링크를 만들 때마다 불리므로 저장소별로 한 번만 조회한다. `gh repo view` 는 네트워크를 탄다.
  */
-export function repoSlugFromRemote(root) {
+const slugCache = new Map();
+export function repoSlug(root) {
+  const key = root ?? '';
+  if (slugCache.has(key)) return slugCache.get(key);
+  const value = queryRepoSlug(root);
+  slugCache.set(key, value);
+  return value;
+}
+
+function queryRepoSlug(root) {
+  const r = run('gh', ['repo', 'view', '--json', 'nameWithOwner,isPrivate,defaultBranchRef'], root ? { cwd: root } : {});
+  if (r.code === 0) {
+    try {
+      return JSON.parse(r.out);
+    } catch {
+      /* fallthrough */
+    }
+  }
   const url = git(['remote', 'get-url', 'origin'], root ? { cwd: root } : {}).out;
   const m = url.match(/[:/]([^/:]+)\/([^/]+?)(?:\.git)?$/);
   return m ? { nameWithOwner: `${m[1]}/${m[2]}`, isPrivate: null } : null;
 }
 
-/** 경로가 실제로 git 에게 무시되는지 확인. nested 워크트리 안전장치의 근거. */
+/** 경로가 실제로 git 에게 무시되는지 확인. children 워크트리 안전장치의 근거. */
 export function isIgnored(root, relPath) {
   return git(['check-ignore', '-q', '--', relPath], { cwd: root }).code === 0;
+}
+
+/* ------------------------------------------------------------------ 표시 */
+
+/** 저장소 웹 주소. slug 를 못 알아내면 null. */
+export function repoWebUrl(root) {
+  const slug = repoSlug(root)?.nameWithOwner;
+  return slug ? `https://github.com/${slug}` : null;
+}
+
+export function issueUrl(root, number) {
+  const base = repoWebUrl(root);
+  return base ? `${base}/issues/${number}` : null;
+}
+
+export function prUrl(root, number) {
+  const base = repoWebUrl(root);
+  return base ? `${base}/pull/${number}` : null;
+}
+
+/** 마크다운 링크. url 이 없으면 설명만 남긴다 — 깨진 링크를 만들지 않는다. */
+export function mdLink(text, url) {
+  return url ? `[${text}](${url})` : String(text);
+}
+
+/**
+ * 워크트리 경로가 저장소 안에 있는지 밖에 있는지를 실제 경로로 판별한다.
+ *
+ * 설정값(`worktree.layout`)이 아니라 경로를 믿는다. 설정은 새로 만들 때만 쓰이고,
+ * 이미 있는 워크트리는 그때의 설정으로 만들어졌을 수 있다.
+ */
+export function detectLayoutFromPath(root, wtPath) {
+  const rel = path.relative(canonical(root), canonical(wtPath));
+  return rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? 'children' : 'sibling';
+}
+
+/**
+ * 심볼릭 링크를 푼 절대 경로.
+ *
+ * macOS 의 `/tmp` → `/private/tmp` 처럼 같은 폴더가 두 이름을 갖는 경우가 있다.
+ * 한쪽만 풀린 상태로 비교하면 저장소 안에 있는 워크트리를 바깥이라고 판정한다.
+ */
+function canonical(p) {
+  const abs = path.resolve(p);
+  try {
+    return realpathSync(abs);
+  } catch {
+    return abs;
+  }
+}
+
+/**
+ * 터미널에서 `ctrl+클릭` 으로 열리는 형태의 워크트리 경로를 만든다.
+ *
+ *   children  저장소 안  → 상대 경로   .issue/worktrees/59-tab-active-state
+ *   sibling   저장소 밖  → 절대 경로   /Users/me/work/repo-issue-59
+ *
+ * sibling 을 상대 경로로 적으면 `../` 가 붙어 없는 경로로 열린다. 그래서 절대 경로를 쓴다.
+ */
+export function worktreeDisplayPath(root, wtPath) {
+  const anchor = mainCheckout(root) ?? root;
+  const abs = canonical(wtPath);
+  if (detectLayoutFromPath(anchor, abs) === 'sibling') return abs;
+  return path.relative(canonical(anchor), abs).split(path.sep).join('/');
 }
 
 /* --------------------------------------------------------------- 문자열 */
@@ -191,27 +362,155 @@ export function slugify(value) {
 }
 
 export function prefixFromLabels(labels = []) {
+  // status 라벨은 브랜치 prefix 결정에 관여하지 않는다. 두 축은 직교다.
+  const types = typeLabels(labels);
   for (const [re, prefix] of LABEL_PREFIX) {
-    if (labels.some((l) => re.test(l))) return prefix;
+    if (types.some((l) => re.test(l))) return prefix;
   }
   return 'fix';
 }
 
+/* ----------------------------------------------------------------- 라벨 */
+
+export function isStatusLabel(name) {
+  return /^status:/i.test(String(name ?? ''));
+}
+
+/** status 를 걸러낸 성격 라벨만 남긴다. */
+export function typeLabels(labels = []) {
+  return labels.filter((l) => !isStatusLabel(l));
+}
+
+/** "plan", "status:plan", "STATUS:PLAN" 을 모두 정규 이름으로 바꾼다. 모르면 null. */
+export function resolveStatus(raw) {
+  const s = String(raw ?? '').trim().toLowerCase();
+  if (!s) return null;
+  const full = s.startsWith('status:') ? s : `status:${s}`;
+  return STATUS_ORDER.includes(full) ? full : null;
+}
+
+function ghArgs(base, opts = {}) {
+  return opts.repo ? [...base, '--repo', opts.repo] : base;
+}
+
+/** 이슈에 실제로 붙어 있는 라벨 이름 배열. 조회 실패는 null (빈 배열과 구분한다). */
+export function issueLabels(root, number, opts = {}) {
+  const r = run('gh', ghArgs(['issue', 'view', String(number), '--json', 'labels'], opts), { cwd: root });
+  if (r.code !== 0) return null;
+  try {
+    return (JSON.parse(r.out || '{}').labels ?? []).map((l) => l.name);
+  } catch {
+    return null;
+  }
+}
+
 /**
- * "59", "#59", GitHub 이슈 URL, Jira 키("ACME-59"), Jira browse URL 에서 번호를 뽑는다.
- *
- * Jira 를 쓰더라도 브랜치 이름과 `.issue/<n>/` 경로는 숫자로 유지한다.
- * 프로젝트 키는 설정에 있으므로 번호만 있으면 키를 다시 조립할 수 있다.
+ * 라벨이 없으면 만든다. 이미 있으면 아무것도 하지 않는다.
+ * 색·설명은 STANDARD_LABELS / STATUS_LABELS 프리셋에서 찾고, 없으면 gh 기본값에 맡긴다.
+ * 반환: 'exists' | 'created' | 'failed'
  */
+export function ensureLabel(root, name, opts = {}) {
+  const listed = run('gh', ghArgs(['label', 'list', '--limit', '200', '--json', 'name'], opts), { cwd: root });
+  if (listed.code === 0) {
+    let existing = [];
+    try {
+      existing = JSON.parse(listed.out || '[]').map((l) => l.name);
+    } catch {
+      existing = [];
+    }
+    if (existing.includes(name)) return 'exists';
+  }
+  const preset = STATUS_LABELS[name] ?? STANDARD_LABELS[name] ?? {};
+  const args = ghArgs(['label', 'create', name], opts);
+  const color = opts.color ?? preset.color;
+  const description = opts.description ?? preset.description;
+  if (color) args.push('--color', color);
+  if (description) args.push('--description', description);
+  return run('gh', args, { cwd: root }).code === 0 ? 'created' : 'failed';
+}
+
+/**
+ * 진행 상태 라벨을 원자적으로 교체한다 — 기존 status:* 전부 제거 + 새 것 하나 추가.
+ *
+ * 라벨은 메타데이터이지 게이트가 아니다. 실패해도 흐름을 막지 않고 경고만 남긴다.
+ * 출력 계약: STATUS= / PREV_STATUS= / CHANGED=0|1, 실패 시 STATUS_FAILED=1 + FAILED_ISSUE=.
+ *
+ * opts.quiet 이면 아무것도 찍지 않고 결과만 돌려준다 — JSON 만 뱉는 호출부에서 쓴다.
+ */
+export function setStatus(root, number, status, opts = {}) {
+  const say = opts.quiet ? () => {} : (m) => console.log(m);
+  const warn = opts.quiet ? () => {} : (m) => console.warn(m);
+  const target = resolveStatus(status);
+  if (!target) {
+    console.error(`✗ 모르는 상태: ${status}`);
+    console.error(`  쓸 수 있는 값: ${STATUS_ORDER.join(', ')} (접두사 생략 가능)`);
+    process.exit(2);
+  }
+  const n = parseIssueNumber(number);
+  if (!n) {
+    console.error(`✗ 이슈 번호가 필요하다 (예: status 59 plan)`);
+    process.exit(2);
+  }
+
+  const current = issueLabels(root, n, opts);
+  if (current === null) {
+    warn(`  ! #${n} 라벨을 읽지 못해 상태 전환을 건너뛴다.`);
+    say('STATUS_FAILED=1');
+    say(`FAILED_ISSUE=${n}`);
+    return { ok: false, changed: false, status: target, previous: null };
+  }
+
+  const stale = current.filter((l) => isStatusLabel(l) && l !== target);
+  const previous = stale[0] ?? (current.includes(target) ? target : null);
+
+  if (current.includes(target) && !stale.length) {
+    say(`✓ #${n} 이미 ${target}`);
+    say(`STATUS=${target}`);
+    say(`PREV_STATUS=${previous ?? ''}`);
+    say('CHANGED=0');
+    return { ok: true, changed: false, status: target, previous };
+  }
+
+  const args = ghArgs(['issue', 'edit', String(n)], opts);
+  if (!current.includes(target)) args.push('--add-label', target);
+  for (const l of stale) args.push('--remove-label', l);
+
+  if (opts.dryRun) {
+    say(`(dry-run) gh ${args.join(' ')}`);
+    say(`STATUS=${target}`);
+    say(`PREV_STATUS=${previous ?? ''}`);
+    say('CHANGED=0');
+    return { ok: true, changed: false, status: target, previous };
+  }
+
+  if (!current.includes(target) && ensureLabel(root, target, opts) === 'failed') {
+    warn(`  ! ${target} 라벨을 만들지 못했다. 상태 전환을 건너뛴다.`);
+    say('STATUS_FAILED=1');
+    say(`FAILED_ISSUE=${n}`);
+    return { ok: false, changed: false, status: target, previous };
+  }
+
+  const res = run('gh', args, { cwd: root });
+  if (res.code !== 0) {
+    warn(`  ! #${n} 상태 전환 실패: ${res.err || res.out}`);
+    say('STATUS_FAILED=1');
+    say(`FAILED_ISSUE=${n}`);
+    return { ok: false, changed: false, status: target, previous };
+  }
+
+  say(`✓ #${n} ${previous ?? '(없음)'} → ${target}`);
+  say(`STATUS=${target}`);
+  say(`PREV_STATUS=${previous ?? ''}`);
+  say('CHANGED=1');
+  return { ok: true, changed: true, status: target, previous };
+}
+
+/** "59", "#59", 이슈 URL 에서 번호를 뽑는다. */
 export function parseIssueNumber(raw) {
   if (raw === null || raw === undefined) return null;
   const s = String(raw).trim();
-  const ghUrl = s.match(/\/issues\/(\d+)/);
-  if (ghUrl) return Number(ghUrl[1]);
-  const jiraUrl = s.match(/\/browse\/[A-Za-z][A-Za-z0-9_]*-(\d+)/);
-  if (jiraUrl) return Number(jiraUrl[1]);
-  const jiraKey = s.match(/^([A-Za-z][A-Za-z0-9_]*)-(\d{1,6})$/);
-  if (jiraKey) return Number(jiraKey[2]);
+  const url = s.match(/\/issues\/(\d+)/);
+  if (url) return Number(url[1]);
   const m = s.match(/^#?(\d{1,6})$/);
   return m ? Number(m[1]) : null;
 }
@@ -314,43 +613,16 @@ export function ensureIgnoreBlock(root) {
 
 /* --------------------------------------------------------------- settings */
 
-export const SETTINGS_DIR = path.join(os.homedir(), '.issue');
+export const SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
 export const SETTINGS_PATH = path.join(SETTINGS_DIR, 'settings.json');
 
-/** 구 경로. 새 경로가 없을 때만 읽어서 1회 옮긴다. */
-export const LEGACY_SETTINGS_DIR = path.join(os.homedir(), '.issue-plugin');
-export const LEGACY_SETTINGS_PATH = path.join(LEGACY_SETTINGS_DIR, 'settings.json');
-
-function parseSettingsFile(file) {
-  try {
-    return JSON.parse(readFileSync(file, 'utf8'));
-  } catch {
-    return null;
-  }
-}
-
-/**
- * 구 경로의 설정을 새 경로로 한 번 옮긴다.
- *
- * 복사만 하고 원본은 지우지 않는다. 구 버전 스킬이 아직 깔려 있는 환경에서
- * 설정을 통째로 잃는 것보다 파일이 두 벌 남는 쪽이 안전하다.
- */
-export function migrateIssueSettings() {
-  if (existsSync(SETTINGS_PATH) || !existsSync(LEGACY_SETTINGS_PATH)) return false;
-  const prev = parseSettingsFile(LEGACY_SETTINGS_PATH);
-  if (!prev) return false;
-  mkdirSync(SETTINGS_DIR, { recursive: true });
-  writeFileSync(SETTINGS_PATH, `${JSON.stringify(prev, null, 2)}\n`, 'utf8');
-  console.error(`! 설정을 ${LEGACY_SETTINGS_PATH} 에서 ${SETTINGS_PATH} 로 옮겼습니다. 구 파일은 그대로 둡니다.`);
-  return true;
-}
-
 export function readIssueSettings() {
-  migrateIssueSettings();
-  if (existsSync(SETTINGS_PATH)) return parseSettingsFile(SETTINGS_PATH) ?? {};
-  // 마이그레이션이 실패했어도(권한 등) 구 파일이 있으면 읽기는 된다.
-  if (existsSync(LEGACY_SETTINGS_PATH)) return parseSettingsFile(LEGACY_SETTINGS_PATH) ?? {};
-  return {};
+  if (!existsSync(SETTINGS_PATH)) return {};
+  try {
+    return JSON.parse(readFileSync(SETTINGS_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
 /**
@@ -363,6 +635,65 @@ export function writeIssueSettings(patch) {
   const next = { ...prev, ...patch, updatedAt: new Date().toISOString() };
   writeFileSync(SETTINGS_PATH, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
   return next;
+}
+
+/* ------------------------------------------------------- 프로젝트 settings */
+
+/**
+ * 저장소별 설정. `<repo>/.issue/settings.json`
+ *
+ * 홈 설정(`~/.issue-plugin/settings.json`)은 "사용자가 보통 어떻게 하는가"를 담고,
+ * 이 파일은 "이 저장소에서는 실제로 무엇을 쓰는가"를 담는다. 저장소 쪽이 우선이다.
+ */
+export function projectSettingsPath(root) {
+  return path.join(root, WORKSPACE_DIR, PROJECT_SETTINGS_FILE);
+}
+
+export function readProjectSettings(root) {
+  if (!root) return {};
+  const file = projectSettingsPath(root);
+  if (!existsSync(file)) return {};
+  try {
+    return JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * 최상위 키만 병합해 저장한다.
+ *
+ * `.issue/settings.json` 이 실제로 무시되는지 확인한 뒤에만 쓴다.
+ * 무시되지 않는 상태에서 쓰면 사용자의 커밋에 설정 파일이 딸려 들어간다.
+ *
+ * ensureIgnored: false 면 `.gitignore` 를 건드리지 않고, 이미 무시 중일 때만 기록한다.
+ */
+export function writeProjectSettings(root, patch, { ensureIgnored = true } = {}) {
+  if (!root) return null;
+  if (!isIgnored(root, PROJECT_SETTINGS_REL)) {
+    if (!ensureIgnored) return null;
+    ensureIgnoreBlock(root);
+    if (!isIgnored(root, PROJECT_SETTINGS_REL)) {
+      console.error(`! ${PROJECT_SETTINGS_REL} 이 .gitignore 에 걸리지 않아 설정을 기록하지 않습니다.`);
+      return null;
+    }
+  }
+  mkdirSync(path.dirname(projectSettingsPath(root)), { recursive: true });
+  const next = { ...readProjectSettings(root), ...patch, updatedAt: new Date().toISOString() };
+  writeFileSync(projectSettingsPath(root), `${JSON.stringify(next, null, 2)}\n`, 'utf8');
+  return next;
+}
+
+/** 사용자가 보통 쓰는 기본 브랜치. 미결정이면 null — 호출부가 1회만 물어야 한다. */
+export function getDefaultBaseBranch() {
+  const branch = readIssueSettings().git?.defaultBaseBranch;
+  return typeof branch === 'string' && branch ? branch : null;
+}
+
+export function setDefaultBaseBranch(branch) {
+  if (!branch || typeof branch !== 'string') fail(`기본 브랜치 이름이 필요하다: ${branch}`);
+  const prev = readIssueSettings().git ?? {};
+  return writeIssueSettings({ git: { ...prev, defaultBaseBranch: branch, decidedAt: new Date().toISOString() } });
 }
 
 /** 미결정이면 null. 호출부가 AskUserQuestion 으로 1회만 물어야 한다. */
@@ -388,14 +719,16 @@ export function getSubagentModel(flavor) {
 /**
  * 워크트리 경로를 settings 에 따라 결정한다.
  *
- *   sibling : <repo 부모>/<repo>-issue-<번호>
- *   nested  : <repo>/.issue/worktrees/<번호>-<slug>
+ *   sibling  : <repo 부모>/<repo>-issue-<번호>
+ *   children : <repo>/.issue/worktrees/<번호>-<slug>
  *
  * layout 이 미결정이면 null 을 돌려준다. 호출부가 사용자에게 물어야 한다.
  */
 export function resolveWorktreePath(root, number, slug, layout = getWorktreeLayout()) {
-  if (!layout) return null;
-  if (layout === 'nested') {
+  // 모르는 값(예: 폐기된 `nested`)은 조용히 sibling 으로 떨어뜨리지 않는다.
+  // 사용자가 기대한 위치와 다른 곳에 워크트리가 생기는 것이 더 나쁘다.
+  if (!WORKTREE_LAYOUTS.includes(layout)) return null;
+  if (layout === 'children') {
     const name = slug ? `${number}-${slugify(slug)}` : String(number);
     return path.join(root, WORKSPACE_DIR, 'worktrees', name);
   }
@@ -482,15 +815,157 @@ export function mirrorEvidence({ root, key, issue, push = false, base: explicitB
   return result;
 }
 
+/* ----------------------------------------------------------- 기본 브랜치 동기화 */
+
 /**
- * 증거 파일 목록에 phase 를 붙여 돌려준다.
+ * 증거 미러 push 뒤에 주 체크아웃의 기본 브랜치를 최신으로 맞춘다.
  *
- * raw URL 조립은 git 호스트에 달린 일이라 issue-tracker.mjs 의 `evidenceUrls()` 가 맡는다.
- * 여기서는 호스트와 무관한 부분만 만든다.
+ * 미러는 임시 워크트리에서 `origin/<base>` 로 곧장 push 하므로 사용자의 주 체크아웃은
+ * 그 커밋을 모른 채 남는다. 이슈를 여러 번 돌리면 로컬이 몇 커밋씩 뒤처지고,
+ * 그 사이 로컬 커밋이 하나라도 생기면 갈라져서 나중에 pull 이 실패한다.
+ *
+ * 이 함수는 안전한 경우에만 pull 한다. 위험한 판단은 전부 호출부(사람)에게 넘긴다.
+ *   - 브랜치를 갈아타지 않는다
+ *   - stash 를 자동으로 하지 않는다
+ *   - 실패하면 rebase 를 중단해 원래 상태로 되돌린다
+ *
+ * skipped 값: 'no-main-checkout' | 'other-branch' | 'dirty' | 'conflict' | 'error'
  */
-export function evidenceManifest(root, key) {
-  return listEvidence(root, key).map((p) => ({
-    path: p,
-    phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
-  }));
+/**
+ * 받아오기를 막는 파일들을 찾는다.
+ *
+ * `git pull --rebase` 는 두 경우에 거부한다.
+ *   - 추적 중인 파일이 수정돼 있다
+ *   - 추적하지 않는 파일이 있는데 받아올 커밋이 같은 경로를 덮어쓴다
+ *
+ * 그런데 이 스킬군은 스스로 그 상태를 만든다. `.gitignore` 에 `.issue` 블록을 넣고,
+ * 증거를 `.issue/<n>/evidence/` 에 쌓은 뒤, 바로 그 둘을 미러 커밋으로 올리기 때문이다.
+ * 그래서 첫 실행부터 "저장 안 된 변경이 있다"로 막히는데, 실제로는 받아올 내용과 같은 파일이다.
+ *
+ * 내용이 같으면 `resolvable` 로 표시한다. 호출부가 치우고 받아오면 결과가 동일하다.
+ * 한 글자라도 다르면 사용자의 작업이므로 손대지 않는다.
+ */
+function blockingPaths(target, base) {
+  const status = git(['status', '--porcelain', '--untracked-files=all'], { cwd: target }).out;
+  if (!status) return [];
+
+  const incoming = new Set(
+    git(['diff', '--name-only', `HEAD...origin/${base}`], { cwd: target }).out.split('\n').filter(Boolean),
+  );
+
+  const out = [];
+  for (const line of status.split('\n')) {
+    if (!line) continue;
+    // `run()` 이 stdout 을 trim 하므로 첫 줄의 선행 공백이 사라진다.
+    // 고정 컬럼(slice(3))으로 자르면 첫 줄만 경로가 한 글자씩 밀린다.
+    const m = line.match(/^([ MADRCU?!]{1,2})\s+(.+)$/);
+    if (!m) continue;
+    const [, code, rel] = m;
+    const untracked = code.trim() === '??';
+    // 추적하지 않는 파일은 받아올 커밋이 같은 경로를 건드릴 때만 막는다.
+    if (untracked && !incoming.has(rel)) continue;
+    out.push({ path: rel, tracked: !untracked, resolvable: sameAsIncoming(target, base, rel) });
+  }
+  return out;
+}
+
+/** 로컬 파일 내용이 받아올 커밋의 내용과 같은가. */
+function sameAsIncoming(target, base, rel) {
+  const theirs = git(['rev-parse', `origin/${base}:${rel}`], { cwd: target });
+  if (theirs.code !== 0) return false;
+  const full = path.join(target, rel);
+  if (!existsSync(full)) return false;
+  const ours = git(['hash-object', '--', full], { cwd: target });
+  return ours.code === 0 && ours.out === theirs.out;
+}
+
+export function syncBaseCheckout({ root, base: explicitBase } = {}) {
+  const base = detectBase(root, 'origin', explicitBase);
+  const result = {
+    ok: false, base, path: null, branch: null, skipped: null, reason: null, received: 0,
+  };
+
+  const target = mainCheckout(root);
+  if (!target) {
+    result.skipped = 'no-main-checkout';
+    result.reason = '주 체크아웃을 찾지 못했습니다.';
+    return result;
+  }
+  result.path = target;
+
+  const branch = currentBranch(target);
+  result.branch = branch;
+  if (branch !== base) {
+    result.skipped = 'other-branch';
+    result.reason = `주 체크아웃이 ${branch ?? '이름 없는 상태'} 에 있어 ${base} 를 받아오지 않았습니다.`;
+    return result;
+  }
+
+  git(['fetch', 'origin', base, '--prune'], { cwd: target });
+
+  const blocking = blockingPaths(target, base);
+  const unresolvable = blocking.filter((p) => !p.resolvable);
+  if (unresolvable.length) {
+    result.skipped = 'dirty';
+    result.reason = '주 체크아웃에 저장하지 않은 변경이 있습니다.';
+    result.dirtyPaths = unresolvable.map((p) => p.path);
+    return result;
+  }
+
+  // 여기 남은 것은 받아올 내용과 글자 하나까지 같은 파일들이다.
+  // 미러 커밋이 `.gitignore` 와 증거를 담고 있어서, 이걸 치우지 않으면 받아오기가 거부된다.
+  for (const p of blocking) {
+    if (p.tracked) git(['checkout', '--', p.path], { cwd: target });
+    else rmSync(path.join(target, p.path), { force: true });
+  }
+  result.discarded = blocking.map((p) => p.path);
+
+  const before = git(['rev-parse', 'HEAD'], { cwd: target }).out;
+  const pull = git(['pull', '--rebase', 'origin', base], { cwd: target });
+  if (pull.code !== 0) {
+    // 되돌리는 것이 먼저다. 중간 상태로 두면 사용자가 손댈 수 없다.
+    git(['rebase', '--abort'], { cwd: target });
+    const text = `${pull.err}\n${pull.out}`;
+    result.skipped = /conflict|could not apply/i.test(text) ? 'conflict' : 'error';
+    result.reason = pull.err || pull.out;
+    result.localOnly = git(['log', '--oneline', `origin/${base}..HEAD`], { cwd: target }).out;
+    result.restored = git(['rev-parse', 'HEAD'], { cwd: target }).out === before;
+    return result;
+  }
+
+  const after = git(['rev-parse', 'HEAD'], { cwd: target }).out;
+  result.ok = true;
+  result.before = before;
+  result.after = after;
+  result.received = before === after
+    ? 0
+    : Number(git(['rev-list', '--count', `${before}..${after}`], { cwd: target }).out || 0);
+  return result;
+}
+
+/** 증거 파일들의 raw.githubusercontent URL 을 만든다. */
+export function evidenceUrls({ root, key, issue, branch, mirrorRef, base }) {
+  const repo = repoSlug(root);
+  if (!repo?.nameWithOwner) fail('저장소 식별 실패. gh 로그인 상태 또는 origin 설정을 확인하세요.');
+  const ref = mirrorRef || detectBase(root, 'origin', base);
+  const files = listEvidence(root, key);
+  if (files.length === 0) fail(`증거 파일이 없습니다: ${evidenceRel(root, key)}`);
+
+  const raw = (r, p) => `https://raw.githubusercontent.com/${repo.nameWithOwner}/${r}/${p}`;
+  return {
+    repo: repo.nameWithOwner,
+    isPrivate: repo.isPrivate,
+    issue,
+    branch,
+    mirrorRef: ref,
+    note: repo.isPrivate
+      ? 'private 저장소는 raw URL 이 코멘트에서 렌더링되지 않습니다. 이미지를 웹 UI 로 직접 첨부하고 raw URL 은 보조 링크로만 남기세요.'
+      : null,
+    images: files.map((p) => ({
+      path: p,
+      phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
+      branchUrl: branch ? raw(branch, p) : null,
+      mirrorUrl: raw(ref, p),
+    })),
+  };
 }
