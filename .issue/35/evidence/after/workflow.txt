@@ -1,0 +1,194 @@
+# after — issue #35 workflow ownership
+
+## implementation commit
+b6f4147 feat(issue): 검토 승인 뒤 PR을 만들도록 책임을 분리한다
+
+## updated ownership statements
+.claude/skills/issue-end/scripts/issue-end.mjs:139:    // issue-start가 게시한 증거와 로컬 증거가 같아야 승인 뒤 PR로 바로 넘어갈 수 있다.
+.claude/skills/issue-end/scripts/issue-end.mjs:140:    evidencePublished: publication.published,
+.claude/skills/issue-end/scripts/issue-end.mjs:141:    evidencePublishedRef: publication.ref,
+.claude/skills/issue-start/references/next-actions.md:3:구현·증거 게시·코멘트까지 끝났으면 사람이 리포트를 검토하고 다음 행동을 고르게 한다.
+.claude/skills/issue-start/references/next-actions.md:4:1번 선택은 게시된 구현 결과에 대한 승인이다. 승인 전에는 `issue-end` 로 넘어가지 않는다.
+.claude/skills/issue-start/references/next-actions.md:13:1. 검토 승인하고 PR 만들기 (권장) /issue-end — 게시된 증거를 확인하고 PR 까지 만듭니다
+.claude/skills/issue-start/references/next-actions.md:34:## 1번 — 검토 승인하고 PR
+.claude/skills/issue-start/references/next-actions.md:36:이 선택을 구현 결과에 대한 사람의 승인으로 기록하고 같은 워크트리에서 `issue-end` 로 넘긴다.
+.claude/skills/issue-start/SKILL.md:3:description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지를 gh로 수집해 실제로 읽고, 프론트엔드/백엔드 성격에 맞춰 코드베이스와 대조 분석해 계획을 세운 뒤, 워크트리를 만들어 구현하고 커밋하고, 전후 증거를 webp 로 캡처해 기본 브랜치에 먼저 커밋한 다음 이슈에 렌더링되는 리포트를 남깁니다. 이슈 번호 대신 작업 설명을 주면 issue-create 로 이슈부터 등록합니다. `/issue-start`, "이슈 착수", "이슈 분석하고 작업해줘" 요청에 사용합니다.
+.claude/skills/issue-start/SKILL.md:52:    <rule>증거는 기본 브랜치에 먼저 커밋·푸시한 뒤 이슈에 코멘트한다. 순서를 뒤집으면 이미지가 렌더링되지 않는다.</rule>
+.claude/skills/issue-start/SKILL.md:61:    구현·증거 게시·코멘트가 끝나면 사람의 검토·승인을 기다린다.
+.claude/skills/issue-start/SKILL.md:62:    승인받으면 같은 워크트리에서 `issue-end` 를 실행한다.
+.claude/skills/issue-start/SKILL.md:77:    다음 단계로 넘어가기 직전의 전이 보고와 승인·확인 질문이 모두 대상이다. `# 현재 단계 밝히기` 를 따른다.
+.claude/skills/issue-start/SKILL.md:243:문제      증거 이미지를 기본 브랜치에 올리지 못했습니다.
+.claude/skills/issue-start/SKILL.md:253:상황      이슈 #59 의 코드 변경과 커밋까지 끝냈고, 증거를 기본 브랜치에 올리는 중이었습니다.
+.claude/skills/issue-start/SKILL.md:356:10. 증거를 기본 브랜치에 미러 커밋·푸시
+.claude/skills/issue-start/SKILL.md:449:증거는 임시 워크트리에서 기본 브랜치로 곧장 올라갔다. 사용자의 메인 폴더는 그 커밋을 아직 모른다.
+.claude/skills/issue-end/SKILL.md:3:description: issue-start 가 증거와 리포트를 게시하고 사람이 승인한 작업을 마무리합니다. 기존 증거의 완결성과 게시 상태를 확인하고, 부족하거나 바뀐 경우에만 보강·재게시한 뒤 PR 을 만듭니다. merge 는 하지 않고 issue-merge 로 넘깁니다. `/issue-end`, "이슈 마무리", "작업 종료", "승인한 작업 PR" 요청에 사용합니다.
+.claude/skills/issue-end/SKILL.md:8:    `issue-start` 가 게시한 구현 결과를 사람이 승인한 뒤 PR 로 마무리한다.
+.claude/skills/issue-end/SKILL.md:38:    <rule>`issue-start` 에서 게시된 리포트를 사람이 승인한 뒤에만 PR 을 만든다.</rule>
+.claude/skills/issue-end/SKILL.md:39:    <rule>`evidencePublished: true` 면 증거 미러와 이슈 코멘트를 반복하지 않는다.</rule>
+.claude/skills/issue-end/SKILL.md:40:    <rule>`evidencePublished: false` 면 부족하거나 바뀐 증거를 보강·재게시한 뒤 PR 로 넘어간다.</rule>
+.claude/skills/issue-end/SKILL.md:45:    <rule>push 와 PR 생성은 각각 따로 AskUserQuestion 으로 확인받는다. 묶어서 승인받지 않는다.</rule>
+.claude/skills/issue-end/SKILL.md:71:    다음 단계로 넘어가기 직전의 전이 보고와 승인·확인 질문이 모두 대상이다. `# 현재 단계 밝히기` 를 따른다.
+.claude/skills/issue-end/SKILL.md:97: 2  승인·증거 완결성 확인
+.claude/skills/issue-end/SKILL.md:104: 9  검토 승인 확인
+.claude/skills/issue-end/SKILL.md:130:검토 승인 인계를 확인했습니다.
+.claude/skills/issue-end/SKILL.md:133:현재 단계 — issue-end 9단계(검토 승인 확인)
+.claude/skills/issue-end/SKILL.md:149:    D -- 예 --> F{evidencePublished?}
+.claude/skills/issue-end/SKILL.md:157:    F -- 예 --> K{게시 리포트 승인됨?}
+.claude/skills/issue-end/SKILL.md:215:문제      증거 이미지를 기본 브랜치에 올리지 못했습니다.
+.claude/skills/issue-end/SKILL.md:225:상황      이슈 #59 의 코드 변경과 커밋까지 끝냈고, 증거를 기본 브랜치에 올리는 중이었습니다.
+.claude/skills/issue-end/SKILL.md:294:출력의 `isLinkedWorktree` / `issue` / `evidenceComplete` / `evidencePublished` /
+.claude/skills/issue-end/SKILL.md:295:`evidencePublishedRef` / `onBaseBranch` / `openPr` 를 읽고 분기한다.
+.claude/skills/issue-end/SKILL.md:304:2.  검토 승인·증거 존재·완결성 확인
+.claude/skills/issue-end/SKILL.md:311:9.  게시 리포트 검토 승인 확인
+.claude/skills/issue-end/SKILL.md:316:`evidencePublished: true` 인 정상 인계에서는 4~8단계를 확인만 하고 반복 게시하지 않는다.
+scripts/test-flow.sh:153:check "context: issue-start 게시 증거 확인" "$(grep -q '"evidencePublished": true' "$TMP/ctx.json" && echo 0 || echo 1)"
+scripts/test-flow.sh:154:check "context: 게시 기준 ref 확인" "$(grep -q '"evidencePublishedRef": "main"' "$TMP/ctx.json" && echo 0 || echo 1)"
+scripts/test-flow.sh:156:# 로컬 리포트가 게시 뒤 바뀌면 승인된 게시본과 다르므로 PR 전에 재게시해야 한다.
+scripts/test-flow.sh:159:check "context: 바뀐 로컬 증거는 미게시 판정" "$(grep -q '"evidencePublished": false' "$TMP/ctx-stale.json" && echo 0 || echo 1)"
+.claude/skills/issue-end/references/report-and-pr.md:3:`issue-start`가 증거와 리포트를 먼저 게시하고 사람의 검토·승인을 기다린다.
+.claude/skills/issue-end/references/report-and-pr.md:4:`issue-end`는 `context`의 `evidencePublished`를 확인한다. `true`면 게시를 반복하지 않고 PR 준비로 넘어간다.
+.claude/skills/issue-end/references/report-and-pr.md:9:`evidencePublished: false`일 때만 `.issue/<번호>/evidence/comment.md` 를 최신 증거 기준으로 고친다.
+.claude/skills/issue-end/references/report-and-pr.md:10:`true`면 승인된 게시본을 바꾸지 않는다.
+.claude/skills/issue-end/references/report-and-pr.md:71:evidencePublished: true   게시본과 로컬 증거가 같다. commit/mirror/comment를 반복하지 않는다.
+.claude/skills/issue-end/references/report-and-pr.md:72:evidencePublished: false  누락되거나 바뀐 파일을 아래 절차로 재게시한다.
+.claude/skills/issue-end/references/report-and-pr.md:97:`issue-start` 이후 로컬 증거가 바뀌어 `evidencePublished: false`가 된 경우에만 다시 미러한다.
+.claude/skills/issue-end/references/report-and-pr.md:102:`mirror` 는 임시 detached 워크트리에서 기본 브랜치 사본을 만들고 증거만 담은 커밋을 얹은 뒤 push 한다. **현재 워크트리는 건드리지 않는다.** 브랜치를 갈아타지 않고도 "기본 브랜치에서 작업"이 되는 이유다.
+.claude/skills/issue-end/references/report-and-pr.md:119:> 증거 이미지는 기본 브랜치 보호 정책으로 `evidence/issue-59` 브랜치에 있습니다. 이 브랜치는 삭제하지 마세요.
+.claude/skills/issue-end/references/report-and-pr.md:163:상황      증거 이미지는 이미 기본 브랜치에 올렸습니다.
+.claude/skills/issue-end/references/report-and-pr.md:255:`issue-start` 가 남긴 리포트를 먼저 확인한다. `evidencePublished: true`면 그대로 유지한다.
+.claude/skills/issue-end/references/report-and-pr.md:275:## 9단계 — 검토 승인 확인
+.claude/skills/issue-end/references/report-and-pr.md:277:`issue-start` 13단계에서 사용자가 “검토 승인하고 PR 만들기”를 선택해 인계됐는지 확인한다.
+.claude/skills/issue-end/references/report-and-pr.md:278:그 선택으로 인계됐다면 다시 묻지 않는다. 직접 `issue-end`를 호출해 승인 여부가 불명확할 때만
+.claude/skills/issue-end/references/report-and-pr.md:279:코멘트 URL을 보여주고 아래 질문을 한다. 승인 전에는 PR을 만들지 않는다.
+.claude/skills/issue-end/references/report-and-pr.md:282:질문: issue-end 9단계(검토 승인 확인)입니다. 게시된 리포트대로 PR을 만들어도 될까요?
+.claude/skills/issue-end/references/report-and-pr.md:283:- 승인하고 PR 준비 (권장)   10단계 PR 생성으로 넘어갑니다
+.claude/skills/issue-end/references/report-and-pr.md:287:리포트가 깨져 승인을 못 받았다면 원인은 셋이다.
+README.md:93:기존 대상이 있으면 경로와 덮어쓸 내용을 보여 주고 명시적으로 승인받은 뒤 설치해 주세요. 백업과 롤백이 없다는 점도 먼저 알려 주세요.
+README.md:120:기존 대상이 있으면 경로와 덮어쓸 내용을 보여 주고 명시적으로 승인받은 뒤 설치해 주세요. 백업과 롤백이 없다는 점도 먼저 알려 주세요.
+README.md:138:  → 사람 검토·승인
+README.md:143:단일 작업은 `issue-create → issue-start → 검토·승인 → issue-end`로 진행하고, 준비된 PR의 merge·재검증·이슈 종료는 `issue-merge`로 마칩니다.
+README.md:153:이 스킬은 변경성 요청을 받았는데 연결된 이슈가 없을 때 발동합니다. 먼저 저장소가 이슈를 만들 만큼 자리 잡았는지 신호로 판정하고, **요청 안에 독립 작업이 여러 개면 그만큼 이슈를 나눈 뒤**, 항목마다 유사한 열린 이슈를 검색하고, `issue-start`가 그대로 읽을 수 있는 형식으로 초안을 만들어 승인을 받고 등록합니다.
+README.md:173:→ 이슈 3건으로 분할안 제시 → 승인 → 초안 3건 일괄 승인 → 순차 등록
+README.md:202:2. 요청을 독립성 테스트(따로 머지 가능 / 완료 기준 안 겹침 / 하나 취소돼도 성립 / 라벨 성격 갈림)로 분해하고, **제목·요약·예상 라벨 목록만** 먼저 보여줘 분할안 승인 (상한 5건)
+README.md:205:5. 초안 전문을 한 번에 보여주고 일괄 승인받은 뒤, 설정된 GitHub 또는 Jira 이슈 백엔드에 항목별로 등록하고 `status:open` 자동 부착 (한 건이 실패해도 나머지는 계속)
+README.md:206:6. `unlabeled`로 성격·진행 상태 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
+README.md:214:- 승인 없는 등록, 승인 없는 라벨 생성, `status:open` 자동 부착 외의 상태 변경, 코멘트·PR 생성
+README.md:286:이 스킬은 설정된 provider에서 이슈 본문·코멘트·라벨을 받아오고 첨부 이미지까지 실제로 열어봅니다. GitHub는 `gh`, Jira는 REST API를 사용합니다. 코드베이스와 대조해 계획을 세우고, 워크트리를 만들고, **파일을 고치기 전에 before를 찍고**, 구현하고, 커밋하고, after를 바운딩 박스와 함께 찍습니다. 증거는 기본 브랜치 미러를 우선하고, 보호된 저장소에서는 `evidence/issue-<번호>` 브랜치로 올린 뒤 이슈에 렌더링되는 전후 리포트를 남깁니다.
+README.md:326:8. 증거 커밋 → 브랜치 push → **기본 브랜치 미러 우선, 보호 시 `evidence/issue-<번호>`로 fallback** → 이슈 코멘트
+README.md:327:9. 게시된 증거와 리포트의 사람 검토·승인을 기다린 뒤 `issue-end`로 인계
+README.md:427:`issue-end`는 `issue-start`가 증거와 리포트를 게시하고 사람이 승인한 작업을 PR로 마무리합니다.
+README.md:431:`context`의 `evidencePublished`가 게시본과 로컬 증거의 일치 여부를 알려 줍니다. `false`면 PR 전에 기본 브랜치 또는 `evidence/issue-<번호>` 브랜치로 재게시하고 이슈 코멘트를 갱신합니다.
+README.md:451:5. `issue-start`에서 받은 검토 승인을 확인
+README.md:455:`issue-start`가 게시한 증거와 같으면 다시 미러하지 않습니다. 승인 뒤 증거가 바뀌었다면 게시본도 함께 갱신한 뒤 다시 승인을 확인합니다.
+README.md:525:5. `issue-merge-critic`으로 모호성·검증되지 않은 전제·되돌릴 수 없는 순서를 검토
+README.md:526:6. 계획 승인 후 각 PR마다 별도 merge 승인을 받고 순서대로 merge → 각 이슈의 증거 조건으로 통합 테스트
+README.md:536:- 여러 PR을 묶어서 한 번에 승인받기
+README.md:774:3. `e2e-test-generator` - 검토된 계획서를 Playwright 테스트로 구현
+README.md:900:- `--codex-arg` 통과는 기본 거부 화이트리스트로, 샌드박스·승인·설정 우회 인자를 차단합니다.
+README.md:902:- Codex 승인/샌드박스 기본값을 약화하지 않고 OS cron/launchd도 설치하지 않습니다.
+README.md:1025:톤은 과장 없이 실무자가 바로 검토할 수 있게 해줘.
+
+## verification
+! .issue-start/ 는 폐기 예정입니다. `node issue-start.mjs migrate` 를 실행하세요.
+test-common: 통과
+! Jira 라벨은 공백을 허용하지 않아 "good-first-issue" 로 바꿔 붙입니다.
+test-tracker: 통과
+test-docs: 통과
+ok    .issue/59/plan.md 로 이관
+ok    .issue/59/evidence/before 로 이관
+ok    구 .issue-start 제거
+ok    구 .issue-evidence 제거
+ok    .gitignore 에서 구 줄 제거
+ok    .gitignore 에 블록 추가
+ok    plan.md 는 스테이징되지 않음
+ok    evidence 는 스테이징됨
+ok    layout 미결정 시 exit 2
+ok    WORKTREE_LAYOUT_UNSET 출력
+ok    sibling 경로
+ok    브랜치 이름
+ok    children 안전장치가 생성을 막음
+ok    안전장치가 이유를 알림
+ok    막힌 워크트리는 안 생김
+ok    children 표시 경로는 상대
+ok    children 워크트리 생성
+ok    children 워크트리가 무시됨
+ok    부모 저장소 status 에 워크트리 미노출
+ok    워크트리에서 guard 통과
+ok    base 브랜치에서 guard 차단
+ok    증거 커밋됨
+ok    미러 push 성공
+ok    미러 대상이 main
+ok    origin/main 에 증거 존재
+ok    내용이 다른 파일은 덮어쓰지 않음
+ok    무엇이 막았는지 알려줌
+ok    막혔어도 파일은 그대로
+ok    sync-base 성공
+ok    주 체크아웃이 증거 커밋을 받음
+ok    주 체크아웃은 여전히 main
+ok    증거가 주 체크아웃에도 있음
+ok    저장 안 된 변경이 있으면 건너뜀
+ok    건너뛰어도 변경은 그대로
+ok    context: 워크트리 인식
+ok    context: 이슈 추론
+ok    context: 증거 완결
+ok    context: evidenceDir 경로
+ok    context: issue-start 게시 증거 확인
+ok    context: 게시 기준 ref 확인
+ok    context: 바뀐 로컬 증거는 미게시 판정
+ok    pure-tree 생성
+ok    pure-tree 는 변경 전 내용
+ok    pure-tree 정리
+
+test-flow: 통과
+ok    gate: 커밋 2개면 신호가 있어도 SKIP
+ok    gate: 스캐폴딩에서도 build-config 신호는 잡힘
+ok    gate: 커밋 25개 저장소는 SKIP 이 아님
+ok    gate: commits 신호 충족
+ok    gate: source 신호 충족
+ok    gate: 원격 없으면 remote+gh 미충족 (gh 미호출)
+ok    create: --label 없으면 exit 2
+ok    create: --label 없을 때 이유를 출력
+ok    create: --label 없으면 .issue 를 만들지 않음
+ok    dry-run 1: 제목·라벨이 명령에 반영
+ok    dry-run 2: 제목·라벨이 명령에 반영
+ok    dry-run 3: 제목·라벨이 명령에 반영
+ok    dry-run: 세 호출이 서로 다른 명령을 냄
+ok    dry-run: .issue 를 만들지 않음
+ok    dry-run: .gitignore 를 건드리지 않음
+ok    create: 본문 파일이 없으면 실패
+
+test-issue-create: 통과
+ok    preflight: 겹침 없는 브랜치는 clean
+ok    preflight: clean 이면 체인용 commit 을 준다
+ok    preflight: merge-tree 경로를 썼다
+ok    preflight: c 는 base 대비 단독으로는 clean
+ok    preflight: 누적(a 위의 b) 도 clean
+ok    preflight: 누적(b 위의 c) 에서 충돌을 잡는다
+ok    preflight: 충돌이면 exit 1
+ok    preflight: 충돌 파일 2개
+ok    preflight: 소스는 content 로 분류
+ok    preflight: lockfile 은 generated 로 분류
+ok    preflight: 충돌이면 체인을 끊는다
+ok    preflight: tree 를 onto 로 주면 실패한다
+ok    preflight: 실패 사유를 알려준다
+ok    resolve: 충돌을 잡고 exit 1
+ok    resolve: merge 를 진행 중으로 멈춘다
+ok    resolve: 충돌 헌크 줄번호를 준다
+ok    resolve: base 브랜치는 그대로
+ok    resolve --continue: 마커가 남으면 거부
+ok    resolve --continue: 커밋하지 않았다
+ok    resolve --continue: 해소되면 커밋
+ok    resolve --continue: --push 없이는 올리지 않는다
+ok    resolve --continue --push: 올린다
+ok    해소 후 preflight 가 clean
+ok    해소가 양쪽 변경을 모두 남겼다
+ok    resolve: base 워크트리를 거부한다
+ok    resolve: detached 워크트리를 거부한다
+ok    resolve: detached 사유를 알려준다
+ok    merge 실패 사유를 충돌/CI/승인/상태로 가른다
+
+test-preflight: 통과
+verify-ignore: 통과 (11개 무시, 5개 커밋)
+sync-shared: 정본과 모든 사본이 동일하다
+
+check-shared: 통과
