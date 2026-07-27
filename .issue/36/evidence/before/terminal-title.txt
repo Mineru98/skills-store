@@ -1,0 +1,9 @@
+Issue #36 before evidence
+Reason for text evidence: terminal control-sequence behavior has no stable web UI screenshot; CI/non-VS Code environments intentionally skip it.
+Commit: 85d141e0f1ce29549738346f4679c223b241ad48
+
+Expected baseline: no shared terminal-title helper or start/merge call sites.
+Confirmed: no terminal-title implementation found.
+
+! .issue-start/ 는 폐기 예정입니다. `node issue-start.mjs migrate` 를 실행하세요.
+test-common: 통과
