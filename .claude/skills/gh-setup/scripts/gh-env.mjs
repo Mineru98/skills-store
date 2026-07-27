@@ -545,4 +545,5 @@ function main() {
   }
 }
 
-if (process.argv[1] && import.meta.url === `file://${path.resolve(process.argv[1])}`) main();
+import { pathToFileURL } from 'node:url';
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) main();

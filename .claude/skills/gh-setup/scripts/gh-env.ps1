@@ -1,4 +1,4 @@
-# gh-env.ps1 — Windows 진입점.
+﻿# gh-env.ps1 — Windows 진입점.
 #
 # node 나 python 이 있으면 그 구현으로 라우팅하고, 둘 다 없으면
 # 이 파일 안의 폴백으로 감지(detect)와 안내(status/plan/login)까지 처리한다.
