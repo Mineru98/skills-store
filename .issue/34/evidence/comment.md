@@ -18,12 +18,14 @@ Markdown 이미지와 HTML 이미지를 입력으로 읽고, 상대경로·priva
 
 - 변경 전: 대표 인라인 이미지 4건 중 절대 URL 2건만 수집했고 상대 URL 2건을 누락했습니다.
 - 변경 전: private blob은 HTML, private release asset은 404 텍스트로 판정됐으며 실패 파일도 남았습니다.
-- 변경 후: `flower-rag` 최신 68개 이슈의 인라인 이미지 124건을 식별하고 124건 모두 실제 이미지로 다운로드했습니다.
+- 변경 후: `flower-rag` 재검증 시점의 69개 이슈·131개 댓글에서 인라인 이미지 124건을 식별했습니다.
+- 변경 후: user-attachments 35건, blob 78건, 직접 이미지 7건, release asset 4건으로 분류했습니다.
+- 변경 후: private blob·release asset·user-attachments 표본을 각각 실제 이미지로 다운로드했습니다.
 - 변경 후: 인라인이 아닌 이미지 후보 19건은 다운로드 대상과 분리했습니다.
 - 변경 후: Content-Type과 시그니처가 다른 실제 이미지 4건은 시그니처 기준 확장자로 저장하고 경고했습니다.
 
 원본 결과는 `.issue/34/evidence/before/image-links.txt`와 `.issue/34/evidence/after/image-links.txt`에 있습니다.
-초기 감사 시점의 인라인 이미지는 114건이었으며, 검증 시점에는 이슈 내용이 추가되어 124건입니다.
+초기 감사 시점의 인라인 이미지는 114건이었으며, 재검증 시점에는 이슈 내용이 추가되어 124건입니다.
 
 ## 검증
 
