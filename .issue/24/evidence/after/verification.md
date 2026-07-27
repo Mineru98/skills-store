@@ -9,5 +9,6 @@
 - `node scripts/test-common.mjs` 통과
 - `node scripts/test-tracker.mjs` 통과
 - `sh scripts/check-shared.sh` 통과
+- 전체 실행 결과 원문은 `test-output.txt`에 기록했다.
 
 화면 변경이 없는 CLI·문서 작업이므로 이미지 캡처는 적용하지 않았다.

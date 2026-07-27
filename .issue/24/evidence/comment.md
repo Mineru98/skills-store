@@ -14,9 +14,9 @@ merge 실패도 충돌·CI·승인 부족·상태로 나눠 반환합니다.
 
 ## 변경 파일
 
-- `issue-merge/scripts/issue-merge.mjs` — preflight·resolve·실패 원인 분류
-- `issue-merge/references/*.md`와 `SKILL.md` — 충돌 확정·해소·재시도 절차
-- `agents/issue-merge-resolver.*` — 양쪽 의도를 보존하는 해소 전담 에이전트
+- `.claude/skills/issue-merge/scripts/issue-merge.mjs`, `.codex/skills/issue-merge/scripts/issue-merge.mjs` — preflight·resolve·실패 원인 분류
+- `.claude/skills/issue-merge/references/*.md`, `.codex/skills/issue-merge/references/*.md`, 양쪽 `SKILL.md` — 충돌 확정·해소·재시도 절차
+- `.claude/agents/issue-merge-resolver.md`, `.codex/agents/issue-merge-resolver.toml` — 양쪽 의도를 보존하는 해소 전담 에이전트
 - `scripts/test-preflight.sh` — 두 브랜치 충돌과 안전성 단위 확인
 
 ## 검증
@@ -26,6 +26,7 @@ merge 실패도 충돌·CI·승인 부족·상태로 나눠 반환합니다.
 - `node scripts/test-common.mjs` 통과
 - `node scripts/test-tracker.mjs` 통과
 - `sh scripts/check-shared.sh` 통과
+- 실행 결과 원문: `.issue/24/evidence/after/test-output.txt`
 
 ## 남은 이슈
 
