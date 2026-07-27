@@ -1,18 +1,19 @@
-Issue #36 after evidence
+Issue #36 after evidence — issue-end recheck
 Reason for text evidence: terminal control-sequence behavior has no stable web UI screenshot; CI/non-VS Code environments intentionally skip it.
 Bounding box: not applicable to a non-visual TTY control-sequence change.
+Final branch commit: bc703d705a9367a0cb55f7a96666d13c174163a8
 Implementation commit: 57b1a47538e74bfd6eed8c3136726375c0f8f7e3
 
 Terminal title implementation and call sites:
-.claude/skills/issue-merge/scripts/issue-merge.mjs:29:  inferIssue, listWorktrees, listEvidence, evidenceRel, setTerminalTitle, WORKSPACE_DIR,
-.claude/skills/issue-merge/scripts/issue-merge.mjs:207:  setTerminalTitle(`merge ${numbers.map((number) => `#${Number(number)}`).join(' ')}`);
 .codex/skills/issue-start/scripts/issue-start.mjs:44:  setTerminalTitle, WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 .codex/skills/issue-start/scripts/issue-start.mjs:497:      setTerminalTitle(`#${number}`);
 .claude/skills/issue-start/scripts/issue-start.mjs:44:  setTerminalTitle, WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 .claude/skills/issue-start/scripts/issue-start.mjs:497:      setTerminalTitle(`#${number}`);
+tools/issue-common.mjs:133:export function setTerminalTitle(title, { env = process.env, stream = process.stdout } = {}) {
 .codex/skills/issue-merge/scripts/issue-merge.mjs:29:  inferIssue, listWorktrees, listEvidence, evidenceRel, setTerminalTitle, WORKSPACE_DIR,
 .codex/skills/issue-merge/scripts/issue-merge.mjs:207:  setTerminalTitle(`merge ${numbers.map((number) => `#${Number(number)}`).join(' ')}`);
-tools/issue-common.mjs:133:export function setTerminalTitle(title, { env = process.env, stream = process.stdout } = {}) {
+.claude/skills/issue-merge/scripts/issue-merge.mjs:29:  inferIssue, listWorktrees, listEvidence, evidenceRel, setTerminalTitle, WORKSPACE_DIR,
+.claude/skills/issue-merge/scripts/issue-merge.mjs:207:  setTerminalTitle(`merge ${numbers.map((number) => `#${Number(number)}`).join(' ')}`);
 
 $ node scripts/test-common.mjs
 ! .issue-start/ 는 폐기 예정입니다. `node issue-start.mjs migrate` 를 실행하세요.
@@ -100,5 +101,5 @@ sync-shared: 정본과 모든 사본이 동일하다
 
 check-shared: 통과
 
-$ git diff --check HEAD^ HEAD
+$ git diff --check 57b1a47^ 57b1a47
 git diff --check: 통과
