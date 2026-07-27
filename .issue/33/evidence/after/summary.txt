@@ -1,0 +1,55 @@
+Issue #33 after evidence
+This is a prompt/evaluation change, so webp screenshots and bounding boxes are not applicable.
+
+Dataset
+- 500 total cases: tuning 400 + holdout 100
+- 25 industries, 4 writing styles
+- single 200, split 100, partial 100, over_limit 100
+- requirement counts cover 1, 2, 3, 4, 5, and 6+
+
+Controlled model experiment
+- model: haiku
+- final comparison: tuning 30 baseline + 30 current, holdout 40 baseline + 40 current = 140 trials
+- tuning issue-count accuracy: 86.7% -> 93.3%
+- tuning grouping exact: 83.3% -> 90.0%
+- tuning pairwise grouping F1: 77.4% -> 88.0%
+- tuning decision accuracy: 86.7% -> 96.7%
+- holdout atom F1: 99.7% -> 100.0%
+- holdout issue-count accuracy: 92.5% -> 100.0%
+- holdout grouping exact: 92.5% -> 100.0%
+- holdout pairwise grouping F1: 94.4% -> 100.0%
+- holdout label / decision / over-limit accuracy: 100.0% / 100.0% / 100.0%
+- holdout under/over split: 0.0% / 0.0%
+
+Verification
+- generated dataset matches deterministic generator
+- dataset schema, uniqueness, partition, and distribution validation passed
+- split scorer unit test passed
+- issue-create regression test passed
+- .claude/.codex shared-file drift check passed
+- git diff whitespace check passed
+
+Implementation commit
+6f5234e feat(issue-create): improve atomic request splitting
+ .claude/skills/issue-create/SKILL.md               |    15 +-
+ .../issue-create/references/split-requests.md      |   220 +-
+ .codex/skills/issue-create/SKILL.md                |    15 +-
+ .../issue-create/references/split-requests.md      |   220 +-
+ README.md                                          |    19 +-
+ evals/issue-create/baseline-split-rubric.md        |   144 +
+ evals/issue-create/generate-split-dataset.mjs      |   221 +
+ evals/issue-create/run-split-eval.mjs              |   189 +
+ evals/issue-create/split-eval-lib.mjs              |   143 +
+ evals/issue-create/split-eval.json                 | 22539 +++++++++++++++++++
+ evals/issue-create/split-holdout.json              |  5616 +++++
+ evals/issue-create/test-split-eval.mjs             |    24 +
+ evals/issue-create/validate-split-dataset.mjs      |   103 +
+ 13 files changed, 29299 insertions(+), 169 deletions(-)
+ create mode 100644 evals/issue-create/baseline-split-rubric.md
+ create mode 100644 evals/issue-create/generate-split-dataset.mjs
+ create mode 100644 evals/issue-create/run-split-eval.mjs
+ create mode 100644 evals/issue-create/split-eval-lib.mjs
+ create mode 100644 evals/issue-create/split-eval.json
+ create mode 100644 evals/issue-create/split-holdout.json
+ create mode 100644 evals/issue-create/test-split-eval.mjs
+ create mode 100644 evals/issue-create/validate-split-dataset.mjs
