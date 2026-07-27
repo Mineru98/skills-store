@@ -26,7 +26,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {
   git, fail, parseArgs, repoRoot, currentBranch, detectBase,
-  inferIssue, listWorktrees, listEvidence, evidenceRel, WORKSPACE_DIR,
+  inferIssue, listWorktrees, listEvidence, evidenceRel, setTerminalTitle, WORKSPACE_DIR,
 } from './issue-common.mjs';
 import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
 
@@ -204,6 +204,7 @@ function cmdBaseTree(args) {
 function cmdPlanDir(numbers) {
   const root = repoRoot();
   if (!numbers.length) fail('이슈 번호가 하나 이상 필요합니다 (예: plan-dir 16 21 53 64)');
+  setTerminalTitle(`merge ${numbers.map((number) => `#${Number(number)}`).join(' ')}`);
   const name = numbers.map(Number).sort((a, b) => a - b).join('-');
   const dir = path.join(root, WORKSPACE_DIR, 'merge', name);
   mkdirSync(dir, { recursive: true });

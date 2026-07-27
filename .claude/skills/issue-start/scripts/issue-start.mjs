@@ -40,7 +40,7 @@ import {
   slugify, prefixFromLabels, parseIssueNumber, inferIssue,
   issueDir, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
   mirrorEvidence, resolveWorktreePath, getWorktreeLayout, syncBaseCheckout, worktreeDisplayPath,
-  WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
+  setTerminalTitle, WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 } from './issue-common.mjs';
 import {
   createTracker, evidenceUrls, gitHost, setTrackerStatus,
@@ -495,6 +495,7 @@ function main() {
   const root = repoRoot();
   switch (mode) {
     case 'fetch': {
+      setTerminalTitle(`#${number}`);
       const tracker = createTracker(root, { repo: opts.repo });
       const auth = tracker.provider === 'jira' ? tracker.auth() : { ok: true };
       if (!auth.ok) {

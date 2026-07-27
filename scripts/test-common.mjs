@@ -70,6 +70,44 @@ eq('parseArgs', C.parseArgs(['--issue', '59', '--push', 'extra']), {
   _: ['extra'], issue: '59', push: true,
 });
 
+/* setTerminalTitle */
+const terminalWrites = [];
+const terminalStream = { isTTY: true, write: (value) => terminalWrites.push(value) };
+eq('setTerminalTitle(VS Code)', C.setTerminalTitle('#59', {
+  env: { TERM_PROGRAM: 'vscode' }, stream: terminalStream,
+}), true);
+eq('setTerminalTitle(OSC)', terminalWrites, ['\x1b]2;#59\x07']);
+
+const otherTerminalWrites = [];
+eq('setTerminalTitle(비 VS Code 생략)', C.setTerminalTitle('#60', {
+  env: { TERM_PROGRAM: 'Apple_Terminal' },
+  stream: { isTTY: true, write: (value) => otherTerminalWrites.push(value) },
+}), false);
+eq('setTerminalTitle(다른 터미널 불변)', otherTerminalWrites, []);
+
+eq('setTerminalTitle(비 TTY 생략)', C.setTerminalTitle('#61', {
+  env: { TERM_PROGRAM: 'vscode' }, stream: { isTTY: false, write: () => {} },
+}), false);
+
+const tmuxWrites = [];
+eq('setTerminalTitle(tmux 안의 VS Code)', C.setTerminalTitle('merge #1 #2', {
+  env: { TERM_PROGRAM: 'vscode', TMUX: '/tmp/tmux-501/default,1,0', TMUX_PANE: '%3' },
+  stream: { isTTY: true, write: (value) => tmuxWrites.push(value) },
+}), true);
+eq('setTerminalTitle(tmux 현재 pane)', tmuxWrites, ['\x1b]2;merge #1 #2\x07']);
+
+eq('setTerminalTitle(쓰기 실패 무시)', C.setTerminalTitle('#62', {
+  env: { TERM_PROGRAM: 'vscode' },
+  stream: { isTTY: true, write: () => { throw new Error('unsupported'); } },
+}), false);
+
+const sanitizedWrites = [];
+C.setTerminalTitle('safe\x07title', {
+  env: { TERM_PROGRAM: 'vscode' },
+  stream: { isTTY: true, write: (value) => sanitizedWrites.push(value) },
+});
+eq('setTerminalTitle(제어문자 제거)', sanitizedWrites, ['\x1b]2;safe title\x07']);
+
 /* 경로 + gitignore (임시 저장소) */
 const tmp = mkdtempSync(path.join(os.tmpdir(), 'issue-common-test-'));
 try {
