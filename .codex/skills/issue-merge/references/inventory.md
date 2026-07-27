@@ -126,9 +126,13 @@ gh issue view <번호> --json number,title,state,body,labels,comments
 fix/16-login-redirect  ↔  feat/21-search-filter   (src/shared/api.ts)
 ```
 
-이건 "같은 파일을 건드렸다"는 사실일 뿐 실제 충돌은 아니다. 실제 충돌 여부는 merge 를 해봐야 안다. 계획 단계에서 순서를 정하는 재료로만 쓴다.
+**이건 "같은 파일을 건드렸다"는 사실일 뿐 실제 충돌이 아니다.** 같은 파일의 다른 곳을 고쳤으면 깨끗이 합쳐진다.
+여기서 판단하지 말고, 4단계의 `preflight` 로 실제 충돌을 확정한 뒤에 순서를 정한다.
 
-일반적으로 **변경 파일이 적은 것부터** merge 한다. 충돌이 나도 범위가 좁아 원인을 찾기 쉽다.
+반대로 `overlapsWith` 가 비어 있어도 안심하지 않는다. 파일 이름이 겹치지 않아도 rename·삭제가 얽히면 충돌한다.
+**후보 전부를 preflight 에 넣는다.** 이 목록은 어디를 먼저 볼지 정하는 힌트일 뿐이다.
+
+세부는 `merge-plan.md` 2절.
 
 ## 5. 이미 닫힌 이슈 / 이미 merge 된 PR
 
