@@ -8,8 +8,10 @@ Dataset
 - requirement counts cover 1, 2, 3, 4, 5, and 6+
 
 Controlled model experiment
-- model: haiku
+- models: tuning baseline/current and holdout current used haiku; holdout baseline used sonnet
 - final comparison: tuning 30 baseline + 30 current, holdout 40 baseline + 40 current = 140 trials
+- provenance: model, generated_at, per-case outputs, and metrics are preserved in the four JSON result files
+- limitation: the original model-run shell command output was not preserved, so invocation flags beyond the JSON metadata cannot be reconstructed
 - tuning issue-count accuracy: 86.7% -> 93.3%
 - tuning grouping exact: 83.3% -> 90.0%
 - tuning pairwise grouping F1: 77.4% -> 88.0%

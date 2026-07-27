@@ -13,7 +13,7 @@
 
 ## 실제 모델 비교
 
-최종 비교는 `haiku`로 140회 실행했습니다.
+최종 비교는 140회 실행했습니다. 튜닝 baseline/current와 홀드아웃 current는 `haiku`, 홀드아웃 baseline은 `sonnet` 결과입니다.
 
 - 튜닝 30건
   - 이슈 수 정확도: 86.7% → 93.3%
@@ -39,6 +39,9 @@
 - `scripts/test-issue-create.sh` 통과
 - `.claude` / `.codex` 드리프트 검사 통과
 - `git diff --check` 통과
+
+모델명·생성 시각·사례별 응답·지표는 네 JSON 결과 파일에 남겼습니다.
+원본 모델 실행 명령 출력은 보존되지 않아 JSON 메타데이터 밖의 호출 옵션은 재구성할 수 없습니다.
 
 ## 증거 형식
 
