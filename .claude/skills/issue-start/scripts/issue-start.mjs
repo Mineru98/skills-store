@@ -29,7 +29,6 @@
  *
  * 요구사항: git, curl, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
-import { spawnSync } from 'node:child_process';
 import {
   mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, renameSync, readdirSync, cpSync,
 } from 'node:fs';
@@ -43,15 +42,20 @@ import {
   mirrorEvidence, resolveWorktreePath, getWorktreeLayout, syncBaseCheckout, worktreeDisplayPath,
   WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 } from './issue-common.mjs';
-import { createTracker, evidenceUrls, setTrackerStatus } from './issue-tracker.mjs';
+import {
+  createTracker, evidenceUrls, gitHost, setTrackerStatus,
+} from './issue-tracker.mjs';
 import { publishDocumentation } from './issue-docs.mjs';
+import {
+  collectImageReferences, downloadImageReference, validateEvidenceReport,
+} from './issue-media.mjs';
 
 function usage(exitCode = 1) {
   console.error(`Usage:
   node issue-start.mjs fetch <issue-number> [--repo <owner/name>]
   node issue-start.mjs worktree <issue-number> [options]
   node issue-start.mjs guard [--issue <n>]
-  node issue-start.mjs evidence-init|evidence-commit|evidence-mirror|evidence-urls <issue-number> [options]
+  node issue-start.mjs evidence-init|evidence-commit|evidence-mirror|evidence-urls|report-check <issue-number> [options]
   node issue-start.mjs migrate [--dry-run]
   node issue-start.mjs sync-base [--base <branch>]
 
@@ -79,54 +83,14 @@ evidence options:
 
 /* ------------------------------------------------------------------ fetch */
 
-const IMAGE_RE = [
-  /!\[[^\]]*\]\(([^)\s]+)/g, // ![alt](url)
-  /<img[^>]+src=["']([^"']+)["']/gi, // <img src="url">
-];
-
-export function collectImageUrls(text) {
-  const urls = [];
-  for (const re of IMAGE_RE) {
-    for (const m of String(text ?? '').matchAll(re)) {
-      if (/^https?:\/\//.test(m[1])) urls.push(m[1]);
-    }
-  }
-  return [...new Set(urls)];
+export function collectImageUrls(text, sourceUrl) {
+  return collectImageReferences([{ text, source: 'text', sourceUrl }])
+    .filter((ref) => ref.inline && ref.resolvedUrl)
+    .map((ref) => ref.resolvedUrl);
 }
 
-const EXT_BY_TYPE = {
-  'image/png': '.png',
-  'image/jpeg': '.jpg',
-  'image/gif': '.gif',
-  'image/webp': '.webp',
-  'image/svg+xml': '.svg',
-};
-
 export function downloadImage(url, dir, index, auth) {
-  const stem = path.join(dir, `image-${String(index).padStart(2, '0')}`);
-  const tmp = `${stem}.download`;
-  // curl 은 호스트가 바뀌는 리다이렉트에서 Authorization 헤더를 자동으로 제거한다.
-  // (GitHub user-attachments → S3 서명 URL 패턴에 필요)
-  const args = ['-sSL', '--max-time', '60', '-o', tmp, '-w', '%{content_type}'];
-  // GitHub 은 Bearer 토큰, Jira 는 Basic 인증이라 스킴까지 트래커가 정한다.
-  if (auth?.token) args.push('-H', `Authorization: ${auth.scheme} ${auth.token}`);
-  args.push(url);
-  const res = spawnSync('curl', args, { encoding: 'utf8' });
-  if (res.status !== 0) {
-    if (existsSync(tmp)) rmSync(tmp);
-    return { url, ok: false, reason: (res.stderr || '').trim() || `curl exit ${res.status}` };
-  }
-  const contentType = (res.stdout || '').split(';')[0].trim();
-  const ext =
-    EXT_BY_TYPE[contentType] ??
-    (path.extname(new URL(url).pathname).match(/^\.(png|jpe?g|gif|webp|svg)$/i)?.[0] || '.png');
-  const target = `${stem}${ext}`;
-  if (existsSync(target)) rmSync(target);
-  renameSync(tmp, target);
-  if (!contentType.startsWith('image/')) {
-    return { url, ok: false, path: target, reason: `이미지가 아님 (content-type: ${contentType || 'unknown'})` };
-  }
-  return { url, ok: true, path: target };
+  return downloadImageReference(url, dir, index, auth);
 }
 
 function cmdFetch(number, root, tracker) {
@@ -161,9 +125,18 @@ function cmdFetch(number, root, tracker) {
   }
   writeFileSync(path.join(dir, 'issue.md'), `${md.join('\n')}\n`);
 
-  const urls = collectImageUrls([issue.body, ...(issue.comments ?? []).map((c) => c.body)].join('\n'));
-  const auth = urls.length ? tracker.attachmentAuth() : null;
-  const downloads = urls.map((url, i) => downloadImage(url, imagesDir, i + 1, auth));
+  const sources = [
+    { text: issue.body, source: `${display} 본문`, sourceUrl: issue.url },
+    ...(issue.comments ?? []).map((comment, index) => ({
+      text: comment.body,
+      source: `${display} 댓글 ${index + 1}`,
+      sourceUrl: comment.url ?? issue.url,
+    })),
+  ];
+  const references = collectImageReferences(sources);
+  const inline = references.filter((ref) => ref.inline);
+  const auth = inline.length ? tracker.attachmentAuth() : null;
+  const downloads = inline.map((ref, i) => downloadImageReference(ref, imagesDir, i + 1, auth));
 
   const rel = (p) => {
     const r = path.relative(root, p);
@@ -172,10 +145,20 @@ function cmdFetch(number, root, tracker) {
   console.log(`✓ 이슈 ${display} 수집 완료 — ${issue.title}`);
   console.log(`  라벨: ${labels.join(', ') || '(없음)'} / 상태: ${issue.state}`);
   console.log(`  본문: ${rel(path.join(dir, 'issue.md'))}`);
-  if (!urls.length) console.log('  이미지: 없음');
+  if (!references.length) console.log('  이미지: 없음');
   for (const d of downloads) {
-    if (d.ok) console.log(`  이미지: ${rel(d.path)}  ← ${d.url}`);
-    else console.log(`  이미지 실패: ${d.url} (${d.reason})`);
+    if (d.ok) {
+      console.log(`  이미지: ${rel(d.path)}  ← ${d.originalUrl} (${d.source})`);
+      if (d.warning) console.log(`    경고: ${d.warning}`);
+    }
+    else {
+      console.log(`  이미지 실패: ${d.originalUrl}`);
+      console.log(`    위치: ${d.source} / 해석: ${d.resolvedUrl ?? '(실패)'} / 이유: ${d.reason}`);
+    }
+  }
+  for (const ref of references.filter((candidate) => !candidate.inline)) {
+    console.log(`  이미지 후보 제외: ${ref.originalUrl}`);
+    console.log(`    위치: ${ref.source} / 유형: ${ref.syntax}, ${ref.kind} / 이유: 인라인 이미지 문법이 아님`);
   }
   console.log('');
   console.log(`SUGGESTED_PREFIX=${prefixFromLabels(labels)}`);
@@ -346,9 +329,27 @@ function cmdEvidenceInit(number, root) {
   console.log(JSON.stringify({ issue: key, before, after, gitignoreUpdated: touched }, null, 2));
 }
 
+function checkReport(number, root) {
+  const reportFile = path.join(evidenceDir(root, String(number)), 'comment.md');
+  if (!existsSync(reportFile)) fail(`리포트가 없습니다: ${path.relative(root, reportFile)}`);
+  const repo = gitHost.repoInfo(root);
+  return {
+    reportFile: path.relative(root, reportFile),
+    ...validateEvidenceReport(readFileSync(reportFile, 'utf8'), { isPrivate: Boolean(repo?.isPrivate) }),
+  };
+}
+
+function cmdReportCheck(number, root) {
+  const result = checkReport(number, root);
+  console.log(JSON.stringify(result, null, 2));
+  if (!result.ok) process.exit(5);
+}
+
 function cmdEvidenceCommit(number, root) {
   const key = String(number);
   const reportFile = path.join(evidenceDir(root, key), 'comment.md');
+  const report = checkReport(number, root);
+  if (!report.ok) fail(`리포트 이미지 검증 실패:\n- ${report.errors.join('\n- ')}`);
   const docs = publishDocumentation({ root, key, reportFile });
   if (!docs.ok) console.error(`! Confluence 게시 건너뜀: ${docs.warning}`);
   else if (!docs.skipped) console.log(`✓ Confluence 리포트 게시: ${docs.url}`);
@@ -436,7 +437,7 @@ function cmdMigrate(root, opts) {
 /* ------------------------------------------------------------------- main */
 
 const NEEDS_NUMBER = new Set([
-  'fetch', 'worktree', 'evidence-init', 'evidence-commit', 'evidence-mirror', 'evidence-urls',
+  'fetch', 'worktree', 'evidence-init', 'evidence-commit', 'evidence-mirror', 'evidence-urls', 'report-check',
 ]);
 const MODES = new Set([...NEEDS_NUMBER, 'guard', 'migrate', 'sync-base', 'status']);
 
@@ -517,6 +518,7 @@ function main() {
     case 'evidence-commit': cmdEvidenceCommit(number, root); break;
     case 'evidence-mirror': cmdEvidenceMirror(number, root, opts); break;
     case 'evidence-urls': cmdEvidenceUrls(number, root, opts); break;
+    case 'report-check': cmdReportCheck(number, root); break;
     case 'migrate': cmdMigrate(root, opts); break;
     case 'sync-base': cmdSyncBase(root, opts); break;
     default: usage();

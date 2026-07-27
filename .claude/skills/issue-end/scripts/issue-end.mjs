@@ -31,7 +31,9 @@
  *
  * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
-import { mkdirSync, existsSync, rmSync } from 'node:fs';
+import {
+  mkdirSync, existsSync, readFileSync, rmSync,
+} from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
@@ -41,8 +43,9 @@ import {
 } from './issue-common.mjs';
 import { createTracker, gitHost, evidenceUrls, setTrackerStatus } from './issue-tracker.mjs';
 import { publishDocumentation } from './issue-docs.mjs';
+import { validateEvidenceReport } from './issue-media.mjs';
 
-const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|pure-tree|status> [options]
+const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|report-check|pure-tree|status> [options]
 
   --issue <n>        이슈 번호 (생략 시 브랜치에서 추론)
   --base <branch>    기준 브랜치 고정
@@ -147,10 +150,30 @@ function cmdInit(args) {
   }, null, 2));
 }
 
+function checkReport(root, key) {
+  const reportFile = path.join(evidenceDir(root, key), 'comment.md');
+  if (!existsSync(reportFile)) fail(`리포트가 없습니다: ${path.relative(root, reportFile)}`);
+  const repo = gitHost.repoInfo(root);
+  return {
+    reportFile: path.relative(root, reportFile),
+    ...validateEvidenceReport(readFileSync(reportFile, 'utf8'), { isPrivate: Boolean(repo?.isPrivate) }),
+  };
+}
+
+function cmdReportCheck(args) {
+  const root = repoRoot();
+  const { key } = evidenceKey(args, currentBranch());
+  const result = checkReport(root, key);
+  console.log(JSON.stringify(result, null, 2));
+  if (!result.ok) process.exit(5);
+}
+
 function cmdCommit(args) {
   const root = repoRoot();
   const { key, issue } = evidenceKey(args, currentBranch());
   const reportFile = path.join(evidenceDir(root, key), 'comment.md');
+  const report = checkReport(root, key);
+  if (!report.ok) fail(`리포트 이미지 검증 실패:\n- ${report.errors.join('\n- ')}`);
   const docs = publishDocumentation({ root, key, reportFile });
   if (!docs.ok) console.error(`! Confluence 게시 건너뜀: ${docs.warning}`);
   else if (!docs.skipped) console.log(`✓ Confluence 리포트 게시: ${docs.url}`);
@@ -258,6 +281,7 @@ switch (sub) {
   case 'commit': cmdCommit(args); break;
   case 'mirror': cmdMirror(args); break;
   case 'urls': cmdUrls(args); break;
+  case 'report-check': cmdReportCheck(args); break;
   case 'status': cmdStatus(args); break;
   case 'pure-tree': cmdPureTree(args); break;
   default:

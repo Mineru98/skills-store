@@ -154,6 +154,17 @@ node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <�
 
 `comment.md` 를 만들고 파일로 넘긴다. 인라인 문자열로 넘기지 않는다.
 
+기존 이슈의 HTML `<img>`는 입력 호환 목적으로 읽을 수 있지만 새 리포트에는 쓰지 않는다.
+모든 새 이미지는 설명이 있는 `![설명](직접 이미지 링크)`로 작성한다.
+bare 이미지 URL, 일반 링크로 감싼 이미지, blob 페이지, 빈 설명은 허용하지 않는다.
+private 저장소에서는 raw/release URL 대신 이슈 웹 UI에 올린 `user-attachments` URL을 쓴다.
+
+게시 전에 반드시 기계 검사를 통과시킨다. `evidence-commit`도 같은 검사를 다시 실행한다.
+
+```bash
+node <skill>/scripts/issue-start.mjs report-check {issue_number}
+```
+
 ```bash
 gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comment.md
 ```

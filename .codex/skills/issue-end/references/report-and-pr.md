@@ -56,7 +56,10 @@
 
 규칙:
 
-- 이미지는 반드시 `.webp`, 링크는 `![제목](<mirrorUrl>)` 형식.
+- HTML `<img>`는 과거 입력을 읽을 때만 허용한다. 새 이미지는 반드시 설명이 있는 `![제목](<직접 이미지 URL>)` 형식으로 쓴다.
+- bare 이미지 URL, 일반 링크로 감싼 이미지, blob 페이지, 빈 설명을 쓰지 않는다.
+- private 저장소는 raw/release URL 대신 이슈 웹 UI의 `user-attachments` URL을 쓴다.
+- 증거 이미지는 반드시 `.webp`.
 - 숫자는 우측 정렬하고 변화율을 굵게.
 - **악화된 지표를 빼지 않는다.** 못 잰 항목은 빈칸이 아니라 `미측정 (사유)`.
 - 이미지 4장 초과면 `<details>` 로 접는다.
@@ -78,6 +81,7 @@ Confluence 설정·권한·네트워크 오류는 경고로만 출력합니다. 
 ```
 
 ```bash
+node <skill>/scripts/issue-end.mjs report-check --issue 59
 node <skill>/scripts/issue-end.mjs commit --issue 59
 git push -u origin "$(git branch --show-current)"        # 사용자 확인 후
 node <skill>/scripts/issue-end.mjs mirror --issue 59 --push
@@ -257,6 +261,7 @@ gh issue view 59 --json comments \
 **같은 내용을 새 코멘트로 또 달지 않는다.** `issue-start` → `issue-end` 를 이어서 돌리면 거의 항상 이미 있는 상태이고, 중복 코멘트는 이슈를 읽기 어렵게 만든다.
 
 - 인라인 문자열(`--body "..."`)로 넘기지 않는다. 줄바꿈과 마크다운이 깨진다.
+- 코멘트 직전에 `report-check`를 다시 실행한다. 실패하면 게시하지 않고 5단계로 돌아간다.
 - `comment.md` 도 증거와 함께 커밋된 상태여야 한다. 6단계가 이미 포함한다.
 - **이 단계에서 `comment.md` 를 고치지 않는다.** 고쳐야 할 것이 보이면 5단계로 돌아가 고치고 6단계를 다시 돌린 뒤 여기로 온다.
 - 이슈 번호가 확정되지 않았으면 **코멘트하지 않는다.** 남의 이슈에 다는 사고가 난다.
