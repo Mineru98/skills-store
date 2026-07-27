@@ -10,7 +10,7 @@ fail=0
 sh "$ROOT/scripts/sync-shared.sh" --check || fail=1
 
 echo
-for skill in issue-create issue-start issue-end issue-merge; do
+for skill in issue-create issue-start issue-end issue-merge convention; do
   a="$ROOT/.claude/skills/$skill"
   b="$ROOT/.codex/skills/$skill"
   [ -d "$a" ] || continue

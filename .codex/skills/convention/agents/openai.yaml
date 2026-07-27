@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contribution Convention"
+  short_description: "Scan and record repository contribution rules"
+  default_prompt: "Use $convention to scan this GitHub repository's contribution conventions and update AGENTS.local.md."
