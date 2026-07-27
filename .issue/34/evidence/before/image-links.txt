@@ -1,0 +1,12 @@
+# 수정 전 이미지 링크 처리 재현
+inline_occurrences=4
+collected_urls=2
+relative_urls_missed=2
+collected=https://example.com/a.png
+collected=https://example.com/b.webp
+private_blob_ok=false
+private_blob_reason=이미지가 아님 (content-type: text/html)
+private_blob_bad_file_left=true
+private_release_ok=false
+private_release_reason=이미지가 아님 (content-type: text/plain)
+private_release_bad_file_left=true
