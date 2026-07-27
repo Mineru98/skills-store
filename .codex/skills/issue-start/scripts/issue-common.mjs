@@ -126,6 +126,27 @@ export function must(cmd, args, opts = {}) {
   return r.out;
 }
 
+/**
+ * 현재 프로세스를 소유한 VS Code 통합 터미널의 제목을 바꾼다.
+ *
+ * 활성 터미널을 찾는 명령 대신 현재 TTY에 OSC를 쓰므로 다른 세션은 건드리지 않는다.
+ * tmux 안에서도 TERM_PROGRAM과 출력 스트림이 상속되므로 현재 pane을 통해 전달된다.
+ * 터미널 이름 변경은 보조 기능이므로 미지원 환경이나 쓰기 실패를 호출부에 전파하지 않는다.
+ */
+export function setTerminalTitle(title, { env = process.env, stream = process.stdout } = {}) {
+  if (env.TERM_PROGRAM !== 'vscode' || !stream?.isTTY) return false;
+
+  const safeTitle = String(title).replace(/[\x00-\x1f\x7f-\x9f]+/g, ' ').trim();
+  if (!safeTitle) return false;
+
+  try {
+    stream.write(`\x1b]2;${safeTitle}\x07`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function parseArgs(argv, flags = ['push', 'json', 'dry-run', 'force']) {
   const out = { _: [] };
   for (let i = 0; i < argv.length; i += 1) {
