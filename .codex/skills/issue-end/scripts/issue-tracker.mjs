@@ -218,7 +218,11 @@ function githubTracker(root, cfg) {
     /** 첨부 이미지를 받을 때 쓸 토큰. */
     attachmentAuth() {
       const token = run('gh', ['auth', 'token']).out;
-      return token ? { scheme: 'Bearer', token } : null;
+      return token ? {
+        scheme: 'Bearer',
+        token,
+        trustedHosts: ['github.com', 'api.github.com', 'raw.githubusercontent.com'],
+      } : null;
     },
   };
 }
@@ -520,7 +524,17 @@ function jiraTracker(cfg) {
 
     /** Jira 첨부는 같은 Basic 인증을 쓴다. */
     attachmentAuth() {
-      return auth ? { scheme: 'Basic', token: auth } : null;
+      let hostname = null;
+      try {
+        hostname = new URL(base).hostname;
+      } catch {
+        hostname = null;
+      }
+      return auth ? {
+        scheme: 'Basic',
+        token: auth,
+        trustedHosts: hostname ? [hostname] : [],
+      } : null;
     },
   };
 }

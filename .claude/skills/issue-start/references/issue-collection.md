@@ -20,7 +20,9 @@ gh issue view 59 --json number,title,state,body,labels,assignees,milestone,comme
   > .issue/59/issue.json
 ```
 
-본문과 코멘트에서 이미지 URL 을 모두 뽑는다. 마크다운 `![alt](url)` 과 HTML `<img src="url">` 을 **둘 다** 훑고 중복을 제거한다.
+본문과 코멘트에서 이미지 URL 을 모두 뽑는다. 마크다운 `![alt](url)` 과 HTML `<img src="url">` 을 **둘 다** 읽는다.
+각 URL은 본문이면 이슈 URL, 댓글이면 댓글 URL을 기준으로 절대경로로 해석한다.
+일반 링크와 bare URL은 이미지 후보로 기록하되 인라인 이미지로 내려받지 않는다.
 
 ```bash
 curl -sSL --max-time 60 -H "Authorization: Bearer $(gh auth token)" \
@@ -28,8 +30,11 @@ curl -sSL --max-time 60 -H "Authorization: Bearer $(gh auth token)" \
 ```
 
 `https://github.com/user-attachments/assets/...` 는 인증이 필요하고 S3 서명 URL 로 리다이렉트된다.
-curl 은 호스트가 바뀌면 `Authorization` 헤더를 자동으로 떼므로 위 명령이 그대로 동작한다.
-받은 파일이 이미지가 아니면(HTML 오류 페이지 등) 실패로 처리한다.
+private blob은 raw 경로로, private release asset은 GitHub asset API로 전환한다.
+인증 헤더는 GitHub 또는 Jira의 신뢰 호스트에만 보낸다. 외부 이미지 호스트에는 토큰을 보내지 않는다.
+HTTP 성공 상태, 이미지 계열 Content-Type, 유효한 파일 시그니처를 모두 확인한다.
+Content-Type과 시그니처의 이미지 형식만 다르면 시그니처 기준 확장자로 저장하고 경고한다.
+HTML·텍스트 응답이나 이미지 시그니처가 없는 파일은 실패로 처리하고 임시 파일을 지운다.
 
 ## 열람 규칙
 
@@ -37,7 +42,7 @@ curl 은 호스트가 바뀌면 `Authorization` 헤더를 자동으로 떼므로
 - 이미지를 **하나씩 Read 로 연다**. Read 는 이미지를 시각적으로 렌더링한다.
   스크린샷 속 화면, 강조 영역, 에러 메시지, URL, 브라우저 폭, UI 상태를 분석에 반영한다.
 - 이미지 입력을 지원하지 않는 환경이면 경로를 사용자에게 알리고 내용 확인을 요청한다.
-- 다운로드가 실패했으면 실패 사실과 원본 URL 을 알린다.
+- 다운로드가 실패했으면 이슈 번호, 본문/댓글 위치, 원본 URL, 해석된 URL, 실패 이유를 알린다.
 - Notion·Figma 등 외부 링크는 접근 가능하면 WebFetch 로 보강하고, 실패하면 링크만 남기고 진행한다.
 
 ## 이미지에서 꼭 뽑아낼 것

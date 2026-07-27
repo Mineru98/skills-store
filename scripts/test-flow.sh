@@ -109,7 +109,16 @@ git add -A && git commit -qm "fix: 값 수정"
 node "$START" evidence-init 59 > /dev/null
 printf 'after' > .issue/59/evidence/after/home.webp
 printf 'before' > .issue/59/evidence/before/home.webp
+printf '# 리포트\n\n![](https://example.com/empty.png)\n' > .issue/59/evidence/comment.md
+set +e
+node "$START" report-check 59 > "$TMP/report-invalid.json"; RCODE1=$?
+node "$END" report-check --issue 59 > /dev/null; RCODE2=$?
+set -e
+check "issue-start report-check 가 빈 alt 거부" "$([ "$RCODE1" -eq 5 ] && grep -q 'alt' "$TMP/report-invalid.json" && echo 0 || echo 1)"
+check "issue-end report-check 도 같은 규칙 적용" "$([ "$RCODE2" -eq 5 ] && echo 0 || echo 1)"
 printf '# 리포트\n' > .issue/59/evidence/comment.md
+node "$START" report-check 59 > "$TMP/report-valid.json"
+check "정상 리포트 통과" "$(grep -q '"ok": true' "$TMP/report-valid.json" && echo 0 || echo 1)"
 node "$START" evidence-commit 59 > "$TMP/ec.json"
 check "증거 커밋됨" "$(grep -q '"committed": true' "$TMP/ec.json" && echo 0 || echo 1)"
 
