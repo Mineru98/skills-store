@@ -215,6 +215,8 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 ## 8. 확인
 
 코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** AskUserQuestion 으로 확인받는다.
+렌더링 확인은 게시 성공 확인이다. 구현 결과의 검토·승인은 13단계에서 별도로 받으며,
+승인 전에는 `issue-end` 로 넘어가지 않는다.
 
 ```text
 질문: issue-start 11단계(이슈 리포트 코멘트)입니다. 이슈 코멘트의 이미지가 잘 보이나요?

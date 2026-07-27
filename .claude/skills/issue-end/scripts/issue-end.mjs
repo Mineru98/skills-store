@@ -64,6 +64,46 @@ function evidenceSummary(root, key) {
   };
 }
 
+/** 로컬 증거가 원격 기본/폴백 브랜치에 같은 blob으로 게시됐는지 확인한다. */
+function evidencePublication(root, key, base, evidence) {
+  const fallback = `evidence/issue-${key}`;
+  git(['fetch', 'origin', base, '--prune'], { cwd: root });
+  git([
+    'fetch', 'origin',
+    `refs/heads/${fallback}:refs/remotes/origin/${fallback}`,
+  ], { cwd: root });
+
+  const checked = [`origin/${base}`, `origin/${fallback}`]
+    .filter((ref) => git(['rev-parse', '--verify', ref], { cwd: root }).code === 0)
+    .map((ref) => {
+      const missing = [];
+      const changed = [];
+      let matched = 0;
+      for (const file of evidence.files) {
+        const local = git(['hash-object', '--', file], { cwd: root });
+        const remote = git(['rev-parse', '--verify', `${ref}:${file}`], { cwd: root });
+        if (remote.code !== 0) missing.push(file);
+        else if (local.code !== 0 || local.out !== remote.out) changed.push(file);
+        else matched += 1;
+      }
+      return {
+        ref: ref.replace(/^origin\//, ''),
+        matched,
+        missing,
+        changed,
+        published: evidence.files.length > 0
+          && missing.length === 0
+          && changed.length === 0,
+      };
+    });
+  const published = checked.find((candidate) => candidate.published);
+  return {
+    published: Boolean(published),
+    ref: published?.ref ?? null,
+    checked,
+  };
+}
+
 function pureTreePath(root, key) {
   return path.join(root, WORKSPACE_DIR, String(key), 'pure-tree');
 }
@@ -79,6 +119,7 @@ function cmdContext(args) {
   const tracker = createTracker(root);
   const trackerAuth = tracker.auth();
   const evidence = evidenceSummary(root, key);
+  const publication = evidencePublication(root, key, base, evidence);
 
   const ctx = {
     repoRoot: root,
@@ -95,6 +136,10 @@ function cmdContext(args) {
     evidence,
     // 증거가 부족하면 issue-end 는 PR 로 넘어가지 않고 재캡처부터 해야 한다.
     evidenceComplete: evidence.before > 0 && evidence.after > 0,
+    // issue-start가 게시한 증거와 로컬 증거가 같아야 승인 뒤 PR로 바로 넘어갈 수 있다.
+    evidencePublished: publication.published,
+    evidencePublishedRef: publication.ref,
+    evidencePublication: publication,
     dirty: git(['status', '--porcelain']).out.split('\n').filter(Boolean).length,
     ahead: null,
     upstream: git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']).out || null,

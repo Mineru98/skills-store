@@ -1,12 +1,12 @@
 ---
 name: issue-end
-description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합니다. 증거가 충분한지 재확인하고 부족하면 변경 직전 상태의 워크트리를 만들어 다시 캡처한 뒤, 증거와 리포트를 기본 브랜치에 반드시 커밋하고 이슈에 반드시 코멘트를 남긴 다음 PR 을 만듭니다. merge 는 하지 않고 issue-merge 로 넘깁니다. `/issue-end`, "이슈 마무리", "작업 종료", "증거 확인하고 PR" 요청에 사용합니다.
+description: issue-start 가 증거와 리포트를 게시하고 사람이 승인한 작업을 마무리합니다. 기존 증거의 완결성과 게시 상태를 확인하고, 부족하거나 바뀐 경우에만 보강·재게시한 뒤 PR 을 만듭니다. merge 는 하지 않고 issue-merge 로 넘깁니다. `/issue-end`, "이슈 마무리", "작업 종료", "승인한 작업 PR" 요청에 사용합니다.
 ---
 
 <skill>
   <purpose>
-    구현이 끝난 작업을 남들이 검증할 수 있는 상태로 만든다.
-    증거를 재확인하고, 기본 브랜치에 증거와 리포트를 남기고, 이슈에 코멘트하고, PR 을 만든다.
+    `issue-start` 가 게시한 구현 결과를 사람이 승인한 뒤 PR 로 마무리한다.
+    기존 증거의 완결성과 게시 상태를 확인하고, 부족하거나 바뀐 경우에만 보강·재게시한다.
     merge 는 하지 않는다. 여러 워크트리를 동시에 굴리는 것이 이 스킬군의 전제이기 때문이다.
   </purpose>
 
@@ -24,7 +24,7 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
   <routing>
     <always>references/context-triage.md — 상황 판단과 확인 질문</always>
     <always>references/evidence-recheck.md — 증거 완결성 검사와 pure-tree 재캡처</always>
-    <always>references/report-and-pr.md — 기본 브랜치 증거 커밋 · 이슈 코멘트 · PR</always>
+    <always>references/report-and-pr.md — 게시 상태 확인·조건부 보강·PR</always>
     <always>references/next-actions.md — 다음 행동 4지선다와 issue-merge 위임</always>
   </routing>
 
@@ -35,7 +35,9 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
   </subagents>
 
   <hard-rules>
-    <rule>증거와 리포트를 기본 브랜치에 커밋·푸시하는 6단계와 이슈에 코멘트하는 7단계는 필수다. 건너뛰지 않는다.</rule>
+    <rule>`issue-start` 에서 게시된 리포트를 사람이 승인한 뒤에만 PR 을 만든다.</rule>
+    <rule>`evidencePublished: true` 면 증거 미러와 이슈 코멘트를 반복하지 않는다.</rule>
+    <rule>`evidencePublished: false` 면 부족하거나 바뀐 증거를 보강·재게시한 뒤 PR 로 넘어간다.</rule>
     <rule>증거가 없으면 PR 을 만들지 않는다. 왜 만들 수 없는지 보고하고 멈춘다.</rule>
     <rule>merge 를 실행하지 않는다. 요청받으면 `issue-merge` 로 위임한다.</rule>
     <rule>워크트리를 삭제하지 않는다. 정리는 `issue-merge` 가 통합 후에 한다.</rule>
@@ -92,14 +94,14 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
 
 ```text
  1  상황 판단
- 2  증거 완결성 확인
+ 2  승인·증거 완결성 확인
  3  before 재캡처 (pure-tree)
  4  after 재캡처·보강
  5  리포트 작성·보강
- 6  증거·리포트 기본 브랜치 커밋·푸시
- 7  메인 체크아웃 최신화
- 8  이슈 코멘트
- 9  코멘트 렌더링 확인
+ 6  게시 상태 확인·필요 시 재게시
+ 7  재게시 시 메인 체크아웃 최신화
+ 8  리포트 코멘트 확인·필요 시 갱신
+ 9  검토 승인 확인
 10  PR 생성
 11  다음 행동 선택
 ```
@@ -116,19 +118,19 @@ description: issue-start 로 구현·커밋까지 끝낸 작업을 마무리합�
 ### 5줄 미만 — 앞에 붙인다
 
 ```text
-issue-end 6단계(증거 커밋·푸시)입니다. 작업 브랜치를 origin 에 push 하겠습니다.
+issue-end 6단계(게시 상태 확인·필요 시 재게시)입니다. 게시본과 달라진 증거를 다시 올리겠습니다.
 ```
 
 ### 5줄 이상 — 뒤에 붙인다
 
 ```text
-증거를 기본 브랜치에 올렸습니다.
+게시된 증거와 로컬 증거가 일치합니다.
 
-이슈 리포트도 코멘트했습니다.
-이미지 렌더링을 확인해 주세요.
+이슈 리포트도 이미 렌더링됩니다.
+검토 승인 인계를 확인했습니다.
 PR 생성은 그 다음에 따로 묻겠습니다.
 
-현재 단계 — issue-end 9단계(코멘트 렌더링 확인)
+현재 단계 — issue-end 9단계(검토 승인 확인)
 ```
 
 ## 질문일 때
@@ -144,17 +146,18 @@ flowchart TD
 
     D -- 아니오 --> E1[pure-tree: 변경 직전 워크트리]
     E1 --> E2[before 재캡처] --> E3[pure-tree --remove] --> F
-    D -- 예 --> F[현재 커밋 상태로 after 재캡처·보강]
+    D -- 예 --> F{evidencePublished?}
 
-    F --> G[comment.md 작성·보강]
+    F -- 아니오 --> G[누락·변경 증거와 comment.md 보강]
     G --> H[증거 커밋 + 브랜치 push]
-    H --> I["evidence mirror --push  ← 필수"]
+    H --> I[evidence mirror --push]
     I --> I1[sync-base: 메인 체크아웃 최신화]
     I1 -- 막힘 --> I2[AskUserQuestion: 어떻게 받아올지] --> J
-    I1 -- 성공 --> J["gh issue comment  ← 필수"]
-    J --> K{코멘트 이미지 렌더링 확인}
-    K -- 깨짐 --> K1[mirrorRef·private 여부 점검] --> I
-    K -- 정상 --> L{PR 만들까?}
+    I1 -- 성공 --> J[gh issue comment 갱신]
+    F -- 예 --> K{게시 리포트 승인됨?}
+    J --> K
+    K -- 아니오 --> N
+    K -- 예 --> L{PR 만들까?}
     L -- 예 --> M["gh pr create · 관련 이슈 #N (Closes 금지)"]
     L -- 아니오 --> N
     M --> N[다음 행동 4지선다]
@@ -288,7 +291,8 @@ issue-merge.mjs inventory  출력의 worktrees[].display / excluded[].display
 node <skill>/scripts/issue-end.mjs context
 ```
 
-출력의 `isLinkedWorktree` / `issue` / `evidenceComplete` / `onBaseBranch` / `openPr` 를 읽고 분기한다.
+출력의 `isLinkedWorktree` / `issue` / `evidenceComplete` / `evidencePublished` /
+`evidencePublishedRef` / `onBaseBranch` / `openPr` 를 읽고 분기한다.
 세부는 `references/context-triage.md`.
 
 ## 1단계 — 체크리스트 생성
@@ -297,31 +301,33 @@ TodoWrite 로 아래 11개를 만든다. **단계가 끝날 때마다 즉시 완
 
 ```text
 1.  상황 판단 (context)
-2.  증거 존재·완결성 확인
+2.  검토 승인·증거 존재·완결성 확인
 3.  누락 시 pure-tree 로 before 재캡처
-4.  현재 커밋 상태로 after 재캡처·보강
-5.  리포트 작성·보강 (comment.md)
-6.  증거·리포트를 기본 브랜치에 커밋·푸시   [필수]
-7.  메인 체크아웃의 기본 브랜치 최신화
-8.  이슈에 증거 기반 코멘트                [필수]
-9.  코멘트 렌더링 확인
+4.  필요 시 현재 커밋 상태로 after 재캡처·보강
+5.  필요 시 리포트 보강 (comment.md)
+6.  게시 상태 확인·필요 시 재게시
+7.  재게시 시 메인 체크아웃의 기본 브랜치 최신화
+8.  리포트 코멘트 확인·필요 시 갱신
+9.  게시 리포트 검토 승인 확인
 10. PR 생성
 11. 다음 행동 선택
 ```
 
-6번과 8번의 `[필수]` 표시를 그대로 남긴다. 사용자가 진행 상황을 볼 때 이 둘이 선택이 아님이 드러나야 한다.
+`evidencePublished: true` 인 정상 인계에서는 4~8단계를 확인만 하고 반복 게시하지 않는다.
+`false` 면 4~8단계가 PR 전 필수 복구 경로다.
 
 ## 2~4단계 — 증거 재확인
 
-`issue-start` 가 이미 증거를 만들어 뒀다면 여기서는 **재확인과 보강**만 한다.
+`issue-start` 가 만든 증거와 게시본을 **재확인**한다.
 `evidenceComplete: false` 면 `pure-tree` 로 변경 직전 상태를 만들어 before 를 다시 찍는다.
 세부는 `references/evidence-recheck.md`.
 
-## 5~10단계 — 리포트·미러 커밋·최신화·코멘트·PR
+## 5~10단계 — 게시 상태 확인·조건부 보강·PR
 
-`references/report-and-pr.md` 를 따른다. 6·8단계는 조건부가 아니다.
+`references/report-and-pr.md` 를 따른다. 게시본이 현재 로컬 증거와 같으면 재게시와 코멘트 갱신을 생략한다.
+증거가 부족하거나 게시 뒤 바뀌었다면 보강·재게시를 끝낸 뒤 PR 로 넘어간다.
 
-9단계에서 PR 을 만든 직후 진행 상태를 `status:review` 로 옮긴다. 다른 전환과 달리 이건 자동이 아니다.
+10단계에서 PR 을 만든 직후 진행 상태를 `status:review` 로 옮긴다. 다른 전환과 달리 이건 자동이 아니다.
 
 ```bash
 node <skill>/scripts/issue-end.mjs status {issue_number} review
