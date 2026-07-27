@@ -1,0 +1,29 @@
+✓ 분해 데이터셋 검증 통과
+{
+  "total": 500,
+  "sets": {
+    "tuning": 400,
+    "holdout": 100
+  },
+  "industries": 25,
+  "styles": {
+    "concise": 125,
+    "conversational": 125,
+    "ticket": 125,
+    "narrative": 125
+  },
+  "decisions": {
+    "single": 200,
+    "split": 100,
+    "partial": 100,
+    "over_limit": 100
+  },
+  "requirement_counts": {
+    "1": 100,
+    "2": 125,
+    "3": 59,
+    "4": 67,
+    "5": 49,
+    "6+": 100
+  }
+}
