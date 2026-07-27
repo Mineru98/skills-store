@@ -88,3 +88,24 @@ warning=#77 댓글 1 | https://github.com/user-attachments/assets/bb88ee4c-ebf3-
 warning=#53 댓글 3 | https://github.com/Mineru98/flower-rag/blob/main/.issue/53/evidence/before/doc-link-panel.webp?raw=true | 서버 형식과 시그니처가 다름 (image/webp → image/jpeg)
 warning=#53 댓글 3 | https://github.com/Mineru98/flower-rag/blob/main/.issue/53/evidence/after/doc-link-panel.webp?raw=true | 서버 형식과 시그니처가 다름 (image/webp → image/jpeg)
 warning=#53 댓글 3 | https://github.com/Mineru98/flower-rag/blob/main/.issue/53/evidence/after/doc-link-modal.webp?raw=true | 서버 형식과 시그니처가 다름 (image/webp → image/jpeg)
+
+## issue-end 증거 보강 재검증
+fixture_relative_markdown_resolved=1
+fixture_relative_html_resolved=1
+fixture_valid_image_accepted=2
+fixture_html_response_rejected=1
+fixture_invalid_signature_rejected=1
+fixture_private_blob_raw_resolution=passed
+fixture_private_release_api_download=passed
+fixture_invalid_report_types_rejected=5
+
+flower_rag_issues=69
+flower_rag_comments=131
+flower_rag_inline=124
+flower_rag_user_attachments=35
+flower_rag_blobs=78
+flower_rag_direct_images=7
+flower_rag_release_assets=4
+private_blob_sample_download=passed
+private_release_sample_download=passed
+private_user_attachment_sample_download=passed
