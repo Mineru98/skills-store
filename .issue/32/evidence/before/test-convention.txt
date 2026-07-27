@@ -1,0 +1,10 @@
+# Before evidence — issue #32
+
+Captured immediately after worktree creation, before source changes.
+
+branch: feat/32-contribution-convention-scan
+head: 85d141e0f1ce29549738346f4679c223b241ad48
+tracked-status: clean
+claude skill exists: no
+codex skill exists: no
+regression test exists: no

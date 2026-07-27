@@ -1,0 +1,49 @@
+# After evidence — issue #32
+
+UI capture omitted: this issue adds a CLI skill, local instruction-file updates, and regression tests.
+
+$ node scripts/test-convention.mjs
+ok    일반 clone 스캔 성공
+ok    일반 clone 식별
+ok    현재 저장소가 기여 대상
+ok    병합 PR에서 base 관찰
+ok    기여 문서 발견
+ok    이슈 템플릿 발견
+ok    기여 문서 섹션 분석
+ok    이슈 제목 관례 관찰
+ok    이슈 본문 형식 분석
+ok    PR 본문 형식 분석
+ok    작업 브랜치 관례 관찰
+ok    기존 앞쪽 내용 보존
+ok    기존 뒤쪽 내용 보존
+ok    Codex 로컬 파일 gitignore 등록
+ok    재스캔 성공
+ok    전용 블록 하나만 유지
+ok    재스캔이 관찰값 교체
+ok    블록 밖 내용 재보존
+ok    gitignore 중복 없음
+ok    fork 스캔 성공
+ok    fork 식별
+ok    원본 저장소 기록
+ok    원본을 이슈 대상으로 기록
+ok    원본을 PR 대상으로 기록
+ok    원본 base 기록
+ok    Claude 로컬 파일 gitignore 등록
+ok    gh 호출은 읽기 전용
+ok    fork 조회는 원본 저장소 대상
+ok    Claude/Codex 스킬 미러 일치
+
+test-convention: 통과
+
+$ diff -r -x agents .claude/skills/convention .codex/skills/convention
+mirror: identical
+
+$ sh scripts/check-shared.sh
+sync-shared: 정본과 모든 사본이 동일하다
+
+check-shared: 통과
+
+$ git diff --check HEAD^ HEAD
+diff-check: clean
+
+implementation-commit: 56595b910ee5211c87796960fb96f8b440567041
