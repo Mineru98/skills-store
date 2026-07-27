@@ -159,6 +159,14 @@ check "context: 워크트리 인식" "$(grep -q '"isLinkedWorktree": true' "$TMP
 check "context: 이슈 추론" "$(grep -q '"issue": "59"' "$TMP/ctx.json" && echo 0 || echo 1)"
 check "context: 증거 완결" "$(grep -q '"evidenceComplete": true' "$TMP/ctx.json" && echo 0 || echo 1)"
 check "context: evidenceDir 경로" "$(grep -q '"evidenceDir": ".issue/59/evidence"' "$TMP/ctx.json" && echo 0 || echo 1)"
+check "context: issue-start 게시 증거 확인" "$(grep -q '"evidencePublished": true' "$TMP/ctx.json" && echo 0 || echo 1)"
+check "context: 게시 기준 ref 확인" "$(grep -q '"evidencePublishedRef": "main"' "$TMP/ctx.json" && echo 0 || echo 1)"
+
+# 로컬 리포트가 게시 뒤 바뀌면 승인된 게시본과 다르므로 PR 전에 재게시해야 한다.
+printf '# 수정된 리포트\n' > "$WT/.issue/59/evidence/comment.md"
+node "$END" context > "$TMP/ctx-stale.json" 2>/dev/null
+check "context: 바뀐 로컬 증거는 미게시 판정" "$(grep -q '"evidencePublished": false' "$TMP/ctx-stale.json" && echo 0 || echo 1)"
+git -C "$WT" checkout -- .issue/59/evidence/comment.md
 
 # --- pure-tree: 변경 직전 상태
 node "$END" pure-tree --issue 59 > "$TMP/pure.json"

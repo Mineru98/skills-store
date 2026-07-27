@@ -1,11 +1,13 @@
-# 리포트 · 기본 브랜치 커밋 · 이슈 코멘트 · PR
+# 게시 상태 확인 · 조건부 보강 · PR
 
-이 문서의 6·8단계는 **필수**다. 조건부가 아니고 사용자가 생략을 요청해도 건너뛰지 않는다.
-증거가 기본 브랜치에 없으면 이슈 코멘트의 이미지가 깨지고, 코멘트가 없으면 이슈만 봐서는 무엇이 어떻게 해결됐는지 알 수 없다. 이 스킬군이 존재하는 이유가 그 둘이다.
+`issue-start`가 증거와 리포트를 먼저 게시하고 사람의 검토·승인을 기다린다.
+`issue-end`는 `context`의 `evidencePublished`를 확인한다. `true`면 게시를 반복하지 않고 PR 준비로 넘어간다.
+`false`면 아래 5~8단계로 누락·변경 내용을 보강하고 재게시한 뒤 PR을 만든다.
 
 ## 5단계 — comment.md 작성·보강
 
-`.issue/<번호>/evidence/comment.md` 를 만든다. `issue-start` 가 이미 썼으면 최신 증거 기준으로 고친다.
+`evidencePublished: false`일 때만 `.issue/<번호>/evidence/comment.md` 를 최신 증거 기준으로 고친다.
+`true`면 승인된 게시본을 바꾸지 않는다.
 
 **여기서 리포트를 완전히 확정한다.** 재확인 결과·검증 요약·주의사항까지 이 단계에서 다 쓴다.
 6단계 이후에 `comment.md` 를 한 글자라도 고치면 기본 브랜치 사본이 낡아서 이슈 코멘트와 어긋난다.
@@ -64,7 +66,14 @@
 - **악화된 지표를 빼지 않는다.** 못 잰 항목은 빈칸이 아니라 `미측정 (사유)`.
 - 이미지 4장 초과면 `<details>` 로 접는다.
 
-## 6단계 — 기본 브랜치에 증거 커밋 [필수]
+## 6단계 — 게시 상태 확인·필요 시 재게시
+
+먼저 `context` 결과를 따른다.
+
+```text
+evidencePublished: true   게시본과 로컬 증거가 같다. commit/mirror/comment를 반복하지 않는다.
+evidencePublished: false  누락되거나 바뀐 파일을 아래 절차로 재게시한다.
+```
 
 ### Confluence 게시
 
@@ -87,9 +96,10 @@ git push -u origin "$(git branch --show-current)"        # 사용자 확인 후
 node <skill>/scripts/issue-end.mjs mirror --issue 59 --push
 ```
 
-### issue-start 가 이미 미러했는데 왜 또 하는가
+### 언제 다시 미러하는가
 
-`issue-start` 이후에 수정 커밋이 더 쌓였을 수 있고, 방금 4단계에서 after 를 다시 찍었다. **최신 증거 기준으로 다시 미러해야 코멘트가 실제 최종 상태를 가리킨다.** 내용이 같으면 커밋이 비어 `noChange: true` 로 끝나므로 비용은 없다.
+`issue-start` 이후 로컬 증거가 바뀌어 `evidencePublished: false`가 된 경우에만 다시 미러한다.
+같은 내용을 확인 목적으로 반복 게시하지 않는다.
 
 ### 동작
 
@@ -119,7 +129,7 @@ node <skill>/scripts/issue-end.mjs mirror --issue 59 --push
 
 미러는 임시 워크트리에서 `origin/<base>` 로 **곧장** push 한다. 사용자의 메인 폴더(기본 브랜치가 걸린 주 체크아웃)는 그 커밋을 모른 채 남는다. 이슈를 여러 번 돌리면 로컬이 몇 커밋씩 뒤처지고, 그 사이 로컬 커밋이 하나라도 생기면 갈라져서 나중에 받아오기가 실패한다.
 
-그래서 미러 push 직후에 받아온다.
+재게시로 미러 push를 수행한 경우에만 받아온다.
 
 ```bash
 node <skill>/scripts/issue-end.mjs sync-base
@@ -244,9 +254,10 @@ node <skill>/scripts/issue-end.mjs urls --issue 59 --mirrorRef <mirror 출력의
 
 `isPrivate: true` 면 raw URL 은 코멘트에서 렌더링되지 않는다. 커밋은 그대로 두고, 이미지를 이슈 웹 UI 에 드래그해 올린 뒤 그 `user-attachments` URL 을 `comment.md` 에 쓴다.
 
-## 8단계 — 이슈 코멘트 [필수]
+## 8단계 — 리포트 코멘트 확인·필요 시 갱신
 
-`issue-start` 가 이미 같은 이슈에 리포트를 달았을 수 있다. 먼저 확인한다.
+`issue-start` 가 남긴 리포트를 먼저 확인한다. `evidencePublished: true`면 그대로 유지한다.
+6단계에서 재게시했을 때만 기존 코멘트를 갱신한다.
 
 ```bash
 gh issue view 59 --json comments \
@@ -266,17 +277,19 @@ gh issue view 59 --json comments \
 - **이 단계에서 `comment.md` 를 고치지 않는다.** 고쳐야 할 것이 보이면 5단계로 돌아가 고치고 6단계를 다시 돌린 뒤 여기로 온다.
 - 이슈 번호가 확정되지 않았으면 **코멘트하지 않는다.** 남의 이슈에 다는 사고가 난다.
 
-## 9단계 — 렌더링 확인
+## 9단계 — 검토 승인 확인
 
-코멘트 URL 을 사용자에게 보여주고 이미지가 실제로 보이는지 AskUserQuestion 으로 확인받는다.
+`issue-start` 13단계에서 사용자가 “검토 승인하고 PR 만들기”를 선택해 인계됐는지 확인한다.
+그 선택으로 인계됐다면 다시 묻지 않는다. 직접 `issue-end`를 호출해 승인 여부가 불명확할 때만
+코멘트 URL을 보여주고 아래 질문을 한다. 승인 전에는 PR을 만들지 않는다.
 
 ```text
-질문: issue-end 9단계(코멘트 렌더링 확인)입니다. 이슈 코멘트의 이미지가 잘 보이나요?
-- 잘 보인다 (권장 경로)   9단계 PR 생성으로 넘어갑니다
-- 깨져 보인다             아래 원인 셋을 순서대로 확인해 고칩니다
+질문: issue-end 9단계(검토 승인 확인)입니다. 게시된 리포트대로 PR을 만들어도 될까요?
+- 승인하고 PR 준비 (권장)   10단계 PR 생성으로 넘어갑니다
+- 수정이 더 필요함          issue-start 작업으로 돌아가 after와 리포트를 보강합니다
 ```
 
-깨졌다면 원인은 셋이다.
+리포트가 깨져 승인을 못 받았다면 원인은 셋이다.
 
 1. 미러 push 가 안 됐다 → `mirror` 출력의 `pushed` 확인
 2. `--mirrorRef` 를 안 넘겼다 → 폴백인데 기본 브랜치 URL 을 썼다

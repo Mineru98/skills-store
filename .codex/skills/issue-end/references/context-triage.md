@@ -17,6 +17,9 @@ dirty             커밋되지 않은 변경 개수
 upstream/ahead    push 필요 여부
 evidence          before/after 개수, comment.md 유무, 파일 목록
 evidenceComplete  before 와 after 가 모두 존재하는지
+evidencePublished 로컬 증거가 원격 게시본과 같은지
+evidencePublishedRef 일치하는 기본/폴백 브랜치
+evidencePublication ref별 누락·변경 파일
 pureTree          이전 실행이 남긴 pure-tree 경로 (있으면 정리 대상)
 worktrees         저장소의 모든 워크트리 — 10단계 선택지에 쓴다
 ```
@@ -35,6 +38,8 @@ openPr 존재                              AskUserQuestion: 기존 PR 에 코멘
 dirty > 0                                AskUserQuestion: 변경 목록을 보여주고 커밋 / 그대로 진행
 ghAuth = false                           `gh-setup` 스킬로 설치·로그인을 제안
 evidenceComplete = false                 pure-tree 로 before 재캡처 (evidence-recheck.md)
+evidencePublished = true                 승인된 게시본을 유지하고 PR 준비로 이동
+evidencePublished = false                누락·변경 파일만 보강·재게시한 뒤 PR 준비
 evidence.total = 0                       AskUserQuestion: issue-start 로 복귀 / 여기서 증거 생성
 pureTree ≠ null                          이전 실행이 정리하지 못했다. --remove 로 먼저 치운다
 ```
@@ -62,8 +67,8 @@ pureTree ≠ null                          이전 실행이 정리하지 못했�
   이 문서의 분기표 질문은 전부 1~2단계에서 나온다.
 - 한 번에 하나의 결정만 묻는다. push 와 PR 생성을 묶어서 미리 승인받지 않는다.
 - 이미 확정된 것은 다시 묻지 않는다.
-- **기본 브랜치 증거 커밋(6단계)과 이슈 코멘트(7단계)는 묻지 않는다.** 필수 단계라 선택지가 없다.
-  묻는 것은 그 앞의 `git push` 와 그 뒤의 PR 생성이다.
+- `evidencePublished: true`면 재게시 여부를 다시 묻지 않는다. 승인된 게시본을 그대로 쓴다.
+- `false`면 PR 전에 재게시해야 한다. 묻는 것은 작업 브랜치 push와 PR 생성이다.
 
 ### 자유 입력이 필요한 지점
 
@@ -90,6 +95,6 @@ pureTree ≠ null                          이전 실행이 정리하지 못했�
 이슈 없이 진행해도 된다. 이때는
 
 - 증거 디렉터리 키가 `no-issue-<branch-slug>` 가 된다. `.issue/no-issue-<slug>/evidence/` 도 같은 규칙으로 커밋된다.
-- 이슈 코멘트(7단계)와 PR 의 이슈 참조 줄을 건너뛴다. 붙일 이슈가 없으므로 필수 규칙의 예외다.
-- 기본 브랜치 증거 커밋(6단계)은 그대로 한다. PR 본문에서 이미지를 참조하려면 여전히 필요하다.
+- 이슈 코멘트와 PR 의 이슈 참조 줄을 건너뛴다. 붙일 이슈가 없기 때문이다.
+- 게시된 증거가 없으면 기본 브랜치 증거 커밋을 수행한다. PR 본문에서 이미지를 참조하려면 필요하다.
 - 증거 요약을 PR 본문에 넣는다.
