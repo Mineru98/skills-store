@@ -51,6 +51,7 @@ import { publishDocumentation } from './issue-docs.mjs';
 import {
   collectImageReferences, downloadImageReference, validateEvidenceReport,
 } from './issue-media.mjs';
+import { runIssueStartPhase } from './issue-start-phase.mjs';
 
 function usage(exitCode = 1) {
   console.error(`Usage:
@@ -445,6 +446,10 @@ const MODES = new Set([...NEEDS_NUMBER, 'guard', 'migrate', 'sync-base', 'status
 
 function main() {
   const argv = process.argv.slice(2);
+  if (argv[0] === 'phase') {
+    process.exitCode = runIssueStartPhase(argv.slice(1), process.argv[1]);
+    return;
+  }
   if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
   const mode = argv[0];
