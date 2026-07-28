@@ -1,31 +1,31 @@
 {
   "version": 1,
   "set": "holdout",
-  "model": "sonnet",
-  "generated_at": "2026-07-27T08:06:29.878Z",
+  "model": "haiku",
+  "generated_at": "2026-07-28T02:36:05.947Z",
   "metrics": {
     "cases": 40,
     "parsed": 40,
     "parse_rate": 1,
-    "atom_precision": 0.9938650306748467,
-    "atom_recall": 1,
-    "atom_f1": 0.9969230769230769,
-    "issue_count_accuracy": 0.925,
-    "grouping_exact_accuracy": 0.925,
-    "pairwise_precision": 0.8947368421052632,
-    "pairwise_recall": 1,
-    "pairwise_f1": 0.9444444444444444,
-    "label_accuracy": 0.9787234042553191,
-    "decision_accuracy": 0.925,
-    "under_split_rate": 0.05,
-    "over_split_rate": 0.025,
+    "atom_precision": 0.9938271604938271,
+    "atom_recall": 0.9938271604938271,
+    "atom_f1": 0.9938271604938271,
+    "issue_count_accuracy": 0.8,
+    "grouping_exact_accuracy": 0.775,
+    "pairwise_precision": 0.5833333333333334,
+    "pairwise_recall": 0.8235294117647058,
+    "pairwise_f1": 0.6829268292682927,
+    "label_accuracy": 0.9844961240310077,
+    "decision_accuracy": 0.825,
+    "under_split_rate": 0.125,
+    "over_split_rate": 0.075,
     "over_limit_accuracy": 1
   },
   "runs": [
     {
       "case_id": "split-430",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 old-policy-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"지급 소요 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"면책 사유 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"고액 청구 발생 시 보상 담당자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보험 계약 현황 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"청구 기록 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"old-policy-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"손해 사정 승인 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"면책 사유 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"고액 청구 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"8개 요구사항 모두 독립적 (각각 따로 PR 머지 가능)\",\n    \"완료 기준이 서로 겹치지 않음 (기간 필터는 UI, 중복 저장은 로직, 성능 개선은 쿼리 최적화, CSV는 export 기능 등)\",\n    \"하나 취소되어도 나머지 작업이 성립 (모두 직교)\",\n    \"라벨이 4개 종류로 분산 (bug 3건, enhancement 3건, chore 1건, documentation 1건)\",\n    \"5개 초과로 관리 비용 상승 — 관련된 것끼리 재그룹화 권장\"\n  ]\n}\n```\n\n8개 요구사항이 모두 독립적이지만, **5개 초과**로 관리 부담이 큽니다. 다시 정리 제안:\n\n**관련 그룹화 선택지:**\n- **보고서 관련** 묶기: r5 + r6 (성능 + CSV 내보내기) → 함께 진행 가능? 성능을 먼저 하고 CSV를 추가하는 순서가 자연스러움\n- **검증 & 버그** 묶기: r2 + r7 (중복 저장 + 면책 사유 검증) → 모두 데이터 무결성 문제\n- **알림/기능** 묶기: r8 (고액 청구 알림) + 추가 요건 있으면?\n\n**선택지:**\n1. **묶기** → r5+r6, r2+r7로 4~5개로 축소\n2. **우선순위** → 급한 것 3~4개만 먼저 등록\n3. **그대로 진행** → 8개 이슈 등록",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\"id\": \"r1\", \"quote\": \"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"},\n    {\"id\": \"r2\", \"quote\": \"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"},\n    {\"id\": \"r3\", \"quote\": \"사용하지 않는 old-policy-export 스크립트를 제거한다\"},\n    {\"id\": \"r4\", \"quote\": \"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"},\n    {\"id\": \"r5\", \"quote\": \"지급 소요 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"},\n    {\"id\": \"r6\", \"quote\": \"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"},\n    {\"id\": \"r7\", \"quote\": \"면책 사유 값이 비어도 저장되는 검증 오류를 수정한다\"},\n    {\"id\": \"r8\", \"quote\": \"고액 청구 발생 시 보상 담당자에게 알림을 보내는 기능을 추가한다\"}\n  ],\n  \"groups\": [\n    {\"requirement_ids\": [\"r1\"], \"label\": \"enhancement\", \"title\": \"보험 계약 현황 기간 필터 추가\"},\n    {\"requirement_ids\": [\"r2\"], \"label\": \"bug\", \"title\": \"보험금 청구 중복 저장 버그 수정\"},\n    {\"requirement_ids\": [\"r3\"], \"label\": \"chore\", \"title\": \"old-policy-export 스크립트 제거\"},\n    {\"requirement_ids\": [\"r4\"], \"label\": \"documentation\", \"title\": \"손해 사정 승인 절차 문서 갱신\"},\n    {\"requirement_ids\": [\"r5\"], \"label\": \"bug\", \"title\": \"지급 소요 보고서 조회 성능 개선\"},\n    {\"requirement_ids\": [\"r6\"], \"label\": \"enhancement\", \"title\": \"지급 소요 보고서 CSV 내보내기\"},\n    {\"requirement_ids\": [\"r7\"], \"label\": \"bug\", \"title\": \"면책 사유 검증 오류 수정\"},\n    {\"requirement_ids\": [\"r8\"], \"label\": \"enhancement\", \"title\": \"고액 청구 알림 기능 추가\"}\n  ],\n  \"rationale\": [\n    \"8개 독립 요구사항 발견 → 상한 5개 초과\",\n    \"각 작업이 도메인 분리: 계약(r1), 청구(r2), 레거시정리(r3), 문서(r4), 보고서성능(r5), 보고서기능(r6), 검증(r7), 알림(r8)\",\n    \"4조건 충족하는 8개 그룹: 각각 따로 PR 머지 가능, 완료기준 비겹침, 단독 취소해도 성립, 라벨 4가지로 분산\",\n    \"r5·r6이 같은 보고서 화면이지만 성능버그와 신기능으로 독립적 — 각각 따로 해결·테스트·롤백 가능\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -75,7 +75,7 @@
               "r2"
             ],
             "label": "bug",
-            "title": "청구 기록 중복 저장 문제 수정"
+            "title": "보험금 청구 중복 저장 버그 수정"
           },
           {
             "requirement_ids": [
@@ -96,14 +96,14 @@
               "r5"
             ],
             "label": "bug",
-            "title": "보고서 조회 성능 개선"
+            "title": "지급 소요 보고서 조회 성능 개선"
           },
           {
             "requirement_ids": [
               "r6"
             ],
             "label": "enhancement",
-            "title": "보고서 CSV 내보내기 기능"
+            "title": "지급 소요 보고서 CSV 내보내기"
           },
           {
             "requirement_ids": [
@@ -117,15 +117,14 @@
               "r8"
             ],
             "label": "enhancement",
-            "title": "고액 청구 알림 기능"
+            "title": "고액 청구 알림 기능 추가"
           }
         ],
         "rationale": [
-          "8개 요구사항 모두 독립적 (각각 따로 PR 머지 가능)",
-          "완료 기준이 서로 겹치지 않음 (기간 필터는 UI, 중복 저장은 로직, 성능 개선은 쿼리 최적화, CSV는 export 기능 등)",
-          "하나 취소되어도 나머지 작업이 성립 (모두 직교)",
-          "라벨이 4개 종류로 분산 (bug 3건, enhancement 3건, chore 1건, documentation 1건)",
-          "5개 초과로 관리 비용 상승 — 관련된 것끼리 재그룹화 권장"
+          "8개 독립 요구사항 발견 → 상한 5개 초과",
+          "각 작업이 도메인 분리: 계약(r1), 청구(r2), 레거시정리(r3), 문서(r4), 보고서성능(r5), 보고서기능(r6), 검증(r7), 알림(r8)",
+          "4조건 충족하는 8개 그룹: 각각 따로 PR 머지 가능, 완료기준 비겹침, 단독 취소해도 성립, 라벨 4가지로 분산",
+          "r5·r6이 같은 보고서 화면이지만 성능버그와 신기능으로 독립적 — 각각 따로 해결·테스트·롤백 가능"
         ]
       },
       "score": {
@@ -150,7 +149,7 @@
     {
       "case_id": "split-370",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"체크인 요청 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"객실 배정 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"체크인 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"체크인 요청 보류 상태 추가 및 객실 배정 화면 연계\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"체크인 요청 검색 필터 페이지 전환 시 초기화 문제 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 기능상 종속성이 있음 - r2가 r1의 상태값을 선택하는 기능이므로 함께 완성되어야 함\",\n    \"r3는 독립적인 버그 수정으로 따로 머지 가능\",\n    \"라벨 성격이 다름 - group 1은 enhancement, group 2는 bug\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"체크인 요청 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"객실 배정 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"체크인 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"체크인 보류 상태 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"검색 필터 유지 버그 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(상태 코드 추가)과 r2(UI 선택 기능)는 기능적으로 분리 불가능. r1 없이는 r2가 작동하지 않고, r2 없이는 r1이 사용자에게 무의미하다.\",\n    \"r3은 독립적인 버그 수정으로, r1·r2와 별도로 진행 가능하다.\",\n    \"라벨이 갈린다: r1+r2는 enhancement, r3은 bug.\"\n  ]\n}\n```",
       "response": {
         "decision": "partial",
         "requirements": [
@@ -174,20 +173,20 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "체크인 요청 보류 상태 추가 및 객실 배정 화면 연계"
+            "title": "체크인 보류 상태 추가"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "bug",
-            "title": "체크인 요청 검색 필터 페이지 전환 시 초기화 문제 수정"
+            "title": "검색 필터 유지 버그 수정"
           }
         ],
         "rationale": [
-          "r1과 r2는 기능상 종속성이 있음 - r2가 r1의 상태값을 선택하는 기능이므로 함께 완성되어야 함",
-          "r3는 독립적인 버그 수정으로 따로 머지 가능",
-          "라벨 성격이 다름 - group 1은 enhancement, group 2는 bug"
+          "r1(상태 코드 추가)과 r2(UI 선택 기능)는 기능적으로 분리 불가능. r1 없이는 r2가 작동하지 않고, r2 없이는 r1이 사용자에게 무의미하다.",
+          "r3은 독립적인 버그 수정으로, r1·r2와 별도로 진행 가능하다.",
+          "라벨이 갈린다: r1+r2는 enhancement, r3은 bug."
         ]
       },
       "score": {
@@ -212,7 +211,7 @@
     {
       "case_id": "split-255",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"일일 접속 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"일일 접속 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"일일 접속 보고서 시간대 통합 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"두 요구사항 모두 일일 접속 보고서의 UTC 오류를 지역 시간대로 수정하는 같은 성격의 버그\",\n    \"집계와 CSV 출력은 다른 기술 영역이지만, 같은 '보고서 시간대' 주제로 완료 기준이 수렴\",\n    \"라벨 성격이 일치하고(bug×2), 한 PR에서 통합 수정 가능하므로 단일 이슈로 처리\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"일일 접속 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"일일 접속 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"일일 접속 보고서 UTC 시간대 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"같은 데이터 엔티티(일일 접속 보고서)의 두 표현 형태(집계 로직, CSV 출력)에서 동일한 근본 원인(UTC 시간대 처리)으로 비롯된 오류\",\n    \"r1만 고치면 CSV는 여전히 UTC로 출력되고, r2만 고치면 집계는 여전히 UTC인 상태로 남음 — 둘 다 수정되어야 사용자가 올바른 지역 시간대 데이터를 얻을 수 있음\",\n    \"같은 PR에서 함께 처리하는 것이 원자적이고 검증 기준이 명확함\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -232,13 +231,13 @@
               "r2"
             ],
             "label": "bug",
-            "title": "일일 접속 보고서 시간대 통합 수정"
+            "title": "일일 접속 보고서 UTC 시간대 오류 수정"
           }
         ],
         "rationale": [
-          "두 요구사항 모두 일일 접속 보고서의 UTC 오류를 지역 시간대로 수정하는 같은 성격의 버그",
-          "집계와 CSV 출력은 다른 기술 영역이지만, 같은 '보고서 시간대' 주제로 완료 기준이 수렴",
-          "라벨 성격이 일치하고(bug×2), 한 PR에서 통합 수정 가능하므로 단일 이슈로 처리"
+          "같은 데이터 엔티티(일일 접속 보고서)의 두 표현 형태(집계 로직, CSV 출력)에서 동일한 근본 원인(UTC 시간대 처리)으로 비롯된 오류",
+          "r1만 고치면 CSV는 여전히 UTC로 출력되고, r2만 고치면 집계는 여전히 UTC인 상태로 남음 — 둘 다 수정되어야 사용자가 올바른 지역 시간대 데이터를 얻을 수 있음",
+          "같은 PR에서 함께 처리하는 것이 원자적이고 검증 기준이 명확함"
         ]
       },
       "score": {
@@ -263,7 +262,7 @@
     {
       "case_id": "split-165",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"공정 수율 보고서 조회가 9초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"설비 코드 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"공정 수율 보고서 조회 성능 및 설비 코드 검증 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"두 요구사항 모두 기존 동작의 오류를 수정하는 bug 성격으로 같은 라벨 범주\",\n    \"루브릭: 독립성 4가지 중 '4. 라벨 성격이 갈리는가' 조건을 만족하지 않으면 단일 이슈로 처리\",\n    \"동일한 제조 시스템(제주 야간 배치)의 관련 문제들이므로 하나의 이슈로 묶고 완료 기준을 체크리스트로 관리\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"공정 수율 보고서 조회가 9초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"설비 코드 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"공정 수율 보고 시스템 성능 및 검증 개선\"\n    }\n  ],\n  \"rationale\": [\n    \"독립성 테스트 1-3: ✓ (각각 따로 머지 가능, 완료 기준 분리, 상호 독립)\",\n    \"독립성 테스트 4: ✗ (둘 다 bug 라벨으로 성격 겹침)\",\n    \"4개 조건 중 1개 미충족 → 루브릭 규칙에 따라 단일 이슈로 통합\",\n    \"완료 기준을 체크리스트로 분리: (1) 조회 시간 9초 이하 단축 (2) 설비 코드 필수 검증 추가\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -283,13 +282,14 @@
               "r2"
             ],
             "label": "bug",
-            "title": "공정 수율 보고서 조회 성능 및 설비 코드 검증 오류 수정"
+            "title": "공정 수율 보고 시스템 성능 및 검증 개선"
           }
         ],
         "rationale": [
-          "두 요구사항 모두 기존 동작의 오류를 수정하는 bug 성격으로 같은 라벨 범주",
-          "루브릭: 독립성 4가지 중 '4. 라벨 성격이 갈리는가' 조건을 만족하지 않으면 단일 이슈로 처리",
-          "동일한 제조 시스템(제주 야간 배치)의 관련 문제들이므로 하나의 이슈로 묶고 완료 기준을 체크리스트로 관리"
+          "독립성 테스트 1-3: ✓ (각각 따로 머지 가능, 완료 기준 분리, 상호 독립)",
+          "독립성 테스트 4: ✗ (둘 다 bug 라벨으로 성격 겹침)",
+          "4개 조건 중 1개 미충족 → 루브릭 규칙에 따라 단일 이슈로 통합",
+          "완료 기준을 체크리스트로 분리: (1) 조회 시간 9초 이하 단축 (2) 설비 코드 필수 검증 추가"
         ]
       },
       "score": {
@@ -314,7 +314,7 @@
     {
       "case_id": "split-465",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-fare-sync 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"노선 판매 보고서 조회가 9초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"여행 상품 현황에 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"예약 변경 처리 중 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-fare-sync 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"환불 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"노선 판매 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노선 판매 보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"여권 만료일 검증 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"요청에서 독립적인 작업 7건을 발견했습니다\",\n    \"각 요구사항은 따로 PR로 머지 가능하고, 완료 기준이 서로 겹치지 않으며, 라벨 성격도 다릅니다\",\n    \"상한 5개를 초과하여 over_limit 판정입니다\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-fare-sync 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"노선 판매 보고서 조회가 9초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"여행 상품 현황 화면에 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"예약 변경 처리 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 fare-sync 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"환불 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"노선 판매 보고서 조회 성능 최적화\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노선 판매 보고서 CSV 내보내기 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"여권 만료일 검증 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"요청에 포함된 7개 항목이 모두 독립 조건을 만족함: 각각 따로 PR 가능, 완료 기준 중복 없음, 상호 취소 영향 없음, 라벨 다양함\",\n    \"독립 그룹 수 7개 > 상한 5개로 over_limit 판정\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -353,21 +353,21 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "여행 상품 현황에 사용자 지정 기간 필터 추가"
+            "title": "여행 상품 현황 화면에 사용자 지정 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "예약 변경 처리 중 중복 저장 문제 수정"
+            "title": "예약 변경 처리 중복 저장 문제 수정"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "chore",
-            "title": "legacy-fare-sync 스크립트 제거"
+            "title": "레거시 fare-sync 스크립트 제거"
           },
           {
             "requirement_ids": [
@@ -381,14 +381,14 @@
               "r5"
             ],
             "label": "bug",
-            "title": "노선 판매 보고서 조회 성능 개선"
+            "title": "노선 판매 보고서 조회 성능 최적화"
           },
           {
             "requirement_ids": [
               "r6"
             ],
             "label": "enhancement",
-            "title": "노선 판매 보고서 CSV 내보내기 기능"
+            "title": "노선 판매 보고서 CSV 내보내기 기능 추가"
           },
           {
             "requirement_ids": [
@@ -399,9 +399,8 @@
           }
         ],
         "rationale": [
-          "요청에서 독립적인 작업 7건을 발견했습니다",
-          "각 요구사항은 따로 PR로 머지 가능하고, 완료 기준이 서로 겹치지 않으며, 라벨 성격도 다릅니다",
-          "상한 5개를 초과하여 over_limit 판정입니다"
+          "요청에 포함된 7개 항목이 모두 독립 조건을 만족함: 각각 따로 PR 가능, 완료 기준 중복 없음, 상호 취소 영향 없음, 라벨 다양함",
+          "독립 그룹 수 7개 > 상한 5개로 over_limit 판정"
         ]
       },
       "score": {
@@ -426,9 +425,9 @@
     {
       "case_id": "split-355",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"시간대별 발전 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"시간대별 발전 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"시간대별 발전 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 UTC 시간대 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 조회 성능 개선\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 같은 엔티티(시간대별 발전 보고서)의 동일한 근본 문제(UTC 시간대 오류)를 다루므로 함께 완료되어야 합니다. 하나만 수정하면 다른 쪽이 불완전한 상태로 남습니다.\",\n    \"r3는 성능 개선이라는 완전히 다른 성격의 문제로, 시간대 기준 변경(r1+r2)과 기술적 해결책이 무관합니다.\",\n    \"따라서 r1+r2를 하나의 이슈로 묶어 UTC→지역시간 변경을 완전히 해결하고, r3를 독립 이슈로 분리해 성능 개선을 독립적으로 측정하는 것이 적절합니다.\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"시간대별 발전 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"시간대별 발전 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"시간대별 발전 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 집계 UTC 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 CSV 출력 UTC 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 조회 성능 개선\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 같은 도메인(발전 보고서 시간대)이지만 수정 대상이 명확히 다름: r1은 집계 로직, r2는 CSV 출력 로직\",\n    \"각각 따로 PR 머지 가능, 완료 기준이 겹치지 않음, 하나만 고쳐도 나머지가 독립적으로 성립\",\n    \"r3은 성능 문제로, r1/r2의 정확도 버그와 수정 대상과 완료 기준이 완전히 다름\",\n    \"세 그룹 모두 독립적 수정이 가능하고, 5개 이하이므로 split 판정\"\n  ]\n}\n```",
       "response": {
-        "decision": "partial",
+        "decision": "split",
         "requirements": [
           {
             "id": "r1",
@@ -446,11 +445,17 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1",
+              "r1"
+            ],
+            "label": "bug",
+            "title": "시간대별 발전 보고서 집계 UTC 버그 수정"
+          },
+          {
+            "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "시간대별 발전 보고서 UTC 시간대 오류 수정"
+            "title": "시간대별 발전 보고서 CSV 출력 UTC 버그 수정"
           },
           {
             "requirement_ids": [
@@ -461,34 +466,35 @@
           }
         ],
         "rationale": [
-          "r1과 r2는 같은 엔티티(시간대별 발전 보고서)의 동일한 근본 문제(UTC 시간대 오류)를 다루므로 함께 완료되어야 합니다. 하나만 수정하면 다른 쪽이 불완전한 상태로 남습니다.",
-          "r3는 성능 개선이라는 완전히 다른 성격의 문제로, 시간대 기준 변경(r1+r2)과 기술적 해결책이 무관합니다.",
-          "따라서 r1+r2를 하나의 이슈로 묶어 UTC→지역시간 변경을 완전히 해결하고, r3를 독립 이슈로 분리해 성능 개선을 독립적으로 측정하는 것이 적절합니다."
+          "r1과 r2는 같은 도메인(발전 보고서 시간대)이지만 수정 대상이 명확히 다름: r1은 집계 로직, r2는 CSV 출력 로직",
+          "각각 따로 PR 머지 가능, 완료 기준이 겹치지 않음, 하나만 고쳐도 나머지가 독립적으로 성립",
+          "r3은 성능 문제로, r1/r2의 정확도 버그와 수정 대상과 완료 기준이 완전히 다름",
+          "세 그룹 모두 독립적 수정이 가능하고, 5개 이하이므로 split 판정"
         ]
       },
       "score": {
         "atom_tp": 3,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
-        "pair_tp": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
+        "pair_tp": 0,
         "pair_fp": 0,
-        "pair_fn": 0,
-        "label_correct": 2,
-        "label_total": 2,
-        "decision_correct": 1,
+        "pair_fn": 1,
+        "label_correct": 1,
+        "label_total": 1,
+        "decision_correct": 0,
         "under_split": 0,
-        "over_split": 0,
+        "over_split": 1,
         "over_limit_correct": null,
-        "predicted_issue_count": 2
+        "predicted_issue_count": 3
       },
       "error": null
     },
     {
       "case_id": "split-260",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"위험 등급 저장 형식을 새 코드 체계로 마이그레이션한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보안 경보 조회 로직을 새 위험 등급 코드 체계로 전환한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"chore\",\n      \"title\": \"위험 등급 코드 체계 마이그레이션\"\n    }\n  ],\n  \"rationale\": [\n    \"저장 형식 변경(r1)과 조회 로직 변경(r2)은 데이터 호환성이 직결된 계약 변경과 소비의 관계\",\n    \"r1 단독 적용 시: 새 형식 저장 후 조회 로직이 구형에 고정되어 데이터 불일치\",\n    \"r2 단독 적용 시: 구형 저장 형식에 새 조회 로직을 적용하려는 불가능한 상태\",\n    \"완료 기준이 '보안 경보 시스템의 위험 등급 코드 체계 전환 완료'라는 단일 목표로 수렴\",\n    \"함께 머지되어야만 데이터 일관성과 기능 완전성 보장\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"위험 등급 저장 형식을 새 코드 체계로 마이그레이션한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보안 경보 조회 로직을 새 위험 등급 코드 체계로 전환한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"위험 등급 코드 체계 마이그레이션\"\n    }\n  ],\n  \"rationale\": [\n    \"저장 형식만 바꾸고 조회 로직을 안 바꾸면 읽을 수 없음\",\n    \"조회 로직만 바꾸고 저장 형식을 안 바꾸면 기존 데이터가 호환 안 됨\",\n    \"하나를 취소하면 다른 하나도 의미 없음 — 데이터 계약 변경(r1)과 그 소비처 변경(r2)이 한 몸\",\n    \"함께 PR 로 머지돼야만 시스템이 일관되게 동작\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -507,16 +513,15 @@
               "r1",
               "r2"
             ],
-            "label": "chore",
+            "label": "enhancement",
             "title": "위험 등급 코드 체계 마이그레이션"
           }
         ],
         "rationale": [
-          "저장 형식 변경(r1)과 조회 로직 변경(r2)은 데이터 호환성이 직결된 계약 변경과 소비의 관계",
-          "r1 단독 적용 시: 새 형식 저장 후 조회 로직이 구형에 고정되어 데이터 불일치",
-          "r2 단독 적용 시: 구형 저장 형식에 새 조회 로직을 적용하려는 불가능한 상태",
-          "완료 기준이 '보안 경보 시스템의 위험 등급 코드 체계 전환 완료'라는 단일 목표로 수렴",
-          "함께 머지되어야만 데이터 일관성과 기능 완전성 보장"
+          "저장 형식만 바꾸고 조회 로직을 안 바꾸면 읽을 수 없음",
+          "조회 로직만 바꾸고 저장 형식을 안 바꾸면 기존 데이터가 호환 안 됨",
+          "하나를 취소하면 다른 하나도 의미 없음 — 데이터 계약 변경(r1)과 그 소비처 변경(r2)이 한 몸",
+          "함께 PR 로 머지돼야만 시스템이 일관되게 동작"
         ]
       },
       "score": {
@@ -528,7 +533,7 @@
         "pair_tp": 1,
         "pair_fp": 0,
         "pair_fn": 0,
-        "label_correct": 1,
+        "label_correct": 0,
         "label_total": 1,
         "decision_correct": 1,
         "under_split": 0,
@@ -541,9 +546,9 @@
     {
       "case_id": "split-125",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"이상 반응 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임상 시험 웹 운영 기능 개선 (기간 필터 + CSV 내보내기)\"\n    }\n  ],\n  \"rationale\": [\n    \"독립성 테스트 1번(따로 PR 가능): ✓\",\n    \"독립성 테스트 2번(완료 기준 분리): ✓\",\n    \"독립성 테스트 3번(하나 취소 가능): ✓\",\n    \"독립성 테스트 4번(라벨 성격 갈림): ✗ (둘 다 enhancement)\",\n    \"네 항목을 모두 만족해야만 쪼개는 규칙에 따라 단일 이슈로 통합\",\n    \"완료 기준을 체크리스트로 분리하여 관리: (1) 기간 필터 UI 추가 및 작동 확인 (2) CSV 내보내기 기능 추가 및 작동 확인\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"이상 반응 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임상 시험 현황 화면 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"이상 반응 보고서 결과 CSV 내보내기\"\n    }\n  ],\n  \"rationale\": [\n    \"두 요구사항은 서로 다른 화면·기능 영역을 터치\",\n    \"각각 독립적으로 PR 머지 가능 (기간 필터만 또는 CSV 내보내기만)\",\n    \"완료 기준이 명확히 분리됨: 필터 동작 vs 내보내기 동작\",\n    \"하나 취소 시 다른 하나가 여전히 성립하고 가치 있음\",\n    \"비즈니스적으로도 별도 작업 단위로 관리·추적 가능\"\n  ]\n}\n```",
       "response": {
-        "decision": "single",
+        "decision": "split",
         "requirements": [
           {
             "id": "r1",
@@ -557,45 +562,50 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1",
+              "r1"
+            ],
+            "label": "enhancement",
+            "title": "임상 시험 현황 화면 사용자 지정 기간 필터 추가"
+          },
+          {
+            "requirement_ids": [
               "r2"
             ],
             "label": "enhancement",
-            "title": "임상 시험 웹 운영 기능 개선 (기간 필터 + CSV 내보내기)"
+            "title": "이상 반응 보고서 결과 CSV 내보내기"
           }
         ],
         "rationale": [
-          "독립성 테스트 1번(따로 PR 가능): ✓",
-          "독립성 테스트 2번(완료 기준 분리): ✓",
-          "독립성 테스트 3번(하나 취소 가능): ✓",
-          "독립성 테스트 4번(라벨 성격 갈림): ✗ (둘 다 enhancement)",
-          "네 항목을 모두 만족해야만 쪼개는 규칙에 따라 단일 이슈로 통합",
-          "완료 기준을 체크리스트로 분리하여 관리: (1) 기간 필터 UI 추가 및 작동 확인 (2) CSV 내보내기 기능 추가 및 작동 확인"
+          "두 요구사항은 서로 다른 화면·기능 영역을 터치",
+          "각각 독립적으로 PR 머지 가능 (기간 필터만 또는 CSV 내보내기만)",
+          "완료 기준이 명확히 분리됨: 필터 동작 vs 내보내기 동작",
+          "하나 취소 시 다른 하나가 여전히 성립하고 가치 있음",
+          "비즈니스적으로도 별도 작업 단위로 관리·추적 가능"
         ]
       },
       "score": {
         "atom_tp": 2,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 0,
-        "grouping_exact": 0,
+        "issue_count_correct": 1,
+        "grouping_exact": 1,
         "pair_tp": 0,
-        "pair_fp": 1,
+        "pair_fp": 0,
         "pair_fn": 0,
-        "label_correct": 0,
-        "label_total": 0,
-        "decision_correct": 0,
-        "under_split": 1,
+        "label_correct": 2,
+        "label_total": 2,
+        "decision_correct": 1,
+        "under_split": 0,
         "over_split": 0,
         "over_limit_correct": null,
-        "predicted_issue_count": 1
+        "predicted_issue_count": 2
       },
       "error": null
     },
     {
       "case_id": "split-410",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-billing-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"월간 사용량 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"고객 계정 화면 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"구독 결제 중복 저장 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 빌링 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"배포 승인 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"월간 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"월간 보고서 CSV 내보내기 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"요청에서 6개의 독립적 작업 식별 (한계값 5개 초과)\",\n    \"모든 작업이 4개 독립성 조건 충족: 별도 PR 가능, 완료 기준 비겹침, 의존성 없음, 라벨 다름\",\n    \"r1(대시보드)·r2(데이터)·r3(정리)·r4(문서) — 성격 완전 상이\",\n    \"r5(성능 버그)·r6(CSV 기능) — 같은 도메인이지만 라벨·변경 범위·검증 기준이 명확히 분리\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-billing-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"월간 사용량 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"고객 계정 현황 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"결제 기록 중복 저장 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 billing-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"배포 승인 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"월간 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"월간 보고서 CSV 내보내기 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"6개 독립 항목으로 한도 5개를 초과합니다\",\n    \"r1과 r2: 고객 현황 화면, 결제 처리 등 기능 영역이 다릅니다\",\n    \"r2와 r3: 결제 버그는 기능, 스크립트 제거는 정리로 성격이 다릅니다\",\n    \"r3과 r4: 레거시 코드 정리, 문서 갱신으로 도메인이 다릅니다\",\n    \"r5와 r6: 월간 보고서를 다루지만, r5는 성능(bug), r6은 기능(enhancement)으로 구분되며 기술적으로도 독립적입니다 (성능 개선 없이 CSV 추가 가능, 성능 개선만 할 수도 있음)\",\n    \"각 항목의 라벨 성격이 뚜렷합니다: bug 2개, enhancement 2개, chore 1개, documentation 1개\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -630,21 +640,21 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "고객 계정 화면 기간 필터 추가"
+            "title": "고객 계정 현황 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "구독 결제 중복 저장 버그 수정"
+            "title": "결제 기록 중복 저장 버그 수정"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "chore",
-            "title": "레거시 빌링 스크립트 제거"
+            "title": "레거시 billing-export 스크립트 제거"
           },
           {
             "requirement_ids": [
@@ -665,14 +675,16 @@
               "r6"
             ],
             "label": "enhancement",
-            "title": "월간 보고서 CSV 내보내기 기능"
+            "title": "월간 보고서 CSV 내보내기 추가"
           }
         ],
         "rationale": [
-          "요청에서 6개의 독립적 작업 식별 (한계값 5개 초과)",
-          "모든 작업이 4개 독립성 조건 충족: 별도 PR 가능, 완료 기준 비겹침, 의존성 없음, 라벨 다름",
-          "r1(대시보드)·r2(데이터)·r3(정리)·r4(문서) — 성격 완전 상이",
-          "r5(성능 버그)·r6(CSV 기능) — 같은 도메인이지만 라벨·변경 범위·검증 기준이 명확히 분리"
+          "6개 독립 항목으로 한도 5개를 초과합니다",
+          "r1과 r2: 고객 현황 화면, 결제 처리 등 기능 영역이 다릅니다",
+          "r2와 r3: 결제 버그는 기능, 스크립트 제거는 정리로 성격이 다릅니다",
+          "r3과 r4: 레거시 코드 정리, 문서 갱신으로 도메인이 다릅니다",
+          "r5와 r6: 월간 보고서를 다루지만, r5는 성능(bug), r6은 기능(enhancement)으로 구분되며 기술적으로도 독립적입니다 (성능 개선 없이 CSV 추가 가능, 성능 개선만 할 수도 있음)",
+          "각 항목의 라벨 성격이 뚜렷합니다: bug 2개, enhancement 2개, chore 1개, documentation 1개"
         ]
       },
       "score": {
@@ -697,7 +709,7 @@
     {
       "case_id": "split-350",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"이체 승인 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"자금 세탁 검토 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"이체 승인 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"사용하지 않는 legacy-ledger-sync 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"이체 승인 보류 상태 추가 및 UI 선택 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"이체 승인 검색 페이지 이동 시 필터 초기화 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-ledger-sync 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(상태 코드 추가)과 r2(UI 선택 기능)는 강하게 결합됨 — 상태 코드만 추가하고 화면을 변경하지 않으면 효과가 없음\",\n    \"r3은 독립적인 버그 수정 — 다른 작업과 무관하게 진행·머지 가능\",\n    \"r4는 독립적인 정리 작업(chore) — 언제든 제거 가능하고 다른 작업에 영향 없음\",\n    \"라벨이 3가지로 구분되고, 각 그룹이 따로 PR로 머지 가능\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"이체 승인 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"자금 세탁 검토 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"이체 승인 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"사용하지 않는 legacy-ledger-sync 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"이체 승인 보류 상태 추가 및 자금 세탁 검토 화면 연동\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"이체 승인 검색 필터 초기화 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 ledger-sync 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 상호 의존적: 상태 코드가 추가되어야 화면에서 선택할 수 있고, UI 구현 없이는 상태 추가가 실제 효과를 내지 못함\",\n    \"r3(필터 초기화 버그)은 별도 영역 버그로 r1/r2와 독립적 머지 가능, bug vs enhancement 라벨 차이\",\n    \"r4(스크립트 제거)는 유지보수 작업으로 r1/r2/r3과 완전 독립, chore 라벨로 성격 다름\"\n  ]\n}\n```",
       "response": {
         "decision": "partial",
         "requirements": [
@@ -725,28 +737,27 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "이체 승인 보류 상태 추가 및 UI 선택 기능"
+            "title": "이체 승인 보류 상태 추가 및 자금 세탁 검토 화면 연동"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "bug",
-            "title": "이체 승인 검색 페이지 이동 시 필터 초기화 문제 수정"
+            "title": "이체 승인 검색 필터 초기화 버그 수정"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "chore",
-            "title": "legacy-ledger-sync 스크립트 제거"
+            "title": "레거시 ledger-sync 스크립트 제거"
           }
         ],
         "rationale": [
-          "r1(상태 코드 추가)과 r2(UI 선택 기능)는 강하게 결합됨 — 상태 코드만 추가하고 화면을 변경하지 않으면 효과가 없음",
-          "r3은 독립적인 버그 수정 — 다른 작업과 무관하게 진행·머지 가능",
-          "r4는 독립적인 정리 작업(chore) — 언제든 제거 가능하고 다른 작업에 영향 없음",
-          "라벨이 3가지로 구분되고, 각 그룹이 따로 PR로 머지 가능"
+          "r1과 r2는 상호 의존적: 상태 코드가 추가되어야 화면에서 선택할 수 있고, UI 구현 없이는 상태 추가가 실제 효과를 내지 못함",
+          "r3(필터 초기화 버그)은 별도 영역 버그로 r1/r2와 독립적 머지 가능, bug vs enhancement 라벨 차이",
+          "r4(스크립트 제거)는 유지보수 작업으로 r1/r2/r3과 완전 독립, chore 라벨로 성격 다름"
         ]
       },
       "score": {
@@ -771,17 +782,13 @@
     {
       "case_id": "split-065",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"외식 분야의 제주 3분기 야간 배치 변경 요청입니다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"사용하지 않는 old-pos-export 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"외식 분야 제주 3분기 야간 배치 변경\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"chore\",\n      \"title\": \"old-pos-export 레거시 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"배치 변경과 스크립트 삭제는 각각 따로 PR로 머지 가능\",\n    \"완료 기준이 겹치지 않음 (배치 적용 vs 스크립트 삭제)\",\n    \"하나가 취소되어도 나머지 작업이 성립\",\n    \"라벨 성격이 다름 (enhancement vs chore)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"외식 분야의 제주 3분기 야간 배치 변경 요청입니다. 사용하지 않는 old-pos-export 스크립트를 제거한다.\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"chore\",\n      \"title\": \"야간 배치 변경: old-pos-export 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"요청의 구체적 작업은 'old-pos-export 스크립트 제거'로 단일합니다.\",\n    \"'외식 분야의 제주 3분기 야간 배치 변경'은 변경 요청의 컨텍스트/도메인을 명시하는 것이며, 스크립트 제거와 별개 작업이 아닙니다.\",\n    \"레거시 스크립트 정리는 명확한 chore이고, 하나의 완료 기준(스크립트 파일 삭제 및 참조 제거)으로 수렴합니다.\"\n  ]\n}\n```",
       "response": {
-        "decision": "split",
+        "decision": "single",
         "requirements": [
           {
             "id": "r1",
-            "quote": "외식 분야의 제주 3분기 야간 배치 변경 요청입니다"
-          },
-          {
-            "id": "r2",
-            "quote": "사용하지 않는 old-pos-export 스크립트를 제거한다"
+            "quote": "외식 분야의 제주 3분기 야간 배치 변경 요청입니다. 사용하지 않는 old-pos-export 스크립트를 제거한다."
           }
         ],
         "groups": [
@@ -789,47 +796,39 @@
             "requirement_ids": [
               "r1"
             ],
-            "label": "enhancement",
-            "title": "외식 분야 제주 3분기 야간 배치 변경"
-          },
-          {
-            "requirement_ids": [
-              "r2"
-            ],
             "label": "chore",
-            "title": "old-pos-export 레거시 스크립트 제거"
+            "title": "야간 배치 변경: old-pos-export 스크립트 제거"
           }
         ],
         "rationale": [
-          "배치 변경과 스크립트 삭제는 각각 따로 PR로 머지 가능",
-          "완료 기준이 겹치지 않음 (배치 적용 vs 스크립트 삭제)",
-          "하나가 취소되어도 나머지 작업이 성립",
-          "라벨 성격이 다름 (enhancement vs chore)"
+          "요청의 구체적 작업은 'old-pos-export 스크립트 제거'로 단일합니다.",
+          "'외식 분야의 제주 3분기 야간 배치 변경'은 변경 요청의 컨텍스트/도메인을 명시하는 것이며, 스크립트 제거와 별개 작업이 아닙니다.",
+          "레거시 스크립트 정리는 명확한 chore이고, 하나의 완료 기준(스크립트 파일 삭제 및 참조 제거)으로 수렴합니다."
         ]
       },
       "score": {
-        "atom_tp": 1,
+        "atom_tp": 0,
         "atom_fp": 1,
-        "atom_fn": 0,
-        "issue_count_correct": 0,
+        "atom_fn": 1,
+        "issue_count_correct": 1,
         "grouping_exact": 0,
         "pair_tp": 0,
         "pair_fp": 0,
         "pair_fn": 0,
-        "label_correct": 1,
-        "label_total": 1,
-        "decision_correct": 0,
+        "label_correct": 0,
+        "label_total": 0,
+        "decision_correct": 1,
         "under_split": 0,
-        "over_split": 1,
+        "over_split": 0,
         "over_limit_correct": null,
-        "predicted_issue_count": 2
+        "predicted_issue_count": 1
       },
       "error": null
     },
     {
       "case_id": "split-195",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"공실률 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"임대 매물 카드의 정렬 순서를 사용자가 고정할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"임대 매물 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"공실률 보고서 조회 성능 최적화\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"보증금 유형 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임대 매물 카드 정렬 순서 고정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임대 매물 현황 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"네 요구사항이 모두 독립성 테스트 4개 조건을 만족\",\n    \"라벨이 bug 2개와 enhancement 2개로 갈림 (조건 4)\",\n    \"각 요구사항은 별도 도메인과 완료 기준을 가짐 (조건 1,2)\",\n    \"하나의 취소가 나머지 진행을 막지 않음 (조건 3)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"공실률 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"임대 매물 카드의 정렬 순서를 사용자가 고정할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"임대 매물 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"공실률 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"보증금 유형 필수 검증 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임대 매물 카드 정렬 순서 사용자 고정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임대 매물 현황 화면 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1 (성능): 독립적 버그, 다른 변경과 무관\",\n    \"r2 (검증): 독립적 버그, 다른 기능 구현과 무관\",\n    \"r3 (정렬): r4와 같은 화면이지만 기능 독립, 각각 PR 머지 가능\",\n    \"r4 (필터): r3과 독립적, r3 여부와 무관하게 구현 가능\",\n    \"라벨 성격 다름: bug 2건 + enhancement 2건으로 분류 명확\",\n    \"의존성 없음: 어느 것을 먼저/나중에 구현해도 무방\"\n  ]\n}\n```",
       "response": {
         "decision": "split",
         "requirements": [
@@ -856,35 +855,37 @@
               "r1"
             ],
             "label": "bug",
-            "title": "공실률 보고서 조회 성능 최적화"
+            "title": "공실률 보고서 조회 성능 개선"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "보증금 유형 검증 오류 수정"
+            "title": "보증금 유형 필수 검증 추가"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "enhancement",
-            "title": "임대 매물 카드 정렬 순서 고정"
+            "title": "임대 매물 카드 정렬 순서 사용자 고정"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "enhancement",
-            "title": "임대 매물 현황 기간 필터 추가"
+            "title": "임대 매물 현황 화면 기간 필터 추가"
           }
         ],
         "rationale": [
-          "네 요구사항이 모두 독립성 테스트 4개 조건을 만족",
-          "라벨이 bug 2개와 enhancement 2개로 갈림 (조건 4)",
-          "각 요구사항은 별도 도메인과 완료 기준을 가짐 (조건 1,2)",
-          "하나의 취소가 나머지 진행을 막지 않음 (조건 3)"
+          "r1 (성능): 독립적 버그, 다른 변경과 무관",
+          "r2 (검증): 독립적 버그, 다른 기능 구현과 무관",
+          "r3 (정렬): r4와 같은 화면이지만 기능 독립, 각각 PR 머지 가능",
+          "r4 (필터): r3과 독립적, r3 여부와 무관하게 구현 가능",
+          "라벨 성격 다름: bug 2건 + enhancement 2건으로 분류 명확",
+          "의존성 없음: 어느 것을 먼저/나중에 구현해도 무방"
         ]
       },
       "score": {
@@ -909,7 +910,7 @@
     {
       "case_id": "split-460",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-billing-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"월간 사용량 보고서 조회가 13초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"요금제 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"결제 실패 발생 시 고객 성공 매니저에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"고객 계정 현황 화면 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"구독 결제 처리 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-billing-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"배포 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"월간 사용량 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"월간 사용량 보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"요금제 값 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"결제 실패 고객 성공 매니저 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"8개의 독립적 요구사항 발견 (5개 상한 초과)\",\n    \"각 항목은 다른 도메인·기능에 대한 변경으로 따로 PR 가능\",\n    \"같은 기능 도메인(보고서·결제)이 있지만 완료 기준과 라벨이 명확히 다름\",\n    \"r5(성능 bug)와 r6(CSV enhancement)은 같은 보고서이나 독립 수행 가능\",\n    \"관련 항목별 그룹화 또는 우선순위 선별 필요\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-billing-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"월간 사용량 보고서 조회가 13초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"요금제 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"결제 실패 발생 시 고객 성공 매니저에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"고객 계정 화면 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"결제 기록 중복 저장 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 billing-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"배포 승인 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"월간 보고서 조회 성능 개선(13초→목표치)\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"월간 보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"요금제 값 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"결제 실패 시 고객 성공팀 알림\"\n    }\n  ],\n  \"rationale\": [\n    \"8개 요구사항 모두 독립성 충족: 각각 별도 PR 머지 가능, 완료 기준 겹침 없음, 취소 시 타 항목 영향 없음, 라벨 4종 분포\",\n    \"의존성 분석 결과 r5(성능)→r6(CSV) 순차 권장이나 기술적 독립적이므로 병렬 처리 가능\",\n    \"결제 도메인 3건(r2/r7/r8)은 중복/검증/알림으로 문제 영역 다르지만, 같은 팀 순차처리로 컨텍스트 유지 가능\",\n    \"8개 이슈는 권장 상한 5개 초과: 요청자 우선순위 재정렬 또는 관련 항목 3~4개씩 묶어 단계별 진행 권장\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -952,42 +953,42 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "고객 계정 현황 화면 사용자 지정 기간 필터 추가"
+            "title": "고객 계정 화면 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "구독 결제 처리 중복 저장 문제 수정"
+            "title": "결제 기록 중복 저장 수정"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "chore",
-            "title": "legacy-billing-export 스크립트 제거"
+            "title": "레거시 billing-export 스크립트 제거"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "documentation",
-            "title": "배포 승인 운영 절차 문서 갱신"
+            "title": "배포 승인 절차 문서 갱신"
           },
           {
             "requirement_ids": [
               "r5"
             ],
             "label": "bug",
-            "title": "월간 사용량 보고서 조회 성능 개선"
+            "title": "월간 보고서 조회 성능 개선(13초→목표치)"
           },
           {
             "requirement_ids": [
               "r6"
             ],
             "label": "enhancement",
-            "title": "월간 사용량 보고서 CSV 내보내기 기능"
+            "title": "월간 보고서 CSV 내보내기 기능"
           },
           {
             "requirement_ids": [
@@ -1001,15 +1002,14 @@
               "r8"
             ],
             "label": "enhancement",
-            "title": "결제 실패 고객 성공 매니저 알림 기능"
+            "title": "결제 실패 시 고객 성공팀 알림"
           }
         ],
         "rationale": [
-          "8개의 독립적 요구사항 발견 (5개 상한 초과)",
-          "각 항목은 다른 도메인·기능에 대한 변경으로 따로 PR 가능",
-          "같은 기능 도메인(보고서·결제)이 있지만 완료 기준과 라벨이 명확히 다름",
-          "r5(성능 bug)와 r6(CSV enhancement)은 같은 보고서이나 독립 수행 가능",
-          "관련 항목별 그룹화 또는 우선순위 선별 필요"
+          "8개 요구사항 모두 독립성 충족: 각각 별도 PR 머지 가능, 완료 기준 겹침 없음, 취소 시 타 항목 영향 없음, 라벨 4종 분포",
+          "의존성 분석 결과 r5(성능)→r6(CSV) 순차 권장이나 기술적 독립적이므로 병렬 처리 가능",
+          "결제 도메인 3건(r2/r7/r8)은 중복/검증/알림으로 문제 영역 다르지만, 같은 팀 순차처리로 컨텍스트 유지 가능",
+          "8개 이슈는 권장 상한 5개 초과: 요청자 우선순위 재정렬 또는 관련 항목 3~4개씩 묶어 단계별 진행 권장"
         ]
       },
       "score": {
@@ -1034,7 +1034,7 @@
     {
       "case_id": "split-310",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"주문 결제 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"환불 검토 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"주문 결제 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"주문 결제 보류 상태 추가 및 환불 검토 화면 지원\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"주문 결제 검색 필터 페이지 이동 시 초기화 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 계약 변경(상태 코드)과 소비(화면 선택)가 한 몸이다. 상태만 추가되고 UI에서 선택 불가능하면 기능이 불완전하므로 분리 불가\",\n    \"r3는 별도의 버그 수정이며 r1/r2와 독립적으로 머지 가능하고 라벨도 다름(bug)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"주문 결제 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"환불 검토 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"주문 결제 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"주문 결제 상태에 보류 추가 및 환불 검토 화면 연동\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"주문 결제 검색 페이지 이동 시 필터 초기화 문제 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(상태 코드 추가)과 r2(UI 선택 기능)는 상호 의존적. r1 없으면 r2가 무의미하고 r2 없으면 r1이 사용 불가능하므로 같은 PR에서 처리\",\n    \"r3(필터 초기화 버그)는 r1, r2와 완전히 독립적이며 각각 따로 머지 가능\",\n    \"라벨이 enhancement(r1, r2)와 bug(r3)로 성격이 명확히 구분됨\",\n    \"그룹 2개이므로 상한(5개) 이하이고 2단계 승인 절차 진행 가능\"\n  ]\n}\n```",
       "response": {
         "decision": "split",
         "requirements": [
@@ -1058,19 +1058,21 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "주문 결제 보류 상태 추가 및 환불 검토 화면 지원"
+            "title": "주문 결제 상태에 보류 추가 및 환불 검토 화면 연동"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "bug",
-            "title": "주문 결제 검색 필터 페이지 이동 시 초기화 수정"
+            "title": "주문 결제 검색 페이지 이동 시 필터 초기화 문제 수정"
           }
         ],
         "rationale": [
-          "r1과 r2는 계약 변경(상태 코드)과 소비(화면 선택)가 한 몸이다. 상태만 추가되고 UI에서 선택 불가능하면 기능이 불완전하므로 분리 불가",
-          "r3는 별도의 버그 수정이며 r1/r2와 독립적으로 머지 가능하고 라벨도 다름(bug)"
+          "r1(상태 코드 추가)과 r2(UI 선택 기능)는 상호 의존적. r1 없으면 r2가 무의미하고 r2 없으면 r1이 사용 불가능하므로 같은 PR에서 처리",
+          "r3(필터 초기화 버그)는 r1, r2와 완전히 독립적이며 각각 따로 머지 가능",
+          "라벨이 enhancement(r1, r2)와 bug(r3)로 성격이 명확히 구분됨",
+          "그룹 2개이므로 상한(5개) 이하이고 2단계 승인 절차 진행 가능"
         ]
       },
       "score": {
@@ -1095,7 +1097,7 @@
     {
       "case_id": "split-090",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"냉장 온도 이탈 발생 시 매장 책임자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"냉장 온도 이탈 시 매장 책임자 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"온도 이탈 감지와 알림 전송은 하나의 완성된 기능으로 동작. 감지 없이 알림만 보내거나, 알림 없이 감지만 하면 요구사항을 충족하지 못함\",\n    \"하나만 구현된 상태로는 PR 머지 자체가 의미 없음. 둘 다 함께 동작해야 비로소 기능 완성\",\n    \"따라서 별도 브랜치·PR·워크트리로 분리할 이유가 없음\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"냉장 온도 이탈 발생 시 매장 책임자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"냉장 온도 이탈 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"온도 모니터링과 알림 발송이 하나의 완전한 기능 단위로 결합됨\",\n    \"각 부분을 따로 머지해도 실제 효과가 없음: 모니터링 없이 알림만 있어도, 알림 없이 모니터링만 있어도 기능이 불완전\",\n    \"완료 기준이 '냉장 온도 이탈 시 책임자 알림 발송'이라는 단일 조건으로 수렴\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -1110,13 +1112,13 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "냉장 온도 이탈 시 매장 책임자 알림 기능"
+            "title": "냉장 온도 이탈 알림 기능"
           }
         ],
         "rationale": [
-          "온도 이탈 감지와 알림 전송은 하나의 완성된 기능으로 동작. 감지 없이 알림만 보내거나, 알림 없이 감지만 하면 요구사항을 충족하지 못함",
-          "하나만 구현된 상태로는 PR 머지 자체가 의미 없음. 둘 다 함께 동작해야 비로소 기능 완성",
-          "따라서 별도 브랜치·PR·워크트리로 분리할 이유가 없음"
+          "온도 모니터링과 알림 발송이 하나의 완전한 기능 단위로 결합됨",
+          "각 부분을 따로 머지해도 실제 효과가 없음: 모니터링 없이 알림만 있어도, 알림 없이 모니터링만 있어도 기능이 불완전",
+          "완료 기준이 '냉장 온도 이탈 시 책임자 알림 발송'이라는 단일 조건으로 수렴"
         ]
       },
       "score": {
@@ -1141,7 +1143,7 @@
     {
       "case_id": "split-130",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"과제 제출 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"과제 제출 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"출결 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"과제 제출 검색 필터 초기화 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"과제 제출 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"documentation\",\n      \"title\": \"출결 승인 운영 절차 문서 갱신\"\n    }\n  ],\n  \"rationale\": [\n    \"각 요구사항이 독립적으로 PR 머지 가능: 검색 필터 수정, 중복 저장 고정, 문서 갱신은 서로 다른 영역\",\n    \"완료 기준이 겹치지 않음: r1은 필터 유지, r2는 단일 저장, r3은 문서 최신화\",\n    \"하나 취소 시 나머지 성립: 각 작업이 선후 의존성 없음\",\n    \"라벨 성격이 갈림: 버그 2건과 문서화 1건으로 구분\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"과제 제출 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"과제 제출 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"출결 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"과제 제출 검색 필터 페이지 이동 시 초기화 문제\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"과제 제출 처리 중 중복 저장 문제\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"documentation\",\n      \"title\": \"출결 승인 운영 절차 문서 갱신\"\n    }\n  ],\n  \"rationale\": [\n    \"세 항목 모두 독립적으로 PR로 머지 가능합니다.\",\n    \"r1(필터 상태 관리)과 r2(데이터 무결성)는 동일 도메인이지만 근본 원인이 다르므로 별도 수정이 필요합니다.\",\n    \"r3은 명확히 다른 성격(documentation)이므로 별도 이슈로 처리합니다.\",\n    \"완료 기준이 서로 겹치지 않고, 하나를 취소해도 나머지가 성립합니다.\"\n  ]\n}\n```",
       "response": {
         "decision": "split",
         "requirements": [
@@ -1164,14 +1166,14 @@
               "r1"
             ],
             "label": "bug",
-            "title": "과제 제출 검색 필터 초기화 수정"
+            "title": "과제 제출 검색 필터 페이지 이동 시 초기화 문제"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "과제 제출 중복 저장 문제 수정"
+            "title": "과제 제출 처리 중 중복 저장 문제"
           },
           {
             "requirement_ids": [
@@ -1182,10 +1184,10 @@
           }
         ],
         "rationale": [
-          "각 요구사항이 독립적으로 PR 머지 가능: 검색 필터 수정, 중복 저장 고정, 문서 갱신은 서로 다른 영역",
-          "완료 기준이 겹치지 않음: r1은 필터 유지, r2는 단일 저장, r3은 문서 최신화",
-          "하나 취소 시 나머지 성립: 각 작업이 선후 의존성 없음",
-          "라벨 성격이 갈림: 버그 2건과 문서화 1건으로 구분"
+          "세 항목 모두 독립적으로 PR로 머지 가능합니다.",
+          "r1(필터 상태 관리)과 r2(데이터 무결성)는 동일 도메인이지만 근본 원인이 다르므로 별도 수정이 필요합니다.",
+          "r3은 명확히 다른 성격(documentation)이므로 별도 이슈로 처리합니다.",
+          "완료 기준이 서로 겹치지 않고, 하나를 취소해도 나머지가 성립합니다."
         ]
       },
       "score": {
@@ -1210,7 +1212,7 @@
     {
       "case_id": "split-405",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 old-policy-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"지급 소요 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"면책 사유 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보험 계약 현황 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"보험금 청구 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"old-policy-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"손해 사정 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"지급 소요 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"지급 소요 보고서 CSV 내보내기 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"면책 사유 검증 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"7개의 완전히 독립적인 요구사항 발견\",\n    \"각 항목은 다른 도메인 또는 기능이며 따로 PR로 머지 가능\",\n    \"완료 기준이 겹치지 않음 (필터 추가 vs 중복 저장 vs 스크립트 제거 vs 문서 갱신 vs 성능 vs CSV 기능 vs 검증)\",\n    \"라벨이 구분됨 (enhancement 2개, bug 3개, chore 1개, documentation 1개)\",\n    \"상한 5개 초과로 over_limit 판정\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\"id\": \"r1\", \"quote\": \"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"},\n    {\"id\": \"r2\", \"quote\": \"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"},\n    {\"id\": \"r3\", \"quote\": \"사용하지 않는 old-policy-export 스크립트를 제거한다\"},\n    {\"id\": \"r4\", \"quote\": \"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"},\n    {\"id\": \"r5\", \"quote\": \"지급 소요 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"},\n    {\"id\": \"r6\", \"quote\": \"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"},\n    {\"id\": \"r7\", \"quote\": \"면책 사유 값이 비어도 저장되는 검증 오류를 수정한다\"}\n  ],\n  \"groups\": [\n    {\"requirement_ids\": [\"r1\"], \"label\": \"enhancement\", \"title\": \"보험 계약 현황 기간 필터 추가\"},\n    {\"requirement_ids\": [\"r2\"], \"label\": \"bug\", \"title\": \"보험금 청구 중복 저장 버그 수정\"},\n    {\"requirement_ids\": [\"r3\"], \"label\": \"chore\", \"title\": \"old-policy-export 스크립트 제거\"},\n    {\"requirement_ids\": [\"r4\"], \"label\": \"documentation\", \"title\": \"손해 사정 승인 절차 문서 갱신\"},\n    {\"requirement_ids\": [\"r5\"], \"label\": \"bug\", \"title\": \"지급 소요 보고서 조회 성능 개선\"},\n    {\"requirement_ids\": [\"r6\"], \"label\": \"enhancement\", \"title\": \"지급 소요 보고서 CSV 내보내기\"},\n    {\"requirement_ids\": [\"r7\"], \"label\": \"bug\", \"title\": \"면책 사유 검증 오류 수정\"}\n  ],\n  \"rationale\": [\n    \"7개 원자 요구사항 모두 독립적임: 각각 다른 기능/버그/문서를 다루고 따로 PR 머지 가능\",\n    \"라벨 성격 갈라짐: enhancement(r1, r6), bug(r2, r5, r7), chore(r3), documentation(r4)\",\n    \"완료 기준 겹치지 않음: 하나를 건너뛰어도 나머지 효과 있음\",\n    \"독립 이슈 5개 초과로 관리 비용 높음\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -1256,7 +1258,7 @@
               "r2"
             ],
             "label": "bug",
-            "title": "보험금 청구 중복 저장 문제 수정"
+            "title": "보험금 청구 중복 저장 버그 수정"
           },
           {
             "requirement_ids": [
@@ -1270,7 +1272,7 @@
               "r4"
             ],
             "label": "documentation",
-            "title": "손해 사정 승인 운영 절차 문서 갱신"
+            "title": "손해 사정 승인 절차 문서 갱신"
           },
           {
             "requirement_ids": [
@@ -1284,7 +1286,7 @@
               "r6"
             ],
             "label": "enhancement",
-            "title": "지급 소요 보고서 CSV 내보내기 기능 추가"
+            "title": "지급 소요 보고서 CSV 내보내기"
           },
           {
             "requirement_ids": [
@@ -1295,11 +1297,10 @@
           }
         ],
         "rationale": [
-          "7개의 완전히 독립적인 요구사항 발견",
-          "각 항목은 다른 도메인 또는 기능이며 따로 PR로 머지 가능",
-          "완료 기준이 겹치지 않음 (필터 추가 vs 중복 저장 vs 스크립트 제거 vs 문서 갱신 vs 성능 vs CSV 기능 vs 검증)",
-          "라벨이 구분됨 (enhancement 2개, bug 3개, chore 1개, documentation 1개)",
-          "상한 5개 초과로 over_limit 판정"
+          "7개 원자 요구사항 모두 독립적임: 각각 다른 기능/버그/문서를 다루고 따로 PR 머지 가능",
+          "라벨 성격 갈라짐: enhancement(r1, r6), bug(r2, r5, r7), chore(r3), documentation(r4)",
+          "완료 기준 겹치지 않음: 하나를 건너뛰어도 나머지 효과 있음",
+          "독립 이슈 5개 초과로 관리 비용 높음"
         ]
       },
       "score": {
@@ -1324,7 +1325,7 @@
     {
       "case_id": "split-330",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"정비 요청 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"출력 제한 승인 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"사용하지 않는 legacy-meter-job 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"시간대별 발전 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"정비 요청 보류 상태 추가 및 승인 화면 지원\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"검색 필터 페이지 이동 시 초기화 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 meter-job 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"발전 보고서 CSV 내보내기 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(상태 코드)과 r2(UI 선택)는 상호 의존성이 있어 하나만으로는 기능이 완성되지 않으므로 함께 처리\",\n    \"r3(필터 버그)은 독립적인 버그 수정\",\n    \"r4(스크립트 제거)는 기술 부채 정리로 다른 요청과 무관\",\n    \"r5(CSV 기능)은 새로운 기능으로 다른 작업과 독립적\",\n    \"라벨이 다르다: enhancement(r1+r2), bug(r3), chore(r4), enhancement(r5)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"정비 요청 상태 코드에 보류 값을 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"출력 제한 승인 화면에서 새 보류 상태를 선택할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"사용하지 않는 legacy-meter-job 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"시간대별 발전 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"정비 요청 보류 상태 추가 및 승인 화면 연동\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"정비 요청 검색 필터 페이지 이동 시 초기화 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 meter-job 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"발전 보고서 CSV 내보내기 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(상태 코드 추가)과 r2(화면 선택 UI)는 보류 상태 기능의 백엔드-프론트엔드 쌍으로, 하나만 구현하면 불완전함 — 함께 묶음\",\n    \"r3는 필터 초기화 현상에 대한 독립적인 버그 수정 — 다른 기능과 무관하게 진행·롤백 가능\",\n    \"r4는 청소 작업(chore)으로 라벨 성격이 다르고, 다른 요구사항과 의존성 없음\",\n    \"r5는 신규 기능으로 나머지 작업과 완전히 독립적\",\n    \"총 4개 그룹으로 각각 따로 PR 가능하며, 결합(r1-r2)과 단독 그룹이 섞임\"\n  ]\n}\n```",
       "response": {
         "decision": "partial",
         "requirements": [
@@ -1356,14 +1357,14 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "정비 요청 보류 상태 추가 및 승인 화면 지원"
+            "title": "정비 요청 보류 상태 추가 및 승인 화면 연동"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "bug",
-            "title": "검색 필터 페이지 이동 시 초기화 문제 수정"
+            "title": "정비 요청 검색 필터 페이지 이동 시 초기화 버그 수정"
           },
           {
             "requirement_ids": [
@@ -1381,11 +1382,11 @@
           }
         ],
         "rationale": [
-          "r1(상태 코드)과 r2(UI 선택)는 상호 의존성이 있어 하나만으로는 기능이 완성되지 않으므로 함께 처리",
-          "r3(필터 버그)은 독립적인 버그 수정",
-          "r4(스크립트 제거)는 기술 부채 정리로 다른 요청과 무관",
-          "r5(CSV 기능)은 새로운 기능으로 다른 작업과 독립적",
-          "라벨이 다르다: enhancement(r1+r2), bug(r3), chore(r4), enhancement(r5)"
+          "r1(상태 코드 추가)과 r2(화면 선택 UI)는 보류 상태 기능의 백엔드-프론트엔드 쌍으로, 하나만 구현하면 불완전함 — 함께 묶음",
+          "r3는 필터 초기화 현상에 대한 독립적인 버그 수정 — 다른 기능과 무관하게 진행·롤백 가능",
+          "r4는 청소 작업(chore)으로 라벨 성격이 다르고, 다른 요구사항과 의존성 없음",
+          "r5는 신규 기능으로 나머지 작업과 완전히 독립적",
+          "총 4개 그룹으로 각각 따로 PR 가능하며, 결합(r1-r2)과 단독 그룹이 섞임"
         ]
       },
       "score": {
@@ -1410,7 +1411,7 @@
     {
       "case_id": "split-005",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"사용하지 않는 old-claims-export 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"chore\",\n      \"title\": \"old-claims-export 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"요청에 작업이 하나뿐이고 명확한 범위를 가짐\",\n    \"단일 파일 또는 모듈 제거로 PR 하나에 포함 가능\",\n    \"완료 기준이 단순하고 겹치지 않음\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"사용하지 않는 old-claims-export 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"chore\",\n      \"title\": \"old-claims-export 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"요청에 작업이 하나뿐 (스크립트 정리)\",\n    \"완료 기준이 명확 (스크립트 파일 삭제)\",\n    \"단독 PR로 머지 가능한 독립 작업\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -1429,9 +1430,9 @@
           }
         ],
         "rationale": [
-          "요청에 작업이 하나뿐이고 명확한 범위를 가짐",
-          "단일 파일 또는 모듈 제거로 PR 하나에 포함 가능",
-          "완료 기준이 단순하고 겹치지 않음"
+          "요청에 작업이 하나뿐 (스크립트 정리)",
+          "완료 기준이 명확 (스크립트 파일 삭제)",
+          "단독 PR로 머지 가능한 독립 작업"
         ]
       },
       "score": {
@@ -1456,9 +1457,9 @@
     {
       "case_id": "split-190",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"불량 검사 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"설비 점검 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"불량 검사 검색 필터 초기화 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"불량 검사 중복 저장 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"documentation\",\n      \"title\": \"설비 점검 운영 절차 문서 갱신\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 모두 불량 검사 모듈이지만, 관련 없는 독립적인 버그: 필터 상태 관리 vs 중복 저장 로직\",\n    \"r3은 문서 작업으로 r1, r2와 성격이 다름\",\n    \"각각 따로 PR로 머지 가능하며 완료 기준이 겹치지 않음\",\n    \"하나를 취소해도 나머지 두 개는 성립\",\n    \"라벨이 다름: bug(2개), documentation(1개)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"불량 검사 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"설비 점검 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"불량 검사 기능 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"documentation\",\n      \"title\": \"설비 점검 운영 절차 문서 갱신\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 독립성 테스트 1-3번을 모두 만족하나 라벨 성격이 동일(bug)하므로 하나의 이슈로 통합\",\n    \"r3는 r1·r2와 라벨 성격이 명확히 다르므로(documentation) 분리\",\n    \"r1과 r2를 합친 그룹 + r3 단독 그룹의 구성이므로 partial\"\n  ]\n}\n```",
       "response": {
-        "decision": "split",
+        "decision": "partial",
         "requirements": [
           {
             "id": "r1",
@@ -1476,17 +1477,11 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1"
-            ],
-            "label": "bug",
-            "title": "불량 검사 검색 필터 초기화 버그 수정"
-          },
-          {
-            "requirement_ids": [
+              "r1",
               "r2"
             ],
             "label": "bug",
-            "title": "불량 검사 중복 저장 버그 수정"
+            "title": "불량 검사 기능 버그 수정"
           },
           {
             "requirement_ids": [
@@ -1497,36 +1492,34 @@
           }
         ],
         "rationale": [
-          "r1과 r2는 모두 불량 검사 모듈이지만, 관련 없는 독립적인 버그: 필터 상태 관리 vs 중복 저장 로직",
-          "r3은 문서 작업으로 r1, r2와 성격이 다름",
-          "각각 따로 PR로 머지 가능하며 완료 기준이 겹치지 않음",
-          "하나를 취소해도 나머지 두 개는 성립",
-          "라벨이 다름: bug(2개), documentation(1개)"
+          "r1과 r2는 독립성 테스트 1-3번을 모두 만족하나 라벨 성격이 동일(bug)하므로 하나의 이슈로 통합",
+          "r3는 r1·r2와 라벨 성격이 명확히 다르므로(documentation) 분리",
+          "r1과 r2를 합친 그룹 + r3 단독 그룹의 구성이므로 partial"
         ]
       },
       "score": {
         "atom_tp": 3,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
         "pair_tp": 0,
-        "pair_fp": 0,
+        "pair_fp": 1,
         "pair_fn": 0,
-        "label_correct": 3,
-        "label_total": 3,
-        "decision_correct": 1,
-        "under_split": 0,
+        "label_correct": 1,
+        "label_total": 1,
+        "decision_correct": 0,
+        "under_split": 1,
         "over_split": 0,
         "over_limit_correct": null,
-        "predicted_issue_count": 3
+        "predicted_issue_count": 2
       },
       "error": null
     },
     {
       "case_id": "split-470",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-bim-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"공정 지연 보고서 조회가 14초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공사 구역 현황 화면 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"자재 반입 처리 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-bim-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"안전 점검 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"공정 지연 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공정 지연 보고서 CSV 내보내기\"\n    }\n  ],\n  \"rationale\": [\n    \"6개 요구사항 모두 서로 다른 도메인·기능을 다룬다\",\n    \"각각 따로 PR 머지 가능, 완료 기준 비중복, 하나 취소돼도 나머지 성립, 라벨 분산 — 4가지 독립성 테스트 전수 통과\",\n    \"r1(구역 UI) vs r2(자재 로직) vs r3(스크립트) vs r4(문서) vs r5(보고서 성능) vs r6(보고서 기능) — 서로 영향 없음\",\n    \"r5·r6이 보고서 관련이지만 성능 버그와 새 기능으로 성격이 다르고, 한쪽 미완료가 다른 쪽 가치를 해치지 않음\",\n    \"독립 이슈 6개 > 상한 5개 → over_limit 판정\",\n    \"사용자가 명시적 판단 요청으로 모든 그룹 제시함\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-bim-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"공정 지연 보고서 조회가 14초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공사 구역 현황 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"자재 반입 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-bim-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"안전 점검 승인 절차 문서 최신화\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"공정 지연 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공정 지연 보고서 CSV 내보내기 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"모든 요구사항이 독립적으로 PR 머지 가능\",\n    \"각 항목의 완료 기준이 서로 겹치지 않음\",\n    \"하나 취소되어도 나머지 4개 성립\",\n    \"라벨이 bug, enhancement, chore, documentation로 혼합\",\n    \"독립 그룹 6개로 상한 5개 초과 — 사용자 확인 필요\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -1561,14 +1554,14 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "공사 구역 현황 화면 기간 필터 추가"
+            "title": "공사 구역 현황 사용자 지정 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "자재 반입 처리 중복 저장 문제 수정"
+            "title": "자재 반입 중복 저장 문제 수정"
           },
           {
             "requirement_ids": [
@@ -1582,7 +1575,7 @@
               "r4"
             ],
             "label": "documentation",
-            "title": "안전 점검 승인 운영 절차 문서 갱신"
+            "title": "안전 점검 승인 절차 문서 최신화"
           },
           {
             "requirement_ids": [
@@ -1596,16 +1589,15 @@
               "r6"
             ],
             "label": "enhancement",
-            "title": "공정 지연 보고서 CSV 내보내기"
+            "title": "공정 지연 보고서 CSV 내보내기 기능"
           }
         ],
         "rationale": [
-          "6개 요구사항 모두 서로 다른 도메인·기능을 다룬다",
-          "각각 따로 PR 머지 가능, 완료 기준 비중복, 하나 취소돼도 나머지 성립, 라벨 분산 — 4가지 독립성 테스트 전수 통과",
-          "r1(구역 UI) vs r2(자재 로직) vs r3(스크립트) vs r4(문서) vs r5(보고서 성능) vs r6(보고서 기능) — 서로 영향 없음",
-          "r5·r6이 보고서 관련이지만 성능 버그와 새 기능으로 성격이 다르고, 한쪽 미완료가 다른 쪽 가치를 해치지 않음",
-          "독립 이슈 6개 > 상한 5개 → over_limit 판정",
-          "사용자가 명시적 판단 요청으로 모든 그룹 제시함"
+          "모든 요구사항이 독립적으로 PR 머지 가능",
+          "각 항목의 완료 기준이 서로 겹치지 않음",
+          "하나 취소되어도 나머지 4개 성립",
+          "라벨이 bug, enhancement, chore, documentation로 혼합",
+          "독립 그룹 6개로 상한 5개 초과 — 사용자 확인 필요"
         ]
       },
       "score": {
@@ -1630,9 +1622,9 @@
     {
       "case_id": "split-375",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"일별 잔액 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"일별 잔액 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"일별 잔액 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"이상 거래 발생 시 준법 담당자에게 알림을 보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"법인 계좌 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"일별 잔액 보고서 시간대 수정 (UTC → 지역 시간대)\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"일별 잔액 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"이상 거래 준법 담당자 알림 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"법인 계좌 현황 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1·r2는 같은 기능(보고서)의 같은 근본 문제(시간대)를 서로 다른 계층(데이터 집계·출력 형식)에서 해결하는 것이므로, 하나만 고쳐서는 완전히 수정되지 않으므로 묶음\",\n    \"r3는 성능 개선으로 완전히 독립적인 bug 항목\",\n    \"r4는 준법 알림이라는 새로운 비즈니스 기능(enhancement)으로 모든 항목과 무관\",\n    \"r5는 UI 필터라는 새로운 기능(enhancement)으로 백엔드 작업과 분리\",\n    \"라벨 성격이 분화됨(bug 2개, enhancement 2개), 총 4그룹으로 상한 이내\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"일별 잔액 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"일별 잔액 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"일별 잔액 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"이상 거래 발생 시 준법 담당자에게 알림을 보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"법인 계좌 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"일별 잔액 보고서 집계 시간대 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"일별 잔액 보고서 CSV 출력 시간대 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"일별 잔액 보고서 조회 성능 최적화\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"이상 거래 알림 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"법인 계좌 현황 화면 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1, r2: 같은 보고서 기능이지만 기술 계층이 다름. r1은 데이터 집계(쿼리/비즈니스 로직), r2는 파일 직렬화(출력 포맷). 각각 독립 PR 가능, 완료 기준 분리, 하나 취소 가능.\",\n    \"r3: 성능 최적화(인덱싱/쿼리 최적화)로 r1, r2의 정확성 문제와 기술 특성 다름. 독립 PR 가능.\",\n    \"r4, r5: 새로운 기능으로 기존 버그 수정과 완전 독립. 각각 다른 도메인.\",\n    \"5개 모두 독립성 테스트(각각 따로 PR 가능, 완료 기준 분리, 하나 취소 가능) 만족. 상한(5개) 범위 내.\"\n  ]\n}\n```",
       "response": {
-        "decision": "partial",
+        "decision": "split",
         "requirements": [
           {
             "id": "r1",
@@ -1658,65 +1650,70 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1",
+              "r1"
+            ],
+            "label": "bug",
+            "title": "일별 잔액 보고서 집계 시간대 수정"
+          },
+          {
+            "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "일별 잔액 보고서 시간대 수정 (UTC → 지역 시간대)"
+            "title": "일별 잔액 보고서 CSV 출력 시간대 수정"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "bug",
-            "title": "일별 잔액 보고서 조회 성능 개선"
+            "title": "일별 잔액 보고서 조회 성능 최적화"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "enhancement",
-            "title": "이상 거래 준법 담당자 알림 기능"
+            "title": "이상 거래 알림 기능 추가"
           },
           {
             "requirement_ids": [
               "r5"
             ],
             "label": "enhancement",
-            "title": "법인 계좌 현황 기간 필터 추가"
+            "title": "법인 계좌 현황 화면 기간 필터 추가"
           }
         ],
         "rationale": [
-          "r1·r2는 같은 기능(보고서)의 같은 근본 문제(시간대)를 서로 다른 계층(데이터 집계·출력 형식)에서 해결하는 것이므로, 하나만 고쳐서는 완전히 수정되지 않으므로 묶음",
-          "r3는 성능 개선으로 완전히 독립적인 bug 항목",
-          "r4는 준법 알림이라는 새로운 비즈니스 기능(enhancement)으로 모든 항목과 무관",
-          "r5는 UI 필터라는 새로운 기능(enhancement)으로 백엔드 작업과 분리",
-          "라벨 성격이 분화됨(bug 2개, enhancement 2개), 총 4그룹으로 상한 이내"
+          "r1, r2: 같은 보고서 기능이지만 기술 계층이 다름. r1은 데이터 집계(쿼리/비즈니스 로직), r2는 파일 직렬화(출력 포맷). 각각 독립 PR 가능, 완료 기준 분리, 하나 취소 가능.",
+          "r3: 성능 최적화(인덱싱/쿼리 최적화)로 r1, r2의 정확성 문제와 기술 특성 다름. 독립 PR 가능.",
+          "r4, r5: 새로운 기능으로 기존 버그 수정과 완전 독립. 각각 다른 도메인.",
+          "5개 모두 독립성 테스트(각각 따로 PR 가능, 완료 기준 분리, 하나 취소 가능) 만족. 상한(5개) 범위 내."
         ]
       },
       "score": {
         "atom_tp": 5,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
-        "pair_tp": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
+        "pair_tp": 0,
         "pair_fp": 0,
-        "pair_fn": 0,
-        "label_correct": 4,
-        "label_total": 4,
-        "decision_correct": 1,
+        "pair_fn": 1,
+        "label_correct": 3,
+        "label_total": 3,
+        "decision_correct": 0,
         "under_split": 0,
-        "over_split": 0,
+        "over_split": 1,
         "over_limit_correct": null,
-        "predicted_issue_count": 4
+        "predicted_issue_count": 5
       },
       "error": null
     },
     {
       "case_id": "split-300",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"표본 식별자 저장 형식을 새 코드 체계로 마이그레이션한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"연구 과제 조회 로직을 새 표본 식별자 코드 체계로 전환한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"표본 식별자 코드 체계 마이그레이션\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(저장)만 하고 r2(조회)를 안 하면 저장과 조회의 코드 체계가 불일치\",\n    \"r2(조회)만 하고 r1(저장)을 안 하면 조회가 실패하거나 잘못된 데이터 반환\",\n    \"둘 다 완료되어야만 데이터 일관성이 보장되므로 단일 PR로 처리 필수\",\n    \"저장 형식 변경과 조회 로직 전환은 동일한 코드 체계 업그레이드로 인한 종속 작업\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"표본 식별자 저장 형식을 새 코드 체계로 마이그레이션한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"연구 과제 조회 로직을 새 표본 식별자 코드 체계로 전환한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"chore\",\n      \"title\": \"표본 식별자 코드 체계 마이그레이션\"\n    }\n  ],\n  \"rationale\": [\n    \"저장 형식 변경(r1)과 조회 로직 변경(r2)은 강하게 결합된 작업입니다.\",\n    \"r1 없이 r2를 머지하면 조회 로직이 존재하지 않는 코드 체계를 사용하려 하므로 동작하지 않습니다.\",\n    \"r2 없이 r1을 머지하면 데이터는 새 형식으로 저장되지만 조회 기능이 깨집니다.\",\n    \"둘은 하나의 마이그레이션 목표를 공유하며, 완료 기준도 동일합니다.\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -1735,15 +1732,15 @@
               "r1",
               "r2"
             ],
-            "label": "enhancement",
+            "label": "chore",
             "title": "표본 식별자 코드 체계 마이그레이션"
           }
         ],
         "rationale": [
-          "r1(저장)만 하고 r2(조회)를 안 하면 저장과 조회의 코드 체계가 불일치",
-          "r2(조회)만 하고 r1(저장)을 안 하면 조회가 실패하거나 잘못된 데이터 반환",
-          "둘 다 완료되어야만 데이터 일관성이 보장되므로 단일 PR로 처리 필수",
-          "저장 형식 변경과 조회 로직 전환은 동일한 코드 체계 업그레이드로 인한 종속 작업"
+          "저장 형식 변경(r1)과 조회 로직 변경(r2)은 강하게 결합된 작업입니다.",
+          "r1 없이 r2를 머지하면 조회 로직이 존재하지 않는 코드 체계를 사용하려 하므로 동작하지 않습니다.",
+          "r2 없이 r1을 머지하면 데이터는 새 형식으로 저장되지만 조회 기능이 깨집니다.",
+          "둘은 하나의 마이그레이션 목표를 공유하며, 완료 기준도 동일합니다."
         ]
       },
       "score": {
@@ -1755,7 +1752,7 @@
         "pair_tp": 1,
         "pair_fp": 0,
         "pair_fn": 0,
-        "label_correct": 0,
+        "label_correct": 1,
         "label_total": 1,
         "decision_correct": 1,
         "under_split": 0,
@@ -1768,7 +1765,7 @@
     {
       "case_id": "split-175",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"이상 반응 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"임상 시험 카드의 정렬 순서를 사용자가 고정할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"이상 반응 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"시험군 코드 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임상 시험 카드 정렬 순서 고정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임상 시험 현황 화면 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"4개 요구사항 모두 각각 독립적인 PR로 머지 가능\",\n    \"완료 기준이 겹치지 않음: r1은 성능 지표, r2는 저장 검증, r3는 정렬 UI, r4는 필터 UI\",\n    \"각 요구사항을 개별 취소해도 나머지가 성립함\",\n    \"라벨이 분산됨 (bug 2개, enhancement 2개)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"이상 반응 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"임상 시험 카드의 정렬 순서를 사용자가 고정할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"보고서 조회 응답 시간 10초 이상 지연 해소\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"시험군 코드 빈 값 저장 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임상 시험 카드 정렬 순서 사용자 고정 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"임상 시험 현황 화면 사용자 지정 기간 필터\"\n    }\n  ],\n  \"rationale\": [\n    \"4개 요구사항이 모두 독립성 테스트 통과: 각각 따로 PR 머지 가능, 완료 기준 안 겹침, 하나 취소돼도 나머지 성립, 버그 2건과 기능 2건으로 라벨 성격 갈림\",\n    \"r1과 r2는 각각 성능 최적화와 데이터 검증이라 무관한 구현 영역\",\n    \"r3과 r4는 둘 다 UI 기능이지만 카드 정렬과 현황 화면 필터로 서로 다른 컴포넌트 범위\"\n  ]\n}\n```",
       "response": {
         "decision": "split",
         "requirements": [
@@ -1795,35 +1792,34 @@
               "r1"
             ],
             "label": "bug",
-            "title": "이상 반응 보고서 조회 성능 개선"
+            "title": "보고서 조회 응답 시간 10초 이상 지연 해소"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "시험군 코드 검증 오류 수정"
+            "title": "시험군 코드 빈 값 저장 검증 오류 수정"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "enhancement",
-            "title": "임상 시험 카드 정렬 순서 고정"
+            "title": "임상 시험 카드 정렬 순서 사용자 고정 기능"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "enhancement",
-            "title": "임상 시험 현황 화면 기간 필터 추가"
+            "title": "임상 시험 현황 화면 사용자 지정 기간 필터"
           }
         ],
         "rationale": [
-          "4개 요구사항 모두 각각 독립적인 PR로 머지 가능",
-          "완료 기준이 겹치지 않음: r1은 성능 지표, r2는 저장 검증, r3는 정렬 UI, r4는 필터 UI",
-          "각 요구사항을 개별 취소해도 나머지가 성립함",
-          "라벨이 분산됨 (bug 2개, enhancement 2개)"
+          "4개 요구사항이 모두 독립성 테스트 통과: 각각 따로 PR 머지 가능, 완료 기준 안 겹침, 하나 취소돼도 나머지 성립, 버그 2건과 기능 2건으로 라벨 성격 갈림",
+          "r1과 r2는 각각 성능 최적화와 데이터 검증이라 무관한 구현 영역",
+          "r3과 r4는 둘 다 UI 기능이지만 카드 정렬과 현황 화면 필터로 서로 다른 컴포넌트 범위"
         ]
       },
       "score": {
@@ -1848,7 +1844,7 @@
     {
       "case_id": "split-475",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 old-route-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"배송 지연 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"도착 예정 시각 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"배송 지연 발생 시 배차 담당자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"배송 차량 현황 화면에 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"배차 요청 중복 저장 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 old-route-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"상차 확인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"배송 지연 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"배송 지연 보고서 CSV 내보내기 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"도착 예정 시각 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"배송 지연 발생 시 담당자 알림 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"8개 요구사항이 모두 독립적: 각각 따로 PR 머지 가능, 완료 기준 비중복, 취소 시 나머지 성립, 라벨 역할 다름\",\n    \"독립 그룹 8개 > 상한 5개 → over_limit 판정\",\n    \"r5(성능)와 r6(CSV 기능)은 같은 보고서 도메인이나 역할이 명확히 다르므로 각각 독립\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 old-route-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"배송 지연 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"도착 예정 시각 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"배송 지연 발생 시 배차 담당자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"배송 차량 현황 화면 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"배차 요청 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 old-route-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"상차 확인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"배송 지연 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"배송 지연 보고서 CSV 내보내기 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"도착 예정 시각 필수 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"배송 지연 발생 시 배차 담당자 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"8개 요구사항 모두 독립적인 PR로 머지 가능\",\n    \"각 항목의 완료 기준이 서로 겹치지 않음\",\n    \"라벨이 다양함 (enhancement 3, bug 3, chore 1, documentation 1)\",\n    \"도메인 및 영향 범위가 서로 다름 (차량 현황, 배차, 스크립트, 문서, 보고서, 검증, 알림)\",\n    \"상한(5개)을 초과하여 사용자 확인 필요\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -1891,14 +1887,14 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "배송 차량 현황 화면에 기간 필터 추가"
+            "title": "배송 차량 현황 화면 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "배차 요청 중복 저장 버그 수정"
+            "title": "배차 요청 중복 저장 문제 수정"
           },
           {
             "requirement_ids": [
@@ -1933,20 +1929,22 @@
               "r7"
             ],
             "label": "bug",
-            "title": "도착 예정 시각 검증 오류 수정"
+            "title": "도착 예정 시각 필수 검증 오류 수정"
           },
           {
             "requirement_ids": [
               "r8"
             ],
             "label": "enhancement",
-            "title": "배송 지연 발생 시 담당자 알림 기능 추가"
+            "title": "배송 지연 발생 시 배차 담당자 알림 기능"
           }
         ],
         "rationale": [
-          "8개 요구사항이 모두 독립적: 각각 따로 PR 머지 가능, 완료 기준 비중복, 취소 시 나머지 성립, 라벨 역할 다름",
-          "독립 그룹 8개 > 상한 5개 → over_limit 판정",
-          "r5(성능)와 r6(CSV 기능)은 같은 보고서 도메인이나 역할이 명확히 다르므로 각각 독립"
+          "8개 요구사항 모두 독립적인 PR로 머지 가능",
+          "각 항목의 완료 기준이 서로 겹치지 않음",
+          "라벨이 다양함 (enhancement 3, bug 3, chore 1, documentation 1)",
+          "도메인 및 영향 범위가 서로 다름 (차량 현황, 배차, 스크립트, 문서, 보고서, 검증, 알림)",
+          "상한(5개)을 초과하여 사용자 확인 필요"
         ]
       },
       "score": {
@@ -1971,9 +1969,9 @@
     {
       "case_id": "split-380",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"계량기 상태 저장 형식을 새 코드 체계로 마이그레이션한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"발전 설비 조회 로직을 새 계량기 상태 코드 체계로 전환한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"사용하지 않는 legacy-meter-job 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"계량기 상태 코드 체계 마이그레이션\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"정비 요청 검색 필터 초기화 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 meter-job 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 계량기 상태 코드 체계 전환이라는 단일 기능 목표로, 저장 형식 변경과 조회 로직 업데이트가 함께 진행되어야 데이터와 로직이 일관된다.\",\n    \"r3은 정비 요청 검색의 독립 버그로, 계량기 마이그레이션과 완전히 다른 기능 영역이다.\",\n    \"r4는 사용하지 않는 레거시 스크립트 정리로, 순수 chore이며 다른 작업과 무관하다.\",\n    \"각 그룹은 독립적으로 PR 머지 가능하고 완료 기준이 명확하며 라벨 성격이 모두 다르다.\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"계량기 상태 저장 형식을 새 코드 체계로 마이그레이션한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"발전 설비 조회 로직을 새 계량기 상태 코드 체계로 전환한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"사용하지 않는 legacy-meter-job 스크립트를 제거한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"계량기 상태 코드 체계 마이그레이션\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"정비 요청 검색 필터 초기화 버그\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-meter-job 스크립트 제거\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 데이터 스토리지와 조회 로직의 계약 관계. r1만 하면 데이터 형식이 바뀌지만 조회는 구형식을 시도하고, r2만 하면 구형식 데이터를 새 코드로 읽으려 한다. 하나만 해서는 아무 효과가 없으므로 단일 PR로 처리\",\n    \"r3은 정비 요청 검색의 독립적 버그로, 계량기 마이그레이션(r1-r2)과 스크립트 제거(r4)와 무관하게 따로 PR 가능\",\n    \"r4는 정리 작업으로 다른 요구사항에 의존하지 않으며 따로 PR 가능\",\n    \"3개 그룹(결합 1개 + 단독 2개)이므로 partial\"\n  ]\n}\n```",
       "response": {
-        "decision": "split",
+        "decision": "partial",
         "requirements": [
           {
             "id": "r1",
@@ -2006,21 +2004,21 @@
               "r3"
             ],
             "label": "bug",
-            "title": "정비 요청 검색 필터 초기화 문제 수정"
+            "title": "정비 요청 검색 필터 초기화 버그"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "chore",
-            "title": "레거시 meter-job 스크립트 제거"
+            "title": "legacy-meter-job 스크립트 제거"
           }
         ],
         "rationale": [
-          "r1과 r2는 계량기 상태 코드 체계 전환이라는 단일 기능 목표로, 저장 형식 변경과 조회 로직 업데이트가 함께 진행되어야 데이터와 로직이 일관된다.",
-          "r3은 정비 요청 검색의 독립 버그로, 계량기 마이그레이션과 완전히 다른 기능 영역이다.",
-          "r4는 사용하지 않는 레거시 스크립트 정리로, 순수 chore이며 다른 작업과 무관하다.",
-          "각 그룹은 독립적으로 PR 머지 가능하고 완료 기준이 명확하며 라벨 성격이 모두 다르다."
+          "r1과 r2는 데이터 스토리지와 조회 로직의 계약 관계. r1만 하면 데이터 형식이 바뀌지만 조회는 구형식을 시도하고, r2만 하면 구형식 데이터를 새 코드로 읽으려 한다. 하나만 해서는 아무 효과가 없으므로 단일 PR로 처리",
+          "r3은 정비 요청 검색의 독립적 버그로, 계량기 마이그레이션(r1-r2)과 스크립트 제거(r4)와 무관하게 따로 PR 가능",
+          "r4는 정리 작업으로 다른 요구사항에 의존하지 않으며 따로 PR 가능",
+          "3개 그룹(결합 1개 + 단독 2개)이므로 partial"
         ]
       },
       "score": {
@@ -2045,9 +2043,9 @@
     {
       "case_id": "split-235",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"취약점 현황 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"취약점 현황 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"취약점 보고서 시간대 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"두 요구사항은 모두 '취약점 현황 보고서'의 UTC 시간대 오류에 관한 것입니다\",\n    \"보고서 표시와 CSV 내보내기는 기술적으로 다른 영역이지만, 같은 기능의 불완전한 상태입니다\",\n    \"r1만 수정하고 r2를 남기거나 그 반대면 사용자 관점에서 기능이 여전히 오류 상태이므로, 각각 따로 머지할 수 없습니다\",\n    \"따라서 단일 이슈로 통합하며, 체크리스트로 두 가지 수정 범위를 명시합니다\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"취약점 현황 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"취약점 현황 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"취약점 현황 보고서 시간대 집계 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"취약점 현황 보고서 CSV 출력 시간대 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 보고서의 서로 다른 출력 채널(대시보드 집계 vs CSV 파일)을 각각 대상으로 함\",\n    \"각각 독립적으로 검증 및 롤백 가능 (하나를 취소해도 다른 하나는 성립)\",\n    \"별도 PR로 머지 가능하며, 완료 기준이 명확히 구분됨\"\n  ]\n}\n```",
       "response": {
-        "decision": "single",
+        "decision": "split",
         "requirements": [
           {
             "id": "r1",
@@ -2061,45 +2059,50 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1",
+              "r1"
+            ],
+            "label": "bug",
+            "title": "취약점 현황 보고서 시간대 집계 오류 수정"
+          },
+          {
+            "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "취약점 보고서 시간대 오류 수정"
+            "title": "취약점 현황 보고서 CSV 출력 시간대 오류 수정"
           }
         ],
         "rationale": [
-          "두 요구사항은 모두 '취약점 현황 보고서'의 UTC 시간대 오류에 관한 것입니다",
-          "보고서 표시와 CSV 내보내기는 기술적으로 다른 영역이지만, 같은 기능의 불완전한 상태입니다",
-          "r1만 수정하고 r2를 남기거나 그 반대면 사용자 관점에서 기능이 여전히 오류 상태이므로, 각각 따로 머지할 수 없습니다",
-          "따라서 단일 이슈로 통합하며, 체크리스트로 두 가지 수정 범위를 명시합니다"
+          "r1과 r2는 보고서의 서로 다른 출력 채널(대시보드 집계 vs CSV 파일)을 각각 대상으로 함",
+          "각각 독립적으로 검증 및 롤백 가능 (하나를 취소해도 다른 하나는 성립)",
+          "별도 PR로 머지 가능하며, 완료 기준이 명확히 구분됨"
         ]
       },
       "score": {
         "atom_tp": 2,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
-        "pair_tp": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
+        "pair_tp": 0,
         "pair_fp": 0,
-        "pair_fn": 0,
-        "label_correct": 1,
-        "label_total": 1,
-        "decision_correct": 1,
+        "pair_fn": 1,
+        "label_correct": 0,
+        "label_total": 0,
+        "decision_correct": 0,
         "under_split": 0,
-        "over_split": 0,
+        "over_split": 1,
         "over_limit_correct": null,
-        "predicted_issue_count": 1
+        "predicted_issue_count": 2
       },
       "error": null
     },
     {
       "case_id": "split-110",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"정비 예약 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"결함 추적 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"차대 번호 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"정비 예약 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"결함 추적 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"차대 번호 필수 검증 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"세 버그는 각각 다른 도메인(정비 예약 → 중복, 보고서 → 성능, 검증 → 필수값)의 독립 결함이다\",\n    \"각 항목을 따로 PR로 머지해도 말이 서고, 완료 기준이 명확하고 겹치지 않는다\",\n    \"r1 취소 시 r2·r3이 여전히 유효하고, 모두 동일한 bug 라벨으로 성격이 일치한다\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"정비 예약 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"결함 추적 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"차대 번호 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\", \"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"제주 2분기 버그 수정 (중복 저장, 성능, 검증)\"\n    }\n  ],\n  \"rationale\": [\n    \"세 항목 모두 라벨이 bug로 동일하여 독립성 테스트 4번 조건(라벨 성격이 갈리는가) 불만족\",\n    \"규칙에서 네 항목 모두 만족할 때만 분할하므로, 하나라도 아니면 단일 이슈로 통합\",\n    \"완료 기준을 체크리스트로 나누어 순차적으로 관리\"\n  ]\n}\n```",
       "response": {
-        "decision": "split",
+        "decision": "single",
         "requirements": [
           {
             "id": "r1",
@@ -2117,55 +2120,43 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1"
-            ],
-            "label": "bug",
-            "title": "정비 예약 중복 저장 문제 수정"
-          },
-          {
-            "requirement_ids": [
-              "r2"
-            ],
-            "label": "bug",
-            "title": "결함 추적 보고서 조회 성능 개선"
-          },
-          {
-            "requirement_ids": [
+              "r1",
+              "r2",
               "r3"
             ],
             "label": "bug",
-            "title": "차대 번호 필수 검증 추가"
+            "title": "제주 2분기 버그 수정 (중복 저장, 성능, 검증)"
           }
         ],
         "rationale": [
-          "세 버그는 각각 다른 도메인(정비 예약 → 중복, 보고서 → 성능, 검증 → 필수값)의 독립 결함이다",
-          "각 항목을 따로 PR로 머지해도 말이 서고, 완료 기준이 명확하고 겹치지 않는다",
-          "r1 취소 시 r2·r3이 여전히 유효하고, 모두 동일한 bug 라벨으로 성격이 일치한다"
+          "세 항목 모두 라벨이 bug로 동일하여 독립성 테스트 4번 조건(라벨 성격이 갈리는가) 불만족",
+          "규칙에서 네 항목 모두 만족할 때만 분할하므로, 하나라도 아니면 단일 이슈로 통합",
+          "완료 기준을 체크리스트로 나누어 순차적으로 관리"
         ]
       },
       "score": {
         "atom_tp": 3,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
         "pair_tp": 0,
-        "pair_fp": 0,
+        "pair_fp": 3,
         "pair_fn": 0,
-        "label_correct": 3,
-        "label_total": 3,
-        "decision_correct": 1,
-        "under_split": 0,
+        "label_correct": 0,
+        "label_total": 0,
+        "decision_correct": 0,
+        "under_split": 1,
         "over_split": 0,
         "over_limit_correct": null,
-        "predicted_issue_count": 3
+        "predicted_issue_count": 1
       },
       "error": null
     },
     {
       "case_id": "split-490",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-fare-sync 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"노선 판매 보고서 조회가 16초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"여행 상품 현황 화면에 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"예약 변경 처리 중 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-fare-sync 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"환불 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"노선 판매 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노선 판매 보고서 CSV 내보내기 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"여권 만료일 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"항공편 취소 시 여행 상담사 알림 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"요청에 8개의 독립적인 작업 포함 (5개 초과)\",\n    \"각 작업은 단독 PR로 머지 가능하며 서로 의존성 없음\",\n    \"완료 기준이 겹치지 않음 (기간 필터 ≠ 중복저장 버그 ≠ 스크립트 제거 등)\",\n    \"라벨이 다양함 (bug 3개, enhancement 3개, chore 1개, documentation 1개)\",\n    \"하나의 취소가 다른 작업 성립에 영향 없음\",\n    \"r5와 r6은 같은 보고서 대상이나 서로 다른 작업 (성능 vs 내보내기) — 각각 단독 가능\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-fare-sync 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"노선 판매 보고서 조회가 16초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"여행 상품 현황 화면 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"예약 변경 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-fare-sync 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"환불 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"노선 판매 보고서 조회 성능 최적화\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노선 판매 보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"여권 만료일 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"항공편 취소 시 상담사 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"8개 요구사항 모두 독립성 4가지 테스트를 통과합니다 (각각 따로 PR 머지 가능, 완료 기준 불겹침, 하나 취소시 나머지 성립, 라벨 차이)\",\n    \"5개 초과이므로 over_limit 판정입니다\",\n    \"우선순위 또는 관련도에 따라 묶을 수 있습니다 (예: r5+r6을 '노선 판매 보고서' 그룹, r2+r7을 '데이터 검증' 그룹)\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -2208,14 +2199,14 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "여행 상품 현황 화면에 사용자 지정 기간 필터 추가"
+            "title": "여행 상품 현황 화면 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "예약 변경 처리 중 중복 저장 문제 수정"
+            "title": "예약 변경 중복 저장 문제 수정"
           },
           {
             "requirement_ids": [
@@ -2236,14 +2227,14 @@
               "r5"
             ],
             "label": "bug",
-            "title": "노선 판매 보고서 조회 성능 개선"
+            "title": "노선 판매 보고서 조회 성능 최적화"
           },
           {
             "requirement_ids": [
               "r6"
             ],
             "label": "enhancement",
-            "title": "노선 판매 보고서 CSV 내보내기 기능 추가"
+            "title": "노선 판매 보고서 CSV 내보내기 기능"
           },
           {
             "requirement_ids": [
@@ -2257,16 +2248,13 @@
               "r8"
             ],
             "label": "enhancement",
-            "title": "항공편 취소 시 여행 상담사 알림 기능 추가"
+            "title": "항공편 취소 시 상담사 알림 기능"
           }
         ],
         "rationale": [
-          "요청에 8개의 독립적인 작업 포함 (5개 초과)",
-          "각 작업은 단독 PR로 머지 가능하며 서로 의존성 없음",
-          "완료 기준이 겹치지 않음 (기간 필터 ≠ 중복저장 버그 ≠ 스크립트 제거 등)",
-          "라벨이 다양함 (bug 3개, enhancement 3개, chore 1개, documentation 1개)",
-          "하나의 취소가 다른 작업 성립에 영향 없음",
-          "r5와 r6은 같은 보고서 대상이나 서로 다른 작업 (성능 vs 내보내기) — 각각 단독 가능"
+          "8개 요구사항 모두 독립성 4가지 테스트를 통과합니다 (각각 따로 PR 머지 가능, 완료 기준 불겹침, 하나 취소시 나머지 성립, 라벨 차이)",
+          "5개 초과이므로 over_limit 판정입니다",
+          "우선순위 또는 관련도에 따라 묶을 수 있습니다 (예: r5+r6을 '노선 판매 보고서' 그룹, r2+r7을 '데이터 검증' 그룹)"
         ]
       },
       "score": {
@@ -2291,9 +2279,9 @@
     {
       "case_id": "split-335",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"전환율 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"전환율 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"전환율 보고서 조회가 15초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"결제 이탈 발생 시 셀러 매니저에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"전환율 보고서 UTC 시간대 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"전환율 보고서 조회 성능 최적화\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"결제 이탈 시 셀러 매니저 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"r1+r2는 동일 시스템(전환율 보고서)의 동일 원인(UTC 시간대)을 해결하는 작업으로, 하나만 수행하면 데이터-CSV 간 불일치가 발생하므로 함께 진행되어야 함\",\n    \"r3는 성능 이슈로, r1+r2의 시간대 수정과 독립적으로 진행 가능하며 완료 기준이 명확히 다름\",\n    \"r4는 완전히 다른 기능(알림 시스템)으로 전환율 보고서와 무관하며, 라벨도 enhancement로 구분됨\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"전환율 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"전환율 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"전환율 보고서 조회가 15초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"결제 이탈 발생 시 셀러 매니저에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\", \"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"전환율 보고서 시간대 및 성능 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"결제 이탈 발생 시 셀러 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"r1, r2, r3는 모두 bug 라벨로 같은 성격 (라벨 갈림 기준 불만족)\",\n    \"r1, r2는 시간대 표시 문제, r3은 성능 문제이지만 라벨 기준에 따라 동일 그룹\",\n    \"r1만 또는 r2만 또는 r3만 PR 해도 코드는 정상 작동 (기술적으로는 분리 가능하나 라벨 기준 적용)\",\n    \"r4는 enhancement로 r1-r3과 라벨이 다르므로 독립 그룹\",\n    \"r4 취소 시 r1-r3은 독립적으로 성립 가능\"\n  ]\n}\n```",
       "response": {
-        "decision": "split",
+        "decision": "partial",
         "requirements": [
           {
             "id": "r1",
@@ -2316,55 +2304,51 @@
           {
             "requirement_ids": [
               "r1",
-              "r2"
-            ],
-            "label": "bug",
-            "title": "전환율 보고서 UTC 시간대 오류 수정"
-          },
-          {
-            "requirement_ids": [
+              "r2",
               "r3"
             ],
             "label": "bug",
-            "title": "전환율 보고서 조회 성능 최적화"
+            "title": "전환율 보고서 시간대 및 성능 문제 수정"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "enhancement",
-            "title": "결제 이탈 시 셀러 매니저 알림 기능"
+            "title": "결제 이탈 발생 시 셀러 알림 기능"
           }
         ],
         "rationale": [
-          "r1+r2는 동일 시스템(전환율 보고서)의 동일 원인(UTC 시간대)을 해결하는 작업으로, 하나만 수행하면 데이터-CSV 간 불일치가 발생하므로 함께 진행되어야 함",
-          "r3는 성능 이슈로, r1+r2의 시간대 수정과 독립적으로 진행 가능하며 완료 기준이 명확히 다름",
-          "r4는 완전히 다른 기능(알림 시스템)으로 전환율 보고서와 무관하며, 라벨도 enhancement로 구분됨"
+          "r1, r2, r3는 모두 bug 라벨로 같은 성격 (라벨 갈림 기준 불만족)",
+          "r1, r2는 시간대 표시 문제, r3은 성능 문제이지만 라벨 기준에 따라 동일 그룹",
+          "r1만 또는 r2만 또는 r3만 PR 해도 코드는 정상 작동 (기술적으로는 분리 가능하나 라벨 기준 적용)",
+          "r4는 enhancement로 r1-r3과 라벨이 다르므로 독립 그룹",
+          "r4 취소 시 r1-r3은 독립적으로 성립 가능"
         ]
       },
       "score": {
         "atom_tp": 4,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
         "pair_tp": 1,
-        "pair_fp": 0,
+        "pair_fp": 2,
         "pair_fn": 0,
-        "label_correct": 3,
-        "label_total": 3,
+        "label_correct": 1,
+        "label_total": 1,
         "decision_correct": 1,
-        "under_split": 0,
+        "under_split": 1,
         "over_split": 0,
         "over_limit_correct": null,
-        "predicted_issue_count": 3
+        "predicted_issue_count": 2
       },
       "error": null
     },
     {
       "case_id": "split-215",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"카테고리 매출 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"카테고리 매출 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"카테고리 매출 보고서 시간대 오류 수정 (집계 및 CSV)\"\n    }\n  ],\n  \"rationale\": [\n    \"두 요구사항 모두 같은 도메인(카테고리 매출 보고서)에서 같은 원인(UTC 시간대)으로 발생한 오류입니다\",\n    \"라벨이 모두 bug로 같으므로 성격이 갈리지 않습니다\",\n    \"보고서 집계와 CSV 내보내기는 데이터 변환 계층의 시간대 처리가 공통 원인일 가능성이 높아, 함께 처리하는 것이 효율적입니다\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"카테고리 매출 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"카테고리 매출 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"카테고리 매출 보고서 타임존 수정 (UTC → 지역 시간대)\"\n    }\n  ],\n  \"rationale\": [\n    \"두 요구사항이 동일한 근본 문제(UTC 타임존 오류)의 두 가지 표출 지점\",\n    \"보고서 집계와 CSV 출력 모두 같은 타임존 로직 변경에 포함되므로 하나의 PR로 처리 효율적\",\n    \"라벨이 둘 다 bug로 동일\",\n    \"분리할 경우 완료 기준이 '카테고리 매출 보고서 타임존 수정'으로 수렴하므로 분할의 이점 부족\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -2384,13 +2368,14 @@
               "r2"
             ],
             "label": "bug",
-            "title": "카테고리 매출 보고서 시간대 오류 수정 (집계 및 CSV)"
+            "title": "카테고리 매출 보고서 타임존 수정 (UTC → 지역 시간대)"
           }
         ],
         "rationale": [
-          "두 요구사항 모두 같은 도메인(카테고리 매출 보고서)에서 같은 원인(UTC 시간대)으로 발생한 오류입니다",
-          "라벨이 모두 bug로 같으므로 성격이 갈리지 않습니다",
-          "보고서 집계와 CSV 내보내기는 데이터 변환 계층의 시간대 처리가 공통 원인일 가능성이 높아, 함께 처리하는 것이 효율적입니다"
+          "두 요구사항이 동일한 근본 문제(UTC 타임존 오류)의 두 가지 표출 지점",
+          "보고서 집계와 CSV 출력 모두 같은 타임존 로직 변경에 포함되므로 하나의 PR로 처리 효율적",
+          "라벨이 둘 다 bug로 동일",
+          "분리할 경우 완료 기준이 '카테고리 매출 보고서 타임존 수정'으로 수렴하므로 분할의 이점 부족"
         ]
       },
       "score": {
@@ -2415,7 +2400,7 @@
     {
       "case_id": "split-120",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"계약 갱신 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"입주 심사 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"공실률 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"계약 만료 발생 시 자산 관리자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"계약 갱신 검색 필터 초기화 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"계약 갱신 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"documentation\",\n      \"title\": \"입주 심사 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공실률 보고서 CSV 내보내기 기능 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"계약 만료 알림 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"5개 요구사항 모두 서로 다른 도메인·기능에 해당\",\n    \"각각 따로 PR로 머지 가능 (독립성 만족)\",\n    \"완료 기준이 서로 겹치지 않음\",\n    \"하나가 취소되어도 나머지 4개는 성립\",\n    \"라벨 성격이 갈림 (bug 2, documentation 1, enhancement 2)\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"계약 갱신 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"입주 심사 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"공실률 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"계약 만료 발생 시 자산 관리자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"계약 갱신 검색 필터 초기화 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"계약 갱신 처리 중 중복 저장 버그 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"documentation\",\n      \"title\": \"입주 심사 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공실률 보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"계약 만료 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"5개 요구사항 모두 서로 다른 기능/모듈을 다룸\",\n    \"각각 따로 PR로 머지 가능\",\n    \"완료 기준이 서로 겹치지 않음\",\n    \"하나의 요구사항 취소가 다른 요구사항 성립에 영향 없음\",\n    \"라벨이 명확히 구분됨 (bug 2개, documentation 1개, enhancement 2개)\"\n  ]\n}\n```",
       "response": {
         "decision": "split",
         "requirements": [
@@ -2446,14 +2431,14 @@
               "r1"
             ],
             "label": "bug",
-            "title": "계약 갱신 검색 필터 초기화 문제 수정"
+            "title": "계약 갱신 검색 필터 초기화 버그 수정"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "계약 갱신 중복 저장 문제 수정"
+            "title": "계약 갱신 처리 중 중복 저장 버그 수정"
           },
           {
             "requirement_ids": [
@@ -2467,22 +2452,22 @@
               "r4"
             ],
             "label": "enhancement",
-            "title": "공실률 보고서 CSV 내보내기 기능 추가"
+            "title": "공실률 보고서 CSV 내보내기 기능"
           },
           {
             "requirement_ids": [
               "r5"
             ],
             "label": "enhancement",
-            "title": "계약 만료 알림 기능 추가"
+            "title": "계약 만료 알림 기능"
           }
         ],
         "rationale": [
-          "5개 요구사항 모두 서로 다른 도메인·기능에 해당",
-          "각각 따로 PR로 머지 가능 (독립성 만족)",
+          "5개 요구사항 모두 서로 다른 기능/모듈을 다룸",
+          "각각 따로 PR로 머지 가능",
           "완료 기준이 서로 겹치지 않음",
-          "하나가 취소되어도 나머지 4개는 성립",
-          "라벨 성격이 갈림 (bug 2, documentation 1, enhancement 2)"
+          "하나의 요구사항 취소가 다른 요구사항 성립에 영향 없음",
+          "라벨이 명확히 구분됨 (bug 2개, documentation 1개, enhancement 2개)"
         ]
       },
       "score": {
@@ -2507,7 +2492,7 @@
     {
       "case_id": "split-415",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 legacy-fare-sync 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"노선 판매 보고서 조회가 13초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r7\",\n      \"quote\": \"여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r8\",\n      \"quote\": \"항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"여행 상품 현황 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"예약 변경 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"legacy-fare-sync 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"환불 승인 운영 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"노선 판매 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노선 판매 보고서 CSV 내보내기 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r7\"],\n      \"label\": \"bug\",\n      \"title\": \"여권 만료일 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r8\"],\n      \"label\": \"enhancement\",\n      \"title\": \"항공편 취소 여행 상담사 알림 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"8개 요구사항이 모두 독립적 작업 단위: 각각 따로 PR 머지 가능, 완료 기준 겹치지 않음, 하나 취소 시 나머지 성립\",\n    \"라벨 분산: bug 3건(r2,r5,r7), enhancement 3건(r1,r6,r8), chore 1건(r3), documentation 1건(r4)\",\n    \"독립 그룹 8개가 한계(5개) 초과로 관리 비용 우려\",\n    \"r5+r6(보고서), r1+r2+r8(예약/UI) 등 도메인별 병합 검토 권장\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\"id\": \"r1\", \"quote\": \"여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\"},\n    {\"id\": \"r2\", \"quote\": \"예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"},\n    {\"id\": \"r3\", \"quote\": \"사용하지 않는 legacy-fare-sync 스크립트를 제거한다\"},\n    {\"id\": \"r4\", \"quote\": \"환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"},\n    {\"id\": \"r5\", \"quote\": \"노선 판매 보고서 조회가 13초 넘게 걸리는 문제를 수정한다\"},\n    {\"id\": \"r6\", \"quote\": \"노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\"},\n    {\"id\": \"r7\", \"quote\": \"여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\"},\n    {\"id\": \"r8\", \"quote\": \"항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다\"}\n  ],\n  \"groups\": [\n    {\"requirement_ids\": [\"r1\"], \"label\": \"enhancement\", \"title\": \"여행 상품 현황에 기간 필터 추가\"},\n    {\"requirement_ids\": [\"r2\"], \"label\": \"bug\", \"title\": \"예약 변경 중복 저장 문제 수정\"},\n    {\"requirement_ids\": [\"r3\"], \"label\": \"chore\", \"title\": \"레거시 fare-sync 스크립트 제거\"},\n    {\"requirement_ids\": [\"r4\"], \"label\": \"documentation\", \"title\": \"환불 승인 절차 문서 갱신\"},\n    {\"requirement_ids\": [\"r5\"], \"label\": \"bug\", \"title\": \"노선 판매 보고서 성능 개선\"},\n    {\"requirement_ids\": [\"r6\"], \"label\": \"enhancement\", \"title\": \"노선 판매 보고서 CSV 내보내기\"},\n    {\"requirement_ids\": [\"r7\"], \"label\": \"bug\", \"title\": \"여권 만료일 검증 오류 수정\"},\n    {\"requirement_ids\": [\"r8\"], \"label\": \"enhancement\", \"title\": \"항공편 취소 시 상담사 알림\"}\n  ],\n  \"rationale\": [\n    \"8개 요구사항 모두 독립적 (각각 따로 PR 머지 가능, 완료 기준 겹치지 않음, 상호의존성 없음)\",\n    \"라벨 성격 다양 (enhancement 3개, bug 3개, chore 1개, documentation 1개)\",\n    \"5개 초과로 관리 비용 증가 — 관련 항목끼리 그룹화 제안 필요\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -2550,7 +2535,7 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "여행 상품 현황 기간 필터 추가"
+            "title": "여행 상품 현황에 기간 필터 추가"
           },
           {
             "requirement_ids": [
@@ -2564,28 +2549,28 @@
               "r3"
             ],
             "label": "chore",
-            "title": "legacy-fare-sync 스크립트 제거"
+            "title": "레거시 fare-sync 스크립트 제거"
           },
           {
             "requirement_ids": [
               "r4"
             ],
             "label": "documentation",
-            "title": "환불 승인 운영 절차 문서 갱신"
+            "title": "환불 승인 절차 문서 갱신"
           },
           {
             "requirement_ids": [
               "r5"
             ],
             "label": "bug",
-            "title": "노선 판매 보고서 조회 성능 개선"
+            "title": "노선 판매 보고서 성능 개선"
           },
           {
             "requirement_ids": [
               "r6"
             ],
             "label": "enhancement",
-            "title": "노선 판매 보고서 CSV 내보내기 기능"
+            "title": "노선 판매 보고서 CSV 내보내기"
           },
           {
             "requirement_ids": [
@@ -2599,14 +2584,13 @@
               "r8"
             ],
             "label": "enhancement",
-            "title": "항공편 취소 여행 상담사 알림 기능"
+            "title": "항공편 취소 시 상담사 알림"
           }
         ],
         "rationale": [
-          "8개 요구사항이 모두 독립적 작업 단위: 각각 따로 PR 머지 가능, 완료 기준 겹치지 않음, 하나 취소 시 나머지 성립",
-          "라벨 분산: bug 3건(r2,r5,r7), enhancement 3건(r1,r6,r8), chore 1건(r3), documentation 1건(r4)",
-          "독립 그룹 8개가 한계(5개) 초과로 관리 비용 우려",
-          "r5+r6(보고서), r1+r2+r8(예약/UI) 등 도메인별 병합 검토 권장"
+          "8개 요구사항 모두 독립적 (각각 따로 PR 머지 가능, 완료 기준 겹치지 않음, 상호의존성 없음)",
+          "라벨 성격 다양 (enhancement 3개, bug 3개, chore 1개, documentation 1개)",
+          "5개 초과로 관리 비용 증가 — 관련 항목끼리 그룹화 제안 필요"
         ]
       },
       "score": {
@@ -2631,7 +2615,7 @@
     {
       "case_id": "split-305",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"발전 설비 API 응답에 계량기 상태 필드를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"발전 설비 목록에 새 계량기 상태 값을 표시한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"시간대별 발전 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"출력 급감 발생 시 관제 담당자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"발전 설비 계량기 상태 필드 추가 및 UI 표시\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"출력 급감 알림 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 강한 종속성. API 응답에 필드가 없으면 UI에 표시할 값이 없고, UI만 추가되면 필드가 없어 동작하지 않음. 같은 PR으로 진행.\",\n    \"r3는 성능 버그 수정으로 r1, r2 추가와 무관하게 독립 PR 가능. 라벨 성격도 bug vs enhancement로 구분.\",\n    \"r4는 새 알림 기능으로 나머지와 완전히 독립. 따로 머지 가능.\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"발전 설비 API 응답에 계량기 상태 필드를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"발전 설비 목록에 새 계량기 상태 값을 표시한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"시간대별 발전 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"출력 급감 발생 시 관제 담당자에게 알림을 보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"발전 설비 계량기 상태 필드 추가 및 표시\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"시간대별 발전 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"출력 급감 알림 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 강한 논리적 의존성: API 필드 추가(r1) 완료 후 UI 표시(r2) 구현 가능. 취소 불가능(하나 빠지면 다른 하나 무의미)\",\n    \"r3는 성능 버그 수정으로 r1-r2, r4와 독립적. 별도 PR 가능\",\n    \"r4는 신규 알림 기능으로 r1-r3 완료 여부와 무관하게 구현 가능\",\n    \"부분 분할(partial): r1+r2 의존 그룹과 r3, r4 원자 그룹 혼재\"\n  ]\n}\n```",
       "response": {
         "decision": "partial",
         "requirements": [
@@ -2659,7 +2643,7 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "발전 설비 계량기 상태 필드 추가 및 UI 표시"
+            "title": "발전 설비 계량기 상태 필드 추가 및 표시"
           },
           {
             "requirement_ids": [
@@ -2677,9 +2661,10 @@
           }
         ],
         "rationale": [
-          "r1과 r2는 강한 종속성. API 응답에 필드가 없으면 UI에 표시할 값이 없고, UI만 추가되면 필드가 없어 동작하지 않음. 같은 PR으로 진행.",
-          "r3는 성능 버그 수정으로 r1, r2 추가와 무관하게 독립 PR 가능. 라벨 성격도 bug vs enhancement로 구분.",
-          "r4는 새 알림 기능으로 나머지와 완전히 독립. 따로 머지 가능."
+          "r1과 r2는 강한 논리적 의존성: API 필드 추가(r1) 완료 후 UI 표시(r2) 구현 가능. 취소 불가능(하나 빠지면 다른 하나 무의미)",
+          "r3는 성능 버그 수정으로 r1-r2, r4와 독립적. 별도 PR 가능",
+          "r4는 신규 알림 기능으로 r1-r3 완료 여부와 무관하게 구현 가능",
+          "부분 분할(partial): r1+r2 의존 그룹과 r3, r4 원자 그룹 혼재"
         ]
       },
       "score": {
@@ -2704,7 +2689,7 @@
     {
       "case_id": "split-275",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"실험 재현성 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"실험 재현성 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"실험 재현성 보고서 시간대 오류 수정 (UTC → 지역 시간대)\"\n    }\n  ],\n  \"rationale\": [\n    \"동일 대상(실험 재현성 보고서)의 UTC → 지역 시간대 변환 문제\",\n    \"라벨이 동일함 (둘 다 bug)\",\n    \"완료 기준이 하나로 수렴: 배치 내 모든 시간 표현이 지역 시간대로 통일\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"실험 재현성 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"실험 재현성 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"실험 재현성 보고서의 시간대 표시 오류 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"같은 도메인(실험 재현성 보고서)에서 두 가지 출력 형식(집계·CSV)의 동일한 버그\",\n    \"집계와 CSV 모두 UTC→지역시간대 변환 오류를 공유하므로, 근본 원인이 동일할 가능성 높음\",\n    \"라벨이 동일(bug)하며, 하나의 시간대 처리 수정으로 양쪽이 해결될 수 있음\",\n    \"독립성 테스트 4번(라벨 성격 구분)에서 탈락 — 같은 버그 범주이므로 단일 이슈로 통합\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -2724,13 +2709,14 @@
               "r2"
             ],
             "label": "bug",
-            "title": "실험 재현성 보고서 시간대 오류 수정 (UTC → 지역 시간대)"
+            "title": "실험 재현성 보고서의 시간대 표시 오류 수정"
           }
         ],
         "rationale": [
-          "동일 대상(실험 재현성 보고서)의 UTC → 지역 시간대 변환 문제",
-          "라벨이 동일함 (둘 다 bug)",
-          "완료 기준이 하나로 수렴: 배치 내 모든 시간 표현이 지역 시간대로 통일"
+          "같은 도메인(실험 재현성 보고서)에서 두 가지 출력 형식(집계·CSV)의 동일한 버그",
+          "집계와 CSV 모두 UTC→지역시간대 변환 오류를 공유하므로, 근본 원인이 동일할 가능성 높음",
+          "라벨이 동일(bug)하며, 하나의 시간대 처리 수정으로 양쪽이 해결될 수 있음",
+          "독립성 테스트 4번(라벨 성격 구분)에서 탈락 — 같은 버그 범주이므로 단일 이슈로 통합"
         ]
       },
       "score": {
@@ -2755,9 +2741,9 @@
     {
       "case_id": "split-170",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"공실률 보고서 조회가 14초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"계약 갱신 중복 저장 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"공실률 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"보증금 유형 필수 검증 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"세 항목 모두 각각 독립 PR로 머지 가능\",\n    \"완료 기준이 겹치지 않음: 데이터 중복 제거, 쿼리 성능 개선, 입력 검증 강화 세 가지 별개 변경\",\n    \"하나 취소해도 나머지 항목이 성립\",\n    \"라벨 성격이 갈림: bug, enhancement, bug\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"공실률 보고서 조회가 14초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\", \"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"제주 4분기 야간 배치 버그 3건 수정\"\n    }\n  ],\n  \"rationale\": [\n    \"세 문제 모두 제주 4분기 야간 배치 컨텍스트에서 발생한 버그\",\n    \"각 문제는 완전히 독립적 (계약 중복 저장 vs 보고서 성능 vs 검증 로직)\",\n    \"모두 같은 라벨(bug)이므로 라벨 성격이 갈리지 않음 — 독립성 테스트 4개 항목 중 하나 미충족\",\n    \"체크리스트로 나누어 하나의 이슈로 관리하는 것이 적절\"\n  ]\n}\n```",
       "response": {
-        "decision": "split",
+        "decision": "single",
         "requirements": [
           {
             "id": "r1",
@@ -2775,56 +2761,44 @@
         "groups": [
           {
             "requirement_ids": [
-              "r1"
-            ],
-            "label": "bug",
-            "title": "계약 갱신 중복 저장 수정"
-          },
-          {
-            "requirement_ids": [
-              "r2"
-            ],
-            "label": "enhancement",
-            "title": "공실률 보고서 조회 성능 개선"
-          },
-          {
-            "requirement_ids": [
+              "r1",
+              "r2",
               "r3"
             ],
             "label": "bug",
-            "title": "보증금 유형 필수 검증 추가"
+            "title": "제주 4분기 야간 배치 버그 3건 수정"
           }
         ],
         "rationale": [
-          "세 항목 모두 각각 독립 PR로 머지 가능",
-          "완료 기준이 겹치지 않음: 데이터 중복 제거, 쿼리 성능 개선, 입력 검증 강화 세 가지 별개 변경",
-          "하나 취소해도 나머지 항목이 성립",
-          "라벨 성격이 갈림: bug, enhancement, bug"
+          "세 문제 모두 제주 4분기 야간 배치 컨텍스트에서 발생한 버그",
+          "각 문제는 완전히 독립적 (계약 중복 저장 vs 보고서 성능 vs 검증 로직)",
+          "모두 같은 라벨(bug)이므로 라벨 성격이 갈리지 않음 — 독립성 테스트 4개 항목 중 하나 미충족",
+          "체크리스트로 나누어 하나의 이슈로 관리하는 것이 적절"
         ]
       },
       "score": {
         "atom_tp": 3,
         "atom_fp": 0,
         "atom_fn": 0,
-        "issue_count_correct": 1,
-        "grouping_exact": 1,
+        "issue_count_correct": 0,
+        "grouping_exact": 0,
         "pair_tp": 0,
-        "pair_fp": 0,
+        "pair_fp": 3,
         "pair_fn": 0,
-        "label_correct": 2,
-        "label_total": 3,
-        "decision_correct": 1,
-        "under_split": 0,
+        "label_correct": 0,
+        "label_total": 0,
+        "decision_correct": 0,
+        "under_split": 1,
         "over_split": 0,
         "over_limit_correct": null,
-        "predicted_issue_count": 3
+        "predicted_issue_count": 1
       },
       "error": null
     },
     {
       "case_id": "split-455",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 old-policy-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"지급 소요 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보험 계약 현황 사용자 지정 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"보험금 청구 이중 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"old-policy-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"손해 사정 승인 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"지급 소요 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"지급 소요 보고서 CSV 내보내기 기능\"\n    }\n  ],\n  \"rationale\": [\n    \"6개 요구사항이 모두 독립성 테스트를 통과 (각각 따로 PR 머지 가능, 완료 기준 미중복, 단방향 의존 없음, 라벨 4가지 분산)\",\n    \"r1: 계약 현황 UI 기능, r2: 청구 데이터 처리, r3: 유지보수, r4: 문서, r5: 보고서 성능, r6: 보고서 기능 — 도메인/성격 모두 상이\",\n    \"독립 이슈 6개 > 5개 상한 초과로 over_limit 판정\",\n    \"관련된 것끼리 묶거나 우선순위를 받아 재검토 권장\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"over_limit\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"사용하지 않는 old-policy-export 스크립트를 제거한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"지급 소요 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r6\",\n      \"quote\": \"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보험 계약 현황 화면에 기간 필터 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"보험금 청구 중복 저장 문제 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"chore\",\n      \"title\": \"레거시 old-policy-export 스크립트 제거\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"documentation\",\n      \"title\": \"손해 사정 승인 절차 문서 갱신\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"bug\",\n      \"title\": \"지급 소요 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r6\"],\n      \"label\": \"enhancement\",\n      \"title\": \"지급 소요 보고서 CSV 내보내기 기능 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"6개 요구사항 모두 독립적: 각각 별도 PR 머지 가능, 완료 기준 비중복, 상호 취소 가능, 라벨 다양(enhancement 2개, bug 2개, chore 1개, documentation 1개)\",\n    \"독립성 테스트 4조건 만족 → 분할 조건 충족\",\n    \"독립 그룹 6개가 상한(5개) 초과 → over_limit 판정\"\n  ]\n}\n```",
       "response": {
         "decision": "over_limit",
         "requirements": [
@@ -2859,21 +2833,21 @@
               "r1"
             ],
             "label": "enhancement",
-            "title": "보험 계약 현황 사용자 지정 기간 필터 추가"
+            "title": "보험 계약 현황 화면에 기간 필터 추가"
           },
           {
             "requirement_ids": [
               "r2"
             ],
             "label": "bug",
-            "title": "보험금 청구 이중 저장 문제 수정"
+            "title": "보험금 청구 중복 저장 문제 수정"
           },
           {
             "requirement_ids": [
               "r3"
             ],
             "label": "chore",
-            "title": "old-policy-export 스크립트 제거"
+            "title": "레거시 old-policy-export 스크립트 제거"
           },
           {
             "requirement_ids": [
@@ -2894,14 +2868,13 @@
               "r6"
             ],
             "label": "enhancement",
-            "title": "지급 소요 보고서 CSV 내보내기 기능"
+            "title": "지급 소요 보고서 CSV 내보내기 기능 추가"
           }
         ],
         "rationale": [
-          "6개 요구사항이 모두 독립성 테스트를 통과 (각각 따로 PR 머지 가능, 완료 기준 미중복, 단방향 의존 없음, 라벨 4가지 분산)",
-          "r1: 계약 현황 UI 기능, r2: 청구 데이터 처리, r3: 유지보수, r4: 문서, r5: 보고서 성능, r6: 보고서 기능 — 도메인/성격 모두 상이",
-          "독립 이슈 6개 > 5개 상한 초과로 over_limit 판정",
-          "관련된 것끼리 묶거나 우선순위를 받아 재검토 권장"
+          "6개 요구사항 모두 독립적: 각각 별도 PR 머지 가능, 완료 기준 비중복, 상호 취소 가능, 라벨 다양(enhancement 2개, bug 2개, chore 1개, documentation 1개)",
+          "독립성 테스트 4조건 만족 → 분할 조건 충족",
+          "독립 그룹 6개가 상한(5개) 초과 → over_limit 판정"
         ]
       },
       "score": {
@@ -2926,9 +2899,9 @@
     {
       "case_id": "split-345",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"partial\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"객실 현황 API 응답에 투숙 인원 필드를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"객실 현황 목록에 새 투숙 인원 값을 표시한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"점유율 보고서 조회가 16초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"객실 현황 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"객실 현황 투숙 인원 정보 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"점유율 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노쇼 발생 시 관리자 알림\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"객실 현황 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1과 r2는 강한 의존성: API 필드 없으면 r2 구현 불가. r1 없이 r2만 머지 시 런타임 에러 발생\",\n    \"r3은 성능 최적화로 독립적 작업\",\n    \"r4는 알림 시스템 추가로 다른 변경과 무관\",\n    \"r5는 UI 필터 추가로 여타 작업과 병렬 진행 가능\",\n    \"총 4개 그룹: 1개 의존 묶음 + 3개 단일 이슈\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"객실 현황 API 응답에 투숙 인원 필드를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"객실 현황 목록에 새 투숙 인원 값을 표시한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"점유율 보고서 조회가 16초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다\"\n    },\n    {\n      \"id\": \"r5\",\n      \"quote\": \"객실 현황 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"객실 현황 투숙 인원 필드 추가\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"bug\",\n      \"title\": \"점유율 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"노쇼 발생 시 관리자 알림 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r5\"],\n      \"label\": \"enhancement\",\n      \"title\": \"객실 현황 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"r1(API 필드 추가)과 r2(UI 표시)는 API 계약 변경과 소비가 한 몸이므로 분리 불가능 — 둘 다 완료해야 기능이 작동\",\n    \"r3(성능 버그)은 보고서 조회 최적화로 다른 기능과 독립적\",\n    \"r4(알림 기능)는 노쇼 이벤트 처리로 다른 화면·기능과 무관\",\n    \"r5(필터 UI)는 객실 현황 화면 전용으로 다른 작업과 독립적\",\n    \"4개 그룹 모두 별도 PR 머지 가능하며, 라벨이 구분됨(bug vs enhancement)\"\n  ]\n}\n```",
       "response": {
-        "decision": "partial",
+        "decision": "split",
         "requirements": [
           {
             "id": "r1",
@@ -2958,7 +2931,7 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "객실 현황 투숙 인원 정보 추가"
+            "title": "객실 현황 투숙 인원 필드 추가"
           },
           {
             "requirement_ids": [
@@ -2972,7 +2945,7 @@
               "r4"
             ],
             "label": "enhancement",
-            "title": "노쇼 발생 시 관리자 알림"
+            "title": "노쇼 발생 시 관리자 알림 기능"
           },
           {
             "requirement_ids": [
@@ -2983,11 +2956,11 @@
           }
         ],
         "rationale": [
-          "r1과 r2는 강한 의존성: API 필드 없으면 r2 구현 불가. r1 없이 r2만 머지 시 런타임 에러 발생",
-          "r3은 성능 최적화로 독립적 작업",
-          "r4는 알림 시스템 추가로 다른 변경과 무관",
-          "r5는 UI 필터 추가로 여타 작업과 병렬 진행 가능",
-          "총 4개 그룹: 1개 의존 묶음 + 3개 단일 이슈"
+          "r1(API 필드 추가)과 r2(UI 표시)는 API 계약 변경과 소비가 한 몸이므로 분리 불가능 — 둘 다 완료해야 기능이 작동",
+          "r3(성능 버그)은 보고서 조회 최적화로 다른 기능과 독립적",
+          "r4(알림 기능)는 노쇼 이벤트 처리로 다른 화면·기능과 무관",
+          "r5(필터 UI)는 객실 현황 화면 전용으로 다른 작업과 독립적",
+          "4개 그룹 모두 별도 PR 머지 가능하며, 라벨이 구분됨(bug vs enhancement)"
         ]
       },
       "score": {
@@ -3012,7 +2985,7 @@
     {
       "case_id": "split-285",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"보안 경보 API 응답에 위험 등급 필드를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보안 경보 목록에 새 위험 등급 값을 표시한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보안 경보에 위험 등급 추가 (API 및 목록 표시)\"\n    }\n  ],\n  \"rationale\": [\n    \"API 응답 변경과 UI 소비는 종속 관계: r1 없이 r2를 머지하면 표시할 데이터가 없음\",\n    \"루브릭 사례 동일: '계약 변경과 소비가 한 몸'이므로 단일 이슈로 유지\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"single\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"보안 경보 API 응답에 위험 등급 필드를 추가한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"보안 경보 목록에 새 위험 등급 값을 표시한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\", \"r2\"],\n      \"label\": \"enhancement\",\n      \"title\": \"보안 경보에 위험 등급 표시\"\n    }\n  ],\n  \"rationale\": [\n    \"API 응답에만 필드를 추가하고 UI에 표시하지 않으면 기능이 불완전하다\",\n    \"UI에만 표시 준비를 해도 백엔드에서 필드가 없으면 의미가 없다\",\n    \"계약 변경(r1)과 소비(r2)가 종속 관계로, 하나만 진행되면 다른 쪽이 고아가 된다\"\n  ]\n}\n```",
       "response": {
         "decision": "single",
         "requirements": [
@@ -3032,12 +3005,13 @@
               "r2"
             ],
             "label": "enhancement",
-            "title": "보안 경보에 위험 등급 추가 (API 및 목록 표시)"
+            "title": "보안 경보에 위험 등급 표시"
           }
         ],
         "rationale": [
-          "API 응답 변경과 UI 소비는 종속 관계: r1 없이 r2를 머지하면 표시할 데이터가 없음",
-          "루브릭 사례 동일: '계약 변경과 소비가 한 몸'이므로 단일 이슈로 유지"
+          "API 응답에만 필드를 추가하고 UI에 표시하지 않으면 기능이 불완전하다",
+          "UI에만 표시 준비를 해도 백엔드에서 필드가 없으면 의미가 없다",
+          "계약 변경(r1)과 소비(r2)가 종속 관계로, 하나만 진행되면 다른 쪽이 고아가 된다"
         ]
       },
       "score": {
@@ -3062,7 +3036,7 @@
     {
       "case_id": "split-135",
       "repeat": 0,
-      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"결함 추적 보고서 조회가 15초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"차대 번호 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"시험 차량 카드의 정렬 순서를 사용자가 고정할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"시험 차량 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"결함 추적 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"차대 번호 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"enhancement\",\n      \"title\": \"시험 차량 카드 정렬 순서 고정 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"시험 차량 현황 화면 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"네 요구사항 모두 독립성 테스트 통과: 각각 따로 PR 머지 가능, 완료 기준 분명, 하나 취소돼도 나머지 성립\",\n    \"라벨 성격이 분명히 구분됨: bug 2개(성능·검증), enhancement 2개(정렬·필터)\",\n    \"의존성 없음: 보고서·검증·정렬·필터는 별개 기능 영역\",\n    \"5개 이하이므로 상한 기준 충족\"\n  ]\n}\n```",
+      "text": "```json\n{\n  \"decision\": \"split\",\n  \"requirements\": [\n    {\n      \"id\": \"r1\",\n      \"quote\": \"결함 추적 보고서 조회가 15초 넘게 걸리는 문제를 수정한다\"\n    },\n    {\n      \"id\": \"r2\",\n      \"quote\": \"차대 번호 값이 비어도 저장되는 검증 오류를 수정한다\"\n    },\n    {\n      \"id\": \"r3\",\n      \"quote\": \"시험 차량 카드의 정렬 순서를 사용자가 고정할 수 있게 한다\"\n    },\n    {\n      \"id\": \"r4\",\n      \"quote\": \"시험 차량 현황 화면에 사용자 지정 기간 필터를 추가한다\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"requirement_ids\": [\"r1\"],\n      \"label\": \"bug\",\n      \"title\": \"결함 추적 보고서 조회 성능 개선\"\n    },\n    {\n      \"requirement_ids\": [\"r2\"],\n      \"label\": \"bug\",\n      \"title\": \"차대 번호 입력 검증 오류 수정\"\n    },\n    {\n      \"requirement_ids\": [\"r3\"],\n      \"label\": \"enhancement\",\n      \"title\": \"시험 차량 카드 정렬 순서 고정 기능\"\n    },\n    {\n      \"requirement_ids\": [\"r4\"],\n      \"label\": \"enhancement\",\n      \"title\": \"시험 차량 현황 기간 필터 추가\"\n    }\n  ],\n  \"rationale\": [\n    \"네 요구사항 모두 기술적·기능적으로 완전히 독립적임\",\n    \"각각 따로 PR로 머지 가능하며, 하나의 취소가 다른 것에 영향 없음\",\n    \"완료 기준이 서로 겹치지 않음 (성능 최적화 ≠ 검증 추가 ≠ UI 기능 2건)\",\n    \"라벨이 갈림 (bug 2건, enhancement 2건)\",\n    \"의존성 없음: r1, r2는 동시 진행 가능, r3-r4도 다른 화면·기능이므로 병렬 작업 권장\"\n  ]\n}\n```",
       "response": {
         "decision": "split",
         "requirements": [
@@ -3096,7 +3070,7 @@
               "r2"
             ],
             "label": "bug",
-            "title": "차대 번호 검증 오류 수정"
+            "title": "차대 번호 입력 검증 오류 수정"
           },
           {
             "requirement_ids": [
@@ -3110,14 +3084,15 @@
               "r4"
             ],
             "label": "enhancement",
-            "title": "시험 차량 현황 화면 기간 필터 추가"
+            "title": "시험 차량 현황 기간 필터 추가"
           }
         ],
         "rationale": [
-          "네 요구사항 모두 독립성 테스트 통과: 각각 따로 PR 머지 가능, 완료 기준 분명, 하나 취소돼도 나머지 성립",
-          "라벨 성격이 분명히 구분됨: bug 2개(성능·검증), enhancement 2개(정렬·필터)",
-          "의존성 없음: 보고서·검증·정렬·필터는 별개 기능 영역",
-          "5개 이하이므로 상한 기준 충족"
+          "네 요구사항 모두 기술적·기능적으로 완전히 독립적임",
+          "각각 따로 PR로 머지 가능하며, 하나의 취소가 다른 것에 영향 없음",
+          "완료 기준이 서로 겹치지 않음 (성능 최적화 ≠ 검증 추가 ≠ UI 기능 2건)",
+          "라벨이 갈림 (bug 2건, enhancement 2건)",
+          "의존성 없음: r1, r2는 동시 진행 가능, r3-r4도 다른 화면·기능이므로 병렬 작업 권장"
         ]
       },
       "score": {
