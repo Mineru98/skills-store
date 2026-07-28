@@ -49,7 +49,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
     <rule>커밋은 `guard` 가 통과할 때만 사용자 확인 없이 한다. 실패하면 커밋하지 않고 AskUserQuestion 으로 확인을 받는다.</rule>
     <rule>기본 브랜치에서는 절대 구현하지 않는다. 현재 워크트리에서 브랜치를 갈아타지도 않는다.</rule>
-    <rule>증거는 기본 브랜치에 먼저 커밋·푸시한 뒤 이슈에 코멘트한다. 순서를 뒤집으면 이미지가 렌더링되지 않는다.</rule>
+    <rule>증거는 먼저 커밋·푸시한다. 공개 저장소는 미러 raw URL, 비공개 저장소는 이슈 웹 UI의 `user-attachments` URL 로 코멘트하고 실제 렌더링을 확인한다.</rule>
     <rule>증거 이미지는 webp 로만 만들고, after 에는 변경 구간을 가리키는 바운딩 박스를 넣는다.</rule>
     <rule>첨부 이미지는 요약만 믿지 않고 Read 로 직접 열어본다.</rule>
     <rule>이슈 상태 변경, PR 생성, merge 를 하지 않는다. 각각 issue-end 와 issue-merge 의 몫이다.</rule>
@@ -181,9 +181,14 @@ flowchart TD
 
     O --> P[증거 커밋 + 브랜치 push]
     P --> Q[evidence-mirror --push: 기본 브랜치에 증거 커밋]
-    Q --> R[evidence-urls: 미러 기준 raw URL]
-    R --> S[gh issue comment: 전후 리포트]
-    S --> S1[sync-base: 메인 체크아웃 최신화]
+    Q --> R{비공개 저장소?}
+    R -- 아니오 --> R1[evidence-urls: 미러 기준 raw URL]
+    R -- 예 --> R2[이슈 웹 UI 업로드: user-attachments URL]
+    R1 --> S[report-check + gh issue comment]
+    R2 --> S
+    S --> S0{이미지 렌더링 확인}
+    S0 -- 깨짐 --> R
+    S0 -- 정상 --> S1[sync-base: 메인 체크아웃 최신화]
     S1 -- 막힘 --> S2[AskUserQuestion: 어떻게 받아올지] --> T
     S1 -- 성공 --> T[보고 + 다음 행동 4지선다]
 ```
@@ -432,15 +437,22 @@ before 와 같은 URL·상태·뷰포트로 찍고, 변경 구간에 `--box` 를
 
 ## 10~11단계 — 미러 커밋과 이슈 코멘트
 
-순서를 지킨다. 이미지 URL 이 기본 브랜치를 가리켜야 이슈에서 바로 렌더링된다.
+순서를 지키고 저장소 공개 범위에 따라 이미지 URL 을 고른다. 공개 저장소는 미러 기준 raw URL,
+비공개 저장소는 이슈 웹 UI 에 업로드한 `user-attachments` URL 이어야 바로 렌더링된다.
 
 ```bash
 node <skill>/scripts/issue-start.mjs evidence-commit {issue_number}
 git push -u origin "$(git branch --show-current)"
 node <skill>/scripts/issue-start.mjs evidence-mirror {issue_number} --push
 node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <mirror 출력의 mirrorRef>
+gh repo view --json visibility --jq .visibility
+node <skill>/scripts/issue-start.mjs report-check {issue_number}
 gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comment.md
 ```
+
+`visibility` 이 `PRIVATE` 이거나 `evidence-urls` 의 `isPrivate` 가 `true` 면 `mirrorUrl` 을
+새 이미지 링크로 쓰지 않는다. 이슈 웹 UI 에 이미지를 올려 받은 `user-attachments` URL 로
+`comment.md` 를 채운 뒤 게시하고, 실제 코멘트에서 렌더링을 확인한다.
 
 세부와 코멘트 형식은 `references/evidence-capture.md`.
 

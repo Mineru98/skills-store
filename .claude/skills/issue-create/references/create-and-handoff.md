@@ -75,7 +75,10 @@ node <skill>/scripts/issue-create.mjs create \
 .issue/**/storage-state.json
 ```
 
-`request.md` 와 `plan.md` 는 무시되고, 나중에 `issue-start` 가 만드는 `.issue/<번호>/evidence/` 만 커밋된다. 이슈 코멘트의 이미지가 raw URL 로 렌더링되려면 증거는 커밋돼야 하기 때문이다.
+`request.md` 와 `plan.md` 는 무시되고, 나중에 `issue-start` 가 만드는 `.issue/<번호>/evidence/` 만 커밋된다.
+증거 원본을 보존하기 위해 공개 범위와 무관하게 커밋한다. 이슈 코멘트의 인라인 이미지는
+공개 저장소면 미러 raw URL, 비공개 저장소면 이슈 웹 UI 의 `user-attachments` URL 을 쓴다.
+`issue-start` 는 게시 뒤 실제 렌더링까지 확인해야 한다.
 
 ## 인라인 방식 (스크립트가 없을 때)
 

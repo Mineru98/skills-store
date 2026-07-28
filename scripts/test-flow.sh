@@ -9,6 +9,9 @@ set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 START="$ROOT/.claude/skills/issue-start/scripts/issue-start.mjs"
 END="$ROOT/.claude/skills/issue-end/scripts/issue-end.mjs"
+START_SKILL="$ROOT/.claude/skills/issue-start/SKILL.md"
+EVIDENCE_PROMPT="$ROOT/.claude/skills/issue-start/references/evidence-capture.md"
+CREATE_HANDOFF="$ROOT/.claude/skills/issue-create/references/create-and-handoff.md"
 
 # macOS 의 /tmp 는 /private/tmp 심볼릭 링크라 git 이 돌려주는 경로와 어긋난다.
 # 실경로로 정규화해야 경로 비교가 성립한다.
@@ -21,6 +24,12 @@ fail=0
 check() { # check <설명> <조건 결과 0/1>
   if [ "$2" -ne 0 ]; then echo "FAIL  $1"; fail=1; else echo "ok    $1"; fi
 }
+
+# --- 프롬프트: 공개/비공개 저장소 이미지 경로가 서로 섞이지 않아야 한다.
+check "프롬프트가 저장소 공개 범위를 확인" "$(grep -q 'gh repo view --json visibility' "$EVIDENCE_PROMPT" && echo 0 || echo 1)"
+check "공개 저장소는 미러 raw URL 사용" "$(grep -q '공개 저장소.*미러 raw URL' "$START_SKILL" && echo 0 || echo 1)"
+check "비공개 저장소는 user-attachments 사용" "$(grep -q '비공개 저장소.*user-attachments' "$START_SKILL" && grep -q '비공개 저장소.*user-attachments' "$CREATE_HANDOFF" && echo 0 || echo 1)"
+check "게시 뒤 실제 이미지 렌더링 확인" "$(grep -q '실제 렌더링' "$START_SKILL" && grep -q '실제로 렌더링되는지' "$EVIDENCE_PROMPT" && echo 0 || echo 1)"
 
 # --- 원격 역할을 할 bare 저장소 + 작업 저장소
 git init -q --bare "$TMP/origin.git"
