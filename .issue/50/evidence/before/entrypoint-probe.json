@@ -1,0 +1,17 @@
+{
+  "issue": 50,
+  "phase": "before",
+  "legend": "<출력바이트>:<exit code> — 0:0 이면 아무 출력 없이 성공 종료(조용한 실패)",
+  "importMainNotExecuted": "clean",
+  "rows": [
+    {"script":".claude/skills/issue-start/scripts/issue-start.mjs","skill":"issue-start","symlink":"0:0","realpath":"1090:1","relative":"1090:1","spaced":"0:0"},
+    {"script":".codex/skills/issue-start/scripts/issue-start.mjs","skill":"issue-start","symlink":"0:0","realpath":"1090:1","relative":"1090:1","spaced":"0:0"},
+    {"script":".claude/skills/issue-create/scripts/issue-create.mjs","skill":"issue-create","symlink":"0:0","realpath":"1343:1","relative":"1343:1","spaced":"0:0"},
+    {"script":".codex/skills/issue-create/scripts/issue-create.mjs","skill":"issue-create","symlink":"0:0","realpath":"1343:1","relative":"1343:1","spaced":"0:0"},
+    {"script":".claude/skills/gh-setup/scripts/gh-env.mjs","skill":"gh-setup","symlink":"0:0","realpath":"298:1","relative":"298:1","spaced":"0:0"},
+    {"script":".codex/skills/gh-setup/scripts/gh-env.mjs","skill":"gh-setup","symlink":"0:0","realpath":"298:1","relative":"298:1","spaced":"0:0"},
+    {"script":".claude/skills/imagine/scripts/verify.js","skill":"imagine","symlink":"0:0","realpath":"54:1","relative":"54:1","spaced":"0:0"},
+    {"script":".codex/skills/loop/scripts/loop.mjs","skill":"loop","symlink":"0:0","realpath":"108:2","relative":"108:2","spaced":"108:2"},
+    {"script":".codex/skills/schedule/scripts/schedule.mjs","skill":"schedule","symlink":"0:0","realpath":"116:2","relative":"116:2","spaced":"116:2"}
+  ]
+}

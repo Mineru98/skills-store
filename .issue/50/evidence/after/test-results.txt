@@ -1,0 +1,12 @@
+# 이슈 #50 — 변경 후 테스트 결과
+commit: 6670b26
+base:   9054bc1 (origin/main)
+
+node --check (문법 검사): 9/9 OK
+
+loop.test.mjs      ℹ pass 33 ℹ fail 0 
+schedule.test.mjs  ℹ pass 38 ℹ fail 6 
+
+주: schedule.test.mjs 의 fail 6 은 run-due(codex 실행 하네스) 계열이며
+    변경 전 origin/main(9054bc1)에서도 동일하게 38 pass / 6 fail 이다.
+    진입점 가드와 무관하다.
