@@ -4,13 +4,19 @@
 
 ## 왜 이 순서인가
 
-GitHub 이슈 코멘트의 이미지는 **커밋된 파일의 raw URL** 을 가리킨다. 작업 브랜치 URL 은 브랜치를 지우는 순간 깨진다. 그래서 순서가 이렇게 고정된다.
+공개 저장소의 GitHub 이슈 코멘트는 커밋된 파일의 raw URL 을 쓸 수 있다. 비공개 저장소의
+raw URL 은 인증이 필요한 탓에 코멘트에서 렌더링되지 않으므로 이슈 웹 UI 에 업로드한
+`user-attachments` URL 을 써야 한다. 어느 쪽이든 증거 원본은 먼저 커밋·푸시해 보존한다.
 
 ```text
-증거 커밋(작업 브랜치) → 브랜치 push → 기본 브랜치에 미러 커밋·push → URL 생성 → 이슈 코멘트
+증거 커밋(작업 브랜치) → 브랜치 push → 기본 브랜치에 미러 커밋·push → 공개 범위 확인
+  공개 저장소   → 미러 raw URL 생성
+  비공개 저장소 → 이슈 웹 UI 업로드로 user-attachments URL 생성
+→ report-check → 이슈 코멘트 → 실제 렌더링 확인
 ```
 
-미러가 먼저 가야 코멘트를 다는 시점에 이미지가 이미 기본 브랜치에 있다. 순서를 뒤집으면 코멘트에 깨진 이미지가 박힌다.
+공개 저장소는 미러가 먼저 가야 코멘트를 다는 시점에 이미지가 이미 존재한다. 비공개 저장소도
+미러 커밋은 감사 가능한 증거 원본으로 유지하되, 코멘트의 인라인 이미지는 `user-attachments`를 쓴다.
 
 ## 저장 위치
 
@@ -140,7 +146,13 @@ node <skill>/scripts/issue-start.mjs evidence-mirror {issue_number} --push
 - `fallback: true` 면 기본 브랜치가 보호돼 있어 `evidence/issue-<번호>` 로 밀린 것이다. 이미지 URL 기준이 기본 브랜치가 아니므로 **그 사실을 코멘트에 명시한다.** 이 브랜치는 삭제 대상이 아니다.
 - `noChange: true` 면 이미 같은 증거가 올라가 있다는 뜻이다. 정상이다.
 
-## 6. URL 생성
+## 6. 공개 범위 확인과 URL 생성
+
+먼저 저장소 공개 범위를 확인한다.
+
+```bash
+gh repo view --json visibility --jq .visibility
+```
 
 ```bash
 node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <위 출력의 mirrorRef>
@@ -148,7 +160,17 @@ node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <�
 
 `--mirrorRef` 를 반드시 미러 출력값으로 넘긴다. 기본값을 그대로 쓰면 폴백 상황에서 잘못된 URL 이 만들어진다.
 
-`isPrivate: true` 면 raw URL 은 코멘트에서 렌더링되지 않는다. 이때는 커밋은 유지한 채 이미지를 이슈 웹 UI 에 드래그해 올리고 그 `user-attachments` URL 을 쓴다.
+출력의 `isPrivate` 와 `gh repo view` 결과가 다르면 안전한 쪽인 비공개 저장소 절차를 따른다.
+
+```text
+PUBLIC / isPrivate:false   images[].mirrorUrl 을 사용
+PRIVATE / isPrivate:true   mirrorUrl 을 새 이미지 링크로 쓰지 않음
+                           이슈 웹 UI 에 webp 를 드래그해 올리고
+                           생성된 https://github.com/user-attachments/assets/... URL 을 사용
+```
+
+비공개 저장소에서도 커밋과 미러는 유지한다. 다만 raw/blob/release URL 은 보조 링크로만 남길 수 있고
+`![설명](...)` 안에는 `user-attachments` 직접 이미지 URL 만 넣는다.
 
 ## 7. 이슈 코멘트
 
@@ -157,7 +179,7 @@ node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <�
 기존 이슈의 HTML `<img>`는 입력 호환 목적으로 읽을 수 있지만 새 리포트에는 쓰지 않는다.
 모든 새 이미지는 설명이 있는 `![설명](직접 이미지 링크)`로 작성한다.
 bare 이미지 URL, 일반 링크로 감싼 이미지, blob 페이지, 빈 설명은 허용하지 않는다.
-private 저장소에서는 raw/release URL 대신 이슈 웹 UI에 올린 `user-attachments` URL을 쓴다.
+비공개 저장소에서는 raw/blob/release URL 대신 이슈 웹 UI에 올린 `user-attachments` URL을 쓴다.
 
 게시 전에 반드시 기계 검사를 통과시킨다. `evidence-commit`도 같은 검사를 다시 실행한다.
 
@@ -171,7 +193,8 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 
 ### 프론트엔드 형식
 
-이미지는 반드시 `.webp`, 링크는 **기본 브랜치 기준 raw URL** 이다.
+이미지는 반드시 `.webp`다. 공개 저장소는 기본 브랜치 기준 raw URL, 비공개 저장소는
+이슈 웹 UI에서 생성한 `user-attachments` URL 을 쓴다.
 
 ```markdown
 ## 작업 요약
@@ -225,7 +248,8 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 
 ## 8. 확인
 
-코멘트 URL 을 사용자에게 보여주고 **이미지가 실제로 렌더링되는지** AskUserQuestion 으로 확인받는다.
+코멘트 URL 을 열어 **이미지가 실제로 렌더링되는지** 확인한다. 로그인된 브라우저를 사용할 수
+없으면 코멘트 URL 을 사용자에게 보여주고 AskUserQuestion 으로 확인받는다.
 렌더링 확인은 게시 성공 확인이다. 구현 결과의 검토·승인은 13단계에서 별도로 받으며,
 승인 전에는 `issue-end` 로 넘어가지 않는다.
 
