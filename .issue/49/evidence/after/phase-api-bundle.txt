@@ -1,12 +1,12 @@
-SCENARIO=post-remediation capability bundle and lifecycle phase API verification
+SCENARIO=SEC-PATH-02-remediated capability bundle and lifecycle phase API verification
 BRANCH=feat/49-issue-phase-api
-IMPLEMENTATION_COMMIT=a966adab3068558e9a1b98cdb0dec00c0de87b16
+IMPLEMENTATION_COMMIT=36a5d77f0f00574eead64912bce0daf9a74017a6
 BASE=main
 BASE_AT_START=58e93f483c297217c5e184011c00ad47c01d8e63
 PHASE_COUNTS=issue-start:13,issue-end:11,issue-merge:9,total:33
 INSTALLED_MIRROR_INVOCATIONS=.claude:33,.codex:33,total:66
-CAPABILITY_SET_SHA256=235d2a50e35bc2f4e05b7b7e6e1d387e3f6702806cf750e2bcb5dafed58c7d0f
-CLOSURE_SHA256=8097512fd6589d7395983484907aa19de6621fb3dbbbef33b0a901cfb95352f9
+CAPABILITY_SET_SHA256=fcb8fa8ba21b758ec5a9ca53bbd4696d29ce0a055b86a97faf68729810f80e85
+CLOSURE_SHA256=dd93cb56dc55cadb1edf2d2b0efdf4df82cfa6ab7840149fc9436f4f4c1bca6a
 CLOSURE_ENTRIES=87
 REPOSITORY_ORIGIN=https://github.com/Mineru98/skills-store
 INTEGRATED_COMMIT=not-yet-merged
@@ -18,11 +18,12 @@ IMPLEMENTATION_COMMIT_CHAIN:
 7c2e8d94b6f5cfa5a74acff57f227351fcebf2fd feat(issue-merge): expose cumulative merge phase API
 6424edb55abaf2cc6df6842e14015c857c4e4dfb feat(issue-api): publish active orchestration capability bundle
 a966adab3068558e9a1b98cdb0dec00c0de87b16 fix(issue-api): fail closed on reviewed capability drift
+36a5d77f0f00574eead64912bce0daf9a74017a6 fix(issue-merge): bind cleanup to registered worktree
 
 AUTOMATED_GATES:
 check-shared=pass
-node-test-suite=88-pass,0-fail
-phase-api-suite=43-pass,0-fail
+node-test-suite=90-pass,0-fail
+phase-api-suite=44-pass,0-fail
 capability-compatibility=9-pass,0-fail
 test-flow=pass
 test-preflight=pass
@@ -34,6 +35,9 @@ required-unpublished-issue-end-comment=held-with-tracker-comment-effect
 issue-start-outside-root=exit-2-zero-effect
 issue-start-dangling-symlink=exit-2-zero-effect
 cleanup-approval-target-binding=distinct-ids-and-substitution-held-zero-effect
+cleanup-registered-worktree-authority=legitimate-approval-required
+cleanup-system-sibling-symlink-dangling-nonexistent-mismatch=exit-2-zero-effect
+cleanup-observed-removal=complete-with-bound-approval
 pristine-capability-bundle=eligible-33-phases
 coherent-self-digested-normative-mutation=NORMATIVE_PHASE_MISMATCH
 cleanup=temp-directories-driver-processes-ports-browsers-none-left
@@ -46,6 +50,9 @@ uncertain-provider-outcome=reconcile-only
 interruption-and-resume=checkpoint-stable
 outside-root-and-dangling-symlink=rejected
 approval-target-substitution=held-with-zero-effect
+cleanup-unregistered-targets=rejected-before-effect
+cleanup-existing-and-dangling-symlinks=rejected-before-effect
+cleanup-non-normalized-and-outside-root=rejected-before-effect
 duplicate-valid-phase=PHASE_SET_MISMATCH
 coherent-self-digested-phase-drift=NORMATIVE_PHASE_MISMATCH
 undocumented-effect-and-provider-failure=rejected
