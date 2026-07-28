@@ -1,0 +1,13 @@
+script                                                   symlink        realpath       relative       spaced        
+--------------------------------------------------------------------------------------------------------------
+issue-start/issue-start.mjs                              1090:1         1090:1         1090:1         1090:1        
+issue-start/issue-start.mjs                              1090:1         1090:1         1090:1         1090:1        
+issue-create/issue-create.mjs                            1343:1         1343:1         1343:1         1343:1        
+issue-create/issue-create.mjs                            1343:1         1343:1         1343:1         1343:1        
+gh-setup/gh-env.mjs                                      298:1          298:1          298:1          298:1         
+gh-setup/gh-env.mjs                                      298:1          298:1          298:1          298:1         
+imagine/verify.js                                        54:1           54:1           54:1           54:1          
+loop/loop.mjs                                            108:2          108:2          108:2          108:2         
+schedule/schedule.mjs                                    116:2          116:2          116:2          116:2         
+
+import 시 main() 미실행: clean (exit 0)
