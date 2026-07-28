@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "issue-merge-phase-api-v1",
+  "title": "Issue merge machine phase request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "contractId", "phaseId", "checkpoint", "data"],
+  "properties": {
+    "apiVersion": { "const": "issue-phase/v1" },
+    "contractId": { "const": "issue-merge-phase-api-v1" },
+    "phaseId": {
+      "enum": [
+        "issue-merge.base-tree",
+        "issue-merge.inventory",
+        "issue-merge.map",
+        "issue-merge.candidate",
+        "issue-merge.preflight-plan",
+        "issue-merge.resolve-review",
+        "issue-merge.merge-verify",
+        "issue-merge.close-cleanup",
+        "issue-merge.handback"
+      ]
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "attempt"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "attempt": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": { "type": "string" },
+        "accumulatedOnto": { "type": "string" },
+        "autoClosed": { "type": "boolean" },
+        "baseBranch": { "type": "string" },
+        "baseCommit": { "type": "string" },
+        "baseHead": { "type": "string" },
+        "body": { "type": "string" },
+        "bodySha256": { "type": "string" },
+        "branch": { "type": "string" },
+        "candidate": { "type": "boolean" },
+        "checksSha256": { "type": "string" },
+        "ci": { "type": "string" },
+        "cleanupApproved": { "type": "boolean" },
+        "closedIssues": { "type": "array" },
+        "conflictAttempt": { "type": "integer", "minimum": 1 },
+        "criticVerdict": { "enum": ["block", "revise", "proceed"] },
+        "decision": { "enum": ["revert-rework", "follow-up-issue", "accept-failure"] },
+        "decisionApproved": { "type": "boolean" },
+        "detached": { "type": "boolean" },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["before", "after", "report"],
+          "properties": {
+            "before": { "type": "integer", "minimum": 0 },
+            "after": { "type": "integer", "minimum": 0 },
+            "report": { "type": "boolean" }
+          }
+        },
+        "expectedBaseHead": { "type": "string" },
+        "expectedBodySha256": { "type": "string" },
+        "expectedChecksSha256": { "type": "string" },
+        "expectedHeadSha": { "type": "string" },
+        "expectedOnto": { "type": "string" },
+        "headSha": { "type": "string" },
+        "integrationPassed": { "type": "boolean" },
+        "issue": { "type": "integer", "minimum": 1 },
+        "issueClosed": { "type": "boolean" },
+        "issueState": { "type": "string" },
+        "mapped": { "type": "boolean" },
+        "mergeApproved": { "type": "boolean" },
+        "mergeObserved": { "type": "boolean" },
+        "mergeSha": { "type": "string" },
+        "mergedSha": { "type": "string" },
+        "mode": { "const": "describe" },
+        "onto": { "type": "string" },
+        "order": { "type": "array" },
+        "pr": {
+          "oneOf": [
+            { "type": "integer", "minimum": 1 },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["number", "headSha"],
+              "properties": {
+                "number": { "type": "integer", "minimum": 1 },
+                "headSha": { "type": "string", "minLength": 1 }
+              }
+            }
+          ]
+        },
+        "preflightClean": { "type": "boolean" },
+        "preflightCommit": { "type": "string" },
+        "pushApproved": { "type": "boolean" },
+        "reopenApproved": { "type": "boolean" },
+        "retainEvidenceBranches": { "type": "boolean" },
+        "reviewed": { "type": "boolean" },
+        "subcheckpoint": {
+          "enum": [
+            "trigger-inspection",
+            "trigger-repair",
+            "trigger-reinspection",
+            "ci",
+            "merge-approval",
+            "merge",
+            "base-refresh",
+            "integration-verification",
+            "close",
+            "cleanup"
+          ]
+        },
+        "triggerCount": { "type": "integer", "minimum": 0 },
+        "triggerRepairApproved": { "type": "boolean" },
+        "verifiedIssues": { "type": "array" },
+        "worktree": { "type": "string" },
+        "worktreeRemoved": { "type": "boolean" },
+        "worktrees": { "type": "array" }
+      }
+    }
+  }
+}

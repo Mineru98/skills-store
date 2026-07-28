@@ -16,6 +16,7 @@ import {
 } from '../tools/issue-phase-contract.mjs';
 import './test-phase-api-issue-start.mjs';
 import './test-phase-api-issue-end.mjs';
+import './test-phase-api-issue-merge.mjs';
 
 const runSkill = (skill, args) => spawnSync(
   process.execPath,
