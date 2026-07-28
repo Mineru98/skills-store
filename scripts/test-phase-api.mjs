@@ -15,6 +15,7 @@ import {
   validatePhaseEnvelope,
 } from '../tools/issue-phase-contract.mjs';
 import './test-phase-api-issue-start.mjs';
+import './test-phase-api-issue-end.mjs';
 
 const runSkill = (skill, args) => spawnSync(
   process.execPath,
