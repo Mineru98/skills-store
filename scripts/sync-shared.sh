@@ -94,6 +94,45 @@ for flavor in $FLAVORS; do
   done
 done
 
+for skill in $PHASE_SKILLS; do
+  SRC="$ROOT/contracts/$skill-phase-api-v1.json"
+  [ -f "$SRC" ] || { echo "정본이 없다: $SRC"; exit 1; }
+  for flavor in $FLAVORS; do
+    dir="$ROOT/$flavor/skills/$skill/contracts"
+    dest="$dir/$skill-phase-api-v1.json"
+    if [ "$CHECK" -eq 1 ]; then
+      if ! cmp -s "$SRC" "$dest" 2>/dev/null; then
+        echo "DRIFT  $flavor/skills/$skill/contracts/$skill-phase-api-v1.json"
+        drift=1
+      fi
+    else
+      mkdir -p "$dir"
+      cp "$SRC" "$dest"
+      copied=$((copied + 1))
+    fi
+  done
+done
+
+SRC="$ROOT/contracts/issue-phase-capability-bundle-v1.json"
+if [ -f "$SRC" ]; then
+  for flavor in $FLAVORS; do
+    for skill in $PHASE_SKILLS; do
+      dir="$ROOT/$flavor/skills/$skill/contracts"
+      dest="$dir/issue-phase-capability-bundle-v1.json"
+      if [ "$CHECK" -eq 1 ]; then
+        if ! cmp -s "$SRC" "$dest" 2>/dev/null; then
+          echo "DRIFT  $flavor/skills/$skill/contracts/issue-phase-capability-bundle-v1.json"
+          drift=1
+        fi
+      else
+        mkdir -p "$dir"
+        cp "$SRC" "$dest"
+        copied=$((copied + 1))
+      fi
+    done
+  done
+fi
+
 if [ "$CHECK" -eq 1 ]; then
   if [ "$drift" -ne 0 ]; then
     echo

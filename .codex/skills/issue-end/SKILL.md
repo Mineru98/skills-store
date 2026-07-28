@@ -167,6 +167,15 @@ flowchart TD
     N -->|종료| R[보고]
 ```
 
+# 기계 단계 API
+
+자동 오케스트레이터는 `node <skill>/scripts/issue-end.mjs phase --request
+<absolute-canonical-json>`만 사용한다. 요청 스키마는
+`contracts/issue-end-phase-api-v1.json`, 전체 11단계 능력·효과·승인·체크포인트·
+재조정 계약과 raw-byte 폐쇄는 `contracts/issue-phase-capability-bundle-v1.json`이다.
+사람의 증거/리포트 승인, branch push 승인, PR 생성 승인은 합치지 않으며, 계약 또는
+폐쇄 검증이 실패하면 active 실행을 시작하지 않는다.
+
 # 스크립트 경로
 
 아래 중 **존재하는 첫 번째 경로**를 `<skill>` 로 쓴다. 하나도 없으면 각 레퍼런스의 인라인 절차를 쓴다.
