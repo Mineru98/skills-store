@@ -215,7 +215,7 @@ status:close       이슈 close 직전                         issue-merge   (�
 
 1. 암묵 호출이면 `mode`로 `issue.createMode`를 확인하고, `direct`면 원래 요청으로 복귀
 2. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
-3. 요청을 독립성 테스트(따로 머지 가능 / 완료 기준 안 겹침 / 하나 취소돼도 성립 / 라벨 성격 갈림)로 분해하고, **제목·요약·예상 라벨 목록만** 먼저 보여줘 분할안 승인 (상한 5건)
+3. 요청에서 원자 후보를 추출하고 API/UI 계약, 공통 완료 기준·근본 원인, 배포·마이그레이션 결합만 그룹화한 뒤, 별도 배포·검증·취소·되돌리기가 가능한 그룹을 분리해 **제목·요약·예상 라벨 목록만** 먼저 보여줘 분할안 승인 (상한 5건)
 4. 항목마다 `search`로 유사한 열린 이슈를 찾고, 걸린 항목만 건너뛴 채 나머지는 계속 진행
 5. 항목마다 frontend / backend / both를 판정해 본문 항목과 라벨을 결정
 6. 초안 전문을 한 번에 보여주고 일괄 승인받은 뒤, 설정된 GitHub 또는 Jira 이슈 백엔드에 항목별로 등록하고 `status:open` 자동 부착 (한 건이 실패해도 나머지는 계속)
@@ -230,7 +230,7 @@ status:close       이슈 close 직전                         issue-merge   (�
 - 승인 없는 등록, 승인 없는 라벨 생성, `status:open` 자동 부착 외의 상태 변경, 코멘트·PR 생성
 - 이미 성격 라벨이 있는 이슈의 라벨 변경·제거 (추가만 합니다. `status:*`는 상호배타라 예외적으로 교체합니다)
 - 게이트가 SKIP이면 아무 말 없이 빠집니다
-- 억지 분할. 독립성 테스트를 통과하지 못하면 이슈 하나에 체크리스트로 묶습니다
+- 억지 분할이나 억지 병합. 라벨이 같아도 독립 작업이면 나누고, 강결합된 후보만 이슈 하나의 체크리스트로 묶습니다
 - 형제 이슈 간 `#N` 상호 참조. 등록 시점에 서로의 번호를 모르고, 등록 후 본문 수정은 이 스킬의 권한 밖입니다
 - 여러 이슈 동시 착수. 워크트리가 충돌하므로 첫 번호로만 인계합니다
 
@@ -246,18 +246,31 @@ scripts/test-issue-create.sh                           # gh 를 부르지 않는
 evals/issue-create/trigger-eval.json                   # description 트리거 회귀 셋 (30문항, 튜닝용)
 evals/issue-create/holdout-eval.json                   # 튜닝에 쓰지 않은 검증 셋 (10문항)
 evals/issue-create/run-trigger-eval.mjs                # 위 두 셋을 실제로 돌려 recall/specificity 를 재는 실행기
+evals/issue-create/split-eval.json                     # 원자 분해 개선용 데이터 (400문항)
+evals/issue-create/split-holdout.json                  # 원자 분해 검증 셋 (100문항)
+evals/issue-create/{generate,validate}-split-dataset.mjs
+evals/issue-create/run-split-eval.mjs                  # 분할 경계·라벨·상한 처리 평가
 ```
 
 요구사항은 `git`, 로그인된 `gh`, Node 18 이상입니다.
 
-### description 을 고칠 때
+### description과 분해 프롬프트를 고칠 때
 
 이 스킬은 명시 호출 없이도 발동해야 하므로 frontmatter 의 `description` 이 곧 기능입니다. 감으로 고치지 말고 실측하세요.
 
 ```bash
 node evals/issue-create/run-trigger-eval.mjs --set tuning     # 문구를 다듬는 동안 돌리는 회귀 셋
 node evals/issue-create/run-trigger-eval.mjs --set holdout    # 문구를 확정한 뒤 마지막에 한 번만
+node evals/issue-create/validate-split-dataset.mjs             # 500문항 스키마·중복·분포 검사
+node evals/issue-create/run-split-eval.mjs --set tuning --sample 50 --repeat 2 --out /tmp/split-tuning.json
+node evals/issue-create/run-split-eval.mjs --set holdout --sample 100 --out /tmp/split-holdout.json
 ```
+
+트리거 평가는 스킬이 호출됐는지 측정하고, 분해 평가는 호출된 뒤 요청을 어떻게 나눴는지 측정합니다. 둘은 목적이 달라 기존 트리거 셋을 분해 데이터로 재사용하지 않습니다.
+
+분해 데이터는 개선용 400문항과 홀드아웃 100문항으로 나뉩니다. 25개 산업, 네 가지 문체, 단일·전체 분리·부분 결합·5개 초과 사례를 포함합니다. 모든 문항에는 원자 요구사항, 기대 그룹, 라벨, 의존 관계, 판정 근거가 들어 있습니다. `generate-split-dataset.mjs --check`는 커밋된 데이터가 고정 생성 규칙과 같은지 확인하고, validator는 두 셋 사이 ID·문장 중복과 분포 편중을 막습니다.
+
+`run-split-eval.mjs`는 루브릭과 요청을 모델에 주고 JSON-only 응답을 받아 원자 요구 F1, 이슈 수 정확도, 그룹 완전일치, 쌍별 그룹 F1, 라벨 정확도, 과소·과대 분할률, 5개 상한 처리 정확도를 계산합니다. `--sample`, `--repeat`, `--concurrency`, `--cache`로 호출 비용을 조절하고, `--responses`로 저장된 응답을 모델 호출 없이 다시 채점할 수 있습니다. 기존 루브릭은 `baseline-split-rubric.md`에 보존돼 있어 `--rubric`으로 같은 데이터에서 전후를 비교할 수 있습니다.
 
 실행기는 커밋 35개짜리 픽스처 저장소를 임시로 만들어 이 저장소의 스킬을 전부 설치한 뒤, 질의를 헤드리스 `claude` 에 던져 `Skill` 도구가 `issue-create` 를 부르는지 셉니다. 홈(`~/.claude/skills`) 의 스킬은 `--setting-sources project` 로 배제하므로 경쟁 상대는 저장소에 든 스킬뿐입니다. 기본값은 `sonnet` 모델에 질의당 3회, 동시 3개이며 `--repeat` / `--model` / `--concurrency` 로 바꿉니다. 개선 전 문구를 같은 조건에서 다시 재려면 `--description @<파일>` 로 갈아끼우세요. `--out <파일>` 을 주면 질의별 결과까지 JSON 으로 남습니다.
 

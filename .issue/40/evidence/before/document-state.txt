@@ -1,0 +1,66 @@
+## grok references in repository command
+RG_EXIT_CODE=1
+
+## current prerequisites
+## 1. 전제 확인
+
+```bash
+echo "SHELL=$SHELL"
+command -v zsh; command -v claude; command -v codex; command -v tmux; command -v jq
+test -f "$HOME/.zshrc" && echo "zshrc=exists" || echo "zshrc=missing"
+```
+
+## 2. 기존 블록 탐지
+
+## current verification and summary headings
+## 5. 검증
+
+새 셸에서 문법이 깨지지 않는지 확인한다.
+
+```bash
+zsh -n "$HOME/.zshrc"
+zsh -ic 'type cc; type cx; type claude; type codex' 2>/dev/null | head -20
+```
+
+가능하면 짧은 smoke (실제 TUI 는 강제하지 않음):
+
+```bash
+# 함수가 --tmux 를 가로채는지 (바이너리에 --tmux 를 넘기지 않아야 함)
+zsh -ic 'functions cc | head -5'
+zsh -ic 'functions cx | head -5'
+```
+
+다음 오류 패턴이 사용자 환경에서 나면 실패로 보고한다.
+
+```text
+error: unexpected argument '--tmux' found
+Error: --tmux requires --worktree
+```
+
+## 6. 보고
+
+- 변경한 경로: `~/.zshrc`
+- 백업 경로
+- 추가/교체 여부
+- 검증 결과
+- 프로젝트 파일을 건드리지 않았음을 한 줄로 명시
+
+# 참고 동작 요약 (구현 시 빠뜨리지 말 것)
+
+## cc / claude
+
+- 기본 args: `--effort medium --dangerously-skip-permissions`
+- 비-tmux: `VISUAL=code EDITOR=code command claude ...`
+- `--tmux`: 새 tmux 세션에서 claude 실행. 이미 tmux 안이면 detach-on-destroy off + switch-client + 세션 종료 대기
+- `--tmux --resume [id]`: resume 세션명 `cc-resume-...`, 종료 후 resume 안내 출력
+- `--tmux --worktree`: git root 필요, claude 에 `--worktree <session_name>` 전달, project 경로는 `.claude/worktrees/<session>`
+- 세션 종료 후 `~/.claude/history.jsonl` 증분 + jq 로 sessionId 추출, transcript 있으면 `~/.claude/cc-tmux-sessions.log` 기록 및 resume 안내
+- `claude()` 는 `cc "$@"` 위임
+
+## cx / codex
+
+- 기본: `--disable apps` + (없을 때) `--dangerously-bypass-approvals-and-sandbox`
+- `--resume`: `codex resume` + `VISUAL=vi EDITOR=vi`
+- `--tmux`: zsh settle wrapper(3초 sleep)로 실행 후 rollout jsonl 로 session id 탐지, `~/.codex/cx-tmux-sessions.log` 기록
+- `--tmux --resume`: resume 경로 + 안내 출력
+- `codex()` 는 `cx "$@"` 위임

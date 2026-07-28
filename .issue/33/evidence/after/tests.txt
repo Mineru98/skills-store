@@ -65,3 +65,27 @@ check-shared: 통과
 
 $ git diff --check
 ✓ git diff --check passed
+
+$ node evals/issue-create/run-split-eval.mjs --set holdout --sample 40 --repeat 1 --model haiku --concurrency 3 --seed 33 --rubric @evals/issue-create/baseline-split-rubric.md --cache /tmp/issue33-holdout-baseline-cache.json --out .issue/33/evidence/after/holdout-baseline.json
+셋 holdout 40건 × 1회 / haiku / 동시 3
+파싱 성공       40/40 (100.0%)
+원자 요구 F1    99.4%
+이슈 수 정확도  80.0%
+그룹 완전일치   77.5%
+쌍별 그룹 F1    68.3%
+라벨 정확도     98.4%
+결정 정확도     82.5%
+과소/과대 분할  12.5% / 7.5%
+상한 처리       100.0%
+
+$ node evals/issue-create/run-split-eval.mjs --set holdout --sample 40 --repeat 1 --model haiku --concurrency 3 --seed 33 --rubric @.claude/skills/issue-create/references/split-requests.md --cache /tmp/issue33-holdout-current-cache.json --baseline .issue/33/evidence/after/holdout-baseline.json --out .issue/33/evidence/after/holdout-current.json
+셋 holdout 40건 × 1회 / haiku / 동시 3
+파싱 성공       40/40 (100.0%)
+원자 요구 F1    100.0% (+0.6%p)
+이슈 수 정확도  97.5% (+17.5%p)
+그룹 완전일치   97.5% (+20.0%p)
+쌍별 그룹 F1    97.0% (+28.7%p)
+라벨 정확도     100.0%
+결정 정확도     97.5% (+15.0%p)
+과소/과대 분할  0.0% / 2.5%
+상한 처리       100.0% (+0.0%p)

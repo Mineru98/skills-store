@@ -1,0 +1,17 @@
+11:PowerShell 프로필 설정은 **절대 하지 않는다.**
+16:- 대상은 사용자 홈의 `~/.zshrc` 뿐이다. (zsh 전용 문법)
+31:command -v zsh; command -v claude; command -v codex; command -v grok; command -v tmux; command -v jq
+43:# >>> skills-store bash cli alias (grok) >>>
+44:# <<< skills-store bash cli alias (grok) <<<
+50:`gk` 는 oh-my-zsh git 플러그인이 쓰는 alias 일 수 있으므로 grok 래퍼로 만들거나 수정하지 않는다.
+298:`gk` 래퍼는 만들지 않는다. zsh 는 함수 정의 시점에 alias 를 확장하므로, oh-my-zsh 의
+302:# >>> skills-store bash cli alias (grok) >>>
+351:    # 세션 디렉토리는 ~/.grok/sessions/<percent-encoded-cwd>/<uuid>/ 형태다.
+385:      local session_log="$HOME/.grok/grok-tmux-sessions.log"
+404:# <<< skills-store bash cli alias (grok) <<<
+419:zsh -ic 'type cc; type cx; type claude; type codex; type grok; type gk' 2>/dev/null | head -30
+471:- 코어 함수는 `grok()` 자체다. oh-my-zsh git 플러그인과 충돌하는 `gk` 래퍼는 만들지 않는다
+477:- 세션 종료 후 `~/.grok/sessions/<percent-encoded-cwd>/<uuid>/` 의 새 디렉터리명에서 session id 추출
+478:- session id 를 찾으면 `~/.grok/grok-tmux-sessions.log` 기록 및 resume 안내
+
+git diff --check: passed

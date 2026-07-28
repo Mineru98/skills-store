@@ -1,0 +1,5616 @@
+[
+  {
+    "id": "split-005",
+    "query": "의료 분야의 제주 1분기 웹 운영 변경 요청입니다. 사용하지 않는 old-claims-export 스크립트를 제거한다.",
+    "industry": "healthcare",
+    "style": "concise",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 old-claims-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-010",
+    "query": "통신 분야의 제주 2분기 웹 운영을 운영 중인데 품질 임계치 하락 발생 시 네트워크 운영자에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "telecom",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "품질 임계치 하락 발생 시 네트워크 운영자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-015",
+    "query": "외식 분야의 제주 3분기 웹 운영 요청사항:\n- 사용하지 않는 old-pos-export 스크립트를 제거한다",
+    "industry": "food-service",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 old-pos-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-020",
+    "query": "미디어 분야의 제주 4분기 웹 운영에서 개선이 필요합니다. 발행 실패 발생 시 편집 책임자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "media",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "발행 실패 발생 시 편집 책임자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-025",
+    "query": "인사 분야의 제주 연말 웹 운영 변경 요청입니다. 사용하지 않는 legacy-payroll-csv 스크립트를 제거한다.",
+    "industry": "hr",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 legacy-payroll-csv 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-030",
+    "query": "의료 분야의 제주 1분기 모바일 운영을 운영 중인데 검사 결과 확정 발생 시 담당 의료진에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "healthcare",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "검사 결과 확정 발생 시 담당 의료진에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-035",
+    "query": "통신 분야의 제주 2분기 모바일 운영 요청사항:\n- 사용하지 않는 old-cdr-export 스크립트를 제거한다",
+    "industry": "telecom",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 old-cdr-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-040",
+    "query": "외식 분야의 제주 3분기 모바일 운영에서 개선이 필요합니다. 냉장 온도 이탈 발생 시 매장 책임자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "food-service",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "냉장 온도 이탈 발생 시 매장 책임자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-045",
+    "query": "미디어 분야의 제주 4분기 모바일 운영 변경 요청입니다. 사용하지 않는 legacy-feed-job 스크립트를 제거한다.",
+    "industry": "media",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 legacy-feed-job 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-050",
+    "query": "인사 분야의 제주 연말 모바일 운영을 운영 중인데 퇴사 예정 발생 시 인사 담당자에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "hr",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "퇴사 예정 발생 시 인사 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-055",
+    "query": "의료 분야의 제주 1분기 야간 배치 요청사항:\n- 사용하지 않는 old-claims-export 스크립트를 제거한다",
+    "industry": "healthcare",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 old-claims-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-060",
+    "query": "통신 분야의 제주 2분기 야간 배치에서 개선이 필요합니다. 품질 임계치 하락 발생 시 네트워크 운영자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "telecom",
+    "style": "narrative",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "품질 임계치 하락 발생 시 네트워크 운영자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-065",
+    "query": "외식 분야의 제주 3분기 야간 배치 변경 요청입니다. 사용하지 않는 old-pos-export 스크립트를 제거한다.",
+    "industry": "food-service",
+    "style": "concise",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 old-pos-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-070",
+    "query": "미디어 분야의 제주 4분기 야간 배치을 운영 중인데 발행 실패 발생 시 편집 책임자에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "media",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "발행 실패 발생 시 편집 책임자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-075",
+    "query": "인사 분야의 제주 연말 야간 배치 요청사항:\n- 사용하지 않는 legacy-payroll-csv 스크립트를 제거한다",
+    "industry": "hr",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 legacy-payroll-csv 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-080",
+    "query": "의료 분야의 제주 1분기 현장 단말에서 개선이 필요합니다. 검사 결과 확정 발생 시 담당 의료진에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "healthcare",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "검사 결과 확정 발생 시 담당 의료진에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-085",
+    "query": "통신 분야의 제주 2분기 현장 단말 변경 요청입니다. 사용하지 않는 old-cdr-export 스크립트를 제거한다.",
+    "industry": "telecom",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 old-cdr-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-090",
+    "query": "외식 분야의 제주 3분기 현장 단말을 운영 중인데 냉장 온도 이탈 발생 시 매장 책임자에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "food-service",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "냉장 온도 이탈 발생 시 매장 책임자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-095",
+    "query": "미디어 분야의 제주 4분기 현장 단말 요청사항:\n- 사용하지 않는 legacy-feed-job 스크립트를 제거한다",
+    "industry": "media",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "사용하지 않는 legacy-feed-job 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-100",
+    "query": "인사 분야의 제주 연말 현장 단말에서 개선이 필요합니다. 퇴사 예정 발생 시 인사 담당자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "hr",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "퇴사 예정 발생 시 인사 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [],
+    "rationale": "원자 요구사항이 하나뿐이므로 분할안을 만들지 않는다.",
+    "exceptions": [],
+    "tags": [
+      "single",
+      "same-label",
+      "requirements-1"
+    ]
+  },
+  {
+    "id": "split-105",
+    "query": "교육 분야의 제주 1분기 웹 운영을 운영 중인데 학습 진도 보고서 조회가 12초 넘게 걸리는 문제를 수정한다 그리고 학습 목표 값이 비어도 저장되는 검증 오류를 수정한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "education",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "학습 진도 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "학습 목표 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-110",
+    "query": "자동차 분야의 제주 2분기 웹 운영 요청사항:\n- 정비 예약 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 결함 추적 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\n- 차대 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+    "industry": "automotive",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "정비 예약 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "결함 추적 보고서 조회가 8초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "차대 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 3,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-115",
+    "query": "제조 분야의 제주 3분기 웹 운영에서 개선이 필요합니다. 공정 수율 보고서 조회가 13초 넘게 걸리는 문제를 수정한다. 또한 설비 코드 값이 비어도 저장되는 검증 오류를 수정한다. 또한 생산 라인 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 생산 라인 현황 화면에 사용자 지정 기간 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "manufacturing",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공정 수율 보고서 조회가 13초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "설비 코드 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "생산 라인 카드의 정렬 순서를 사용자가 고정할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r4",
+        "text": "생산 라인 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-120",
+    "query": "부동산 분야의 제주 4분기 웹 운영 변경 요청입니다. 계약 갱신 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 입주 심사 운영 절차 문서를 최신 정책에 맞게 갱신한다. 공실률 보고서 결과를 CSV로 내보내는 기능을 추가한다. 계약 만료 발생 시 자산 관리자에게 알림을 보내는 기능을 추가한다.",
+    "industry": "real-estate",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "계약 갱신 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "입주 심사 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r4",
+        "text": "공실률 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r5",
+        "text": "계약 만료 발생 시 자산 관리자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "documentation",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 5,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-125",
+    "query": "제약 분야의 제주 연말 웹 운영을 운영 중인데 임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 이상 반응 보고서 결과를 CSV로 내보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "pharmaceutical",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "이상 반응 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 2,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-130",
+    "query": "교육 분야의 제주 1분기 모바일 운영 요청사항:\n- 과제 제출 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\n- 과제 제출 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 출결 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+    "industry": "education",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "과제 제출 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "과제 제출 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "출결 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "documentation"
+    ],
+    "expected_issue_count": 3,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-135",
+    "query": "자동차 분야의 제주 2분기 모바일 운영에서 개선이 필요합니다. 결함 추적 보고서 조회가 15초 넘게 걸리는 문제를 수정한다. 또한 차대 번호 값이 비어도 저장되는 검증 오류를 수정한다. 또한 시험 차량 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 시험 차량 현황 화면에 사용자 지정 기간 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "automotive",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "결함 추적 보고서 조회가 15초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "차대 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "시험 차량 카드의 정렬 순서를 사용자가 고정할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r4",
+        "text": "시험 차량 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-140",
+    "query": "제조 분야의 제주 3분기 모바일 운영 변경 요청입니다. 불량 검사 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 공정 수율 보고서 조회가 11초 넘게 걸리는 문제를 수정한다. 설비 코드 값이 비어도 저장되는 검증 오류를 수정한다. 불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다.",
+    "industry": "manufacturing",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "불량 검사 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "공정 수율 보고서 조회가 11초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "설비 코드 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-145",
+    "query": "부동산 분야의 제주 4분기 모바일 운영을 운영 중인데 공실률 보고서 조회가 16초 넘게 걸리는 문제를 수정한다 그리고 보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "real-estate",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공실률 보고서 조회가 16초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-150",
+    "query": "제약 분야의 제주 연말 모바일 운영 요청사항:\n- 검체 등록 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\n- 검체 등록 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 시험 결과 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+    "industry": "pharmaceutical",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "검체 등록 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "검체 등록 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "시험 결과 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "documentation"
+    ],
+    "expected_issue_count": 3,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-155",
+    "query": "교육 분야의 제주 1분기 야간 배치에서 개선이 필요합니다. 수강 과정 현황 화면에 사용자 지정 기간 필터를 추가한다. 또한 학습 진도 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 과제 마감 발생 시 담당 강사에게 알림을 보내는 기능을 추가한다. 또한 수강 과정 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "education",
+    "style": "narrative",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "수강 과정 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "학습 진도 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "과제 마감 발생 시 담당 강사에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r4",
+        "text": "수강 과정 카드의 정렬 순서를 사용자가 고정할 수 있게 한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "enhancement",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-160",
+    "query": "자동차 분야의 제주 2분기 야간 배치 변경 요청입니다. 정비 예약 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 정비 예약 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 품질 판정 운영 절차 문서를 최신 정책에 맞게 갱신한다. 결함 추적 보고서 결과를 CSV로 내보내는 기능을 추가한다. 안전 결함 발생 시 품질 관리자에게 알림을 보내는 기능을 추가한다.",
+    "industry": "automotive",
+    "style": "concise",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "정비 예약 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "정비 예약 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "품질 판정 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r4",
+        "text": "결함 추적 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r5",
+        "text": "안전 결함 발생 시 품질 관리자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "documentation",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 5,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-165",
+    "query": "제조 분야의 제주 3분기 야간 배치을 운영 중인데 공정 수율 보고서 조회가 9초 넘게 걸리는 문제를 수정한다 그리고 설비 코드 값이 비어도 저장되는 검증 오류를 수정한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "manufacturing",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공정 수율 보고서 조회가 9초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "설비 코드 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-170",
+    "query": "부동산 분야의 제주 4분기 야간 배치 요청사항:\n- 계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 공실률 보고서 조회가 14초 넘게 걸리는 문제를 수정한다\n- 보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다",
+    "industry": "real-estate",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "계약 갱신 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "공실률 보고서 조회가 14초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 3,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-175",
+    "query": "제약 분야의 제주 연말 야간 배치에서 개선이 필요합니다. 이상 반응 보고서 조회가 10초 넘게 걸리는 문제를 수정한다. 또한 시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다. 또한 임상 시험 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "pharmaceutical",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "이상 반응 보고서 조회가 10초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "임상 시험 카드의 정렬 순서를 사용자가 고정할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r4",
+        "text": "임상 시험 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-180",
+    "query": "교육 분야의 제주 1분기 현장 단말 변경 요청입니다. 과제 제출 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 과제 제출 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 출결 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 학습 진도 보고서 결과를 CSV로 내보내는 기능을 추가한다. 과제 마감 발생 시 담당 강사에게 알림을 보내는 기능을 추가한다.",
+    "industry": "education",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "과제 제출 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "과제 제출 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "출결 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r4",
+        "text": "학습 진도 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r5",
+        "text": "과제 마감 발생 시 담당 강사에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "documentation",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 5,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-185",
+    "query": "자동차 분야의 제주 2분기 현장 단말을 운영 중인데 시험 차량 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 결함 추적 보고서 결과를 CSV로 내보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "automotive",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "시험 차량 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "결함 추적 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 2,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-190",
+    "query": "제조 분야의 제주 3분기 현장 단말 요청사항:\n- 불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\n- 불량 검사 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 설비 점검 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+    "industry": "manufacturing",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "불량 검사 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "설비 점검 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "documentation"
+    ],
+    "expected_issue_count": 3,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-195",
+    "query": "부동산 분야의 제주 4분기 현장 단말에서 개선이 필요합니다. 공실률 보고서 조회가 12초 넘게 걸리는 문제를 수정한다. 또한 보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다. 또한 임대 매물 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 임대 매물 현황 화면에 사용자 지정 기간 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "real-estate",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공실률 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "임대 매물 카드의 정렬 순서를 사용자가 고정할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r4",
+        "text": "임대 매물 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-200",
+    "query": "제약 분야의 제주 연말 현장 단말 변경 요청입니다. 검체 등록 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 이상 반응 보고서 조회가 8초 넘게 걸리는 문제를 수정한다. 시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다. 검체 등록 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다.",
+    "industry": "pharmaceutical",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "검체 등록 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "이상 반응 보고서 조회가 8초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "검체 등록 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 4,
+    "decision": "split",
+    "dependencies": [],
+    "rationale": "각 요구사항은 독립적으로 배포·검증·취소할 수 있어 라벨이 같아도 별도 이슈다.",
+    "exceptions": [],
+    "tags": [
+      "split",
+      "same-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-205",
+    "query": "게임 분야의 제주 1분기 웹 운영 요청사항:\n- 길드 활동 API 응답에 서버 지역 필드를 추가한다\n- 길드 활동 목록에 새 서버 지역 값을 표시한다",
+    "industry": "gaming",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "길드 활동 API 응답에 서버 지역 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "길드 활동 목록에 새 서버 지역 값을 표시한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "API 필드를 소비하는 화면까지 바뀌어야 서버 지역 정보가 사용자에게 전달된다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-210",
+    "query": "보안 분야의 제주 2분기 웹 운영에서 개선이 필요합니다. 접근 권한 신청 상태 코드에 보류 값을 추가한다. 또한 사고 대응 승인 화면에서 새 보류 상태를 선택할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "cybersecurity",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "접근 권한 신청 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "사고 대응 승인 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "상태 계약과 소비 화면은 한 사용자 흐름을 완성하므로 따로 완료할 수 없다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-215",
+    "query": "유통 분야의 제주 3분기 웹 운영 변경 요청입니다. 카테고리 매출 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다. 카테고리 매출 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다.",
+    "industry": "retail",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "카테고리 매출 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "카테고리 매출 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "화면과 내보내기의 시간대 불일치는 같은 집계 기준에서 함께 고쳐야 한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-220",
+    "query": "농업 분야의 제주 4분기 웹 운영을 운영 중인데 토양 수분 저장 형식을 새 코드 체계로 마이그레이션한다 그리고 재배 구역 조회 로직을 새 토양 수분 코드 체계로 전환한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "agriculture",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "토양 수분 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "재배 구역 조회 로직을 새 토양 수분 코드 체계로 전환한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "데이터 마이그레이션과 조회 로직 전환 중 하나만 배포하면 기존 데이터를 읽지 못한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-225",
+    "query": "연구 분야의 제주 연말 웹 운영 요청사항:\n- 연구 과제 API 응답에 표본 식별자 필드를 추가한다\n- 연구 과제 목록에 새 표본 식별자 값을 표시한다",
+    "industry": "research",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "연구 과제 API 응답에 표본 식별자 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "연구 과제 목록에 새 표본 식별자 값을 표시한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "API 필드를 소비하는 화면까지 바뀌어야 표본 식별자 정보가 사용자에게 전달된다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-230",
+    "query": "게임 분야의 제주 1분기 모바일 운영에서 개선이 필요합니다. 아이템 거래 상태 코드에 보류 값을 추가한다. 또한 제재 검토 화면에서 새 보류 상태를 선택할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "gaming",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "아이템 거래 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "제재 검토 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "상태 계약과 소비 화면은 한 사용자 흐름을 완성하므로 따로 완료할 수 없다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-235",
+    "query": "보안 분야의 제주 2분기 모바일 운영 변경 요청입니다. 취약점 현황 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다. 취약점 현황 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다.",
+    "industry": "cybersecurity",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "취약점 현황 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "취약점 현황 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "화면과 내보내기의 시간대 불일치는 같은 집계 기준에서 함께 고쳐야 한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-240",
+    "query": "유통 분야의 제주 3분기 모바일 운영을 운영 중인데 반품 사유 저장 형식을 새 코드 체계로 마이그레이션한다 그리고 매장 재고 조회 로직을 새 반품 사유 코드 체계로 전환한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "retail",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "반품 사유 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "매장 재고 조회 로직을 새 반품 사유 코드 체계로 전환한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "데이터 마이그레이션과 조회 로직 전환 중 하나만 배포하면 기존 데이터를 읽지 못한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-245",
+    "query": "농업 분야의 제주 4분기 모바일 운영 요청사항:\n- 재배 구역 API 응답에 토양 수분 필드를 추가한다\n- 재배 구역 목록에 새 토양 수분 값을 표시한다",
+    "industry": "agriculture",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "재배 구역 API 응답에 토양 수분 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "재배 구역 목록에 새 토양 수분 값을 표시한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "API 필드를 소비하는 화면까지 바뀌어야 토양 수분 정보가 사용자에게 전달된다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-250",
+    "query": "연구 분야의 제주 연말 모바일 운영에서 개선이 필요합니다. 실험 데이터 등록 상태 코드에 보류 값을 추가한다. 또한 연구비 승인 화면에서 새 보류 상태를 선택할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "research",
+    "style": "narrative",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "실험 데이터 등록 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "연구비 승인 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "상태 계약과 소비 화면은 한 사용자 흐름을 완성하므로 따로 완료할 수 없다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-255",
+    "query": "게임 분야의 제주 1분기 야간 배치 변경 요청입니다. 일일 접속 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다. 일일 접속 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다.",
+    "industry": "gaming",
+    "style": "concise",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "일일 접속 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "일일 접속 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "화면과 내보내기의 시간대 불일치는 같은 집계 기준에서 함께 고쳐야 한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-260",
+    "query": "보안 분야의 제주 2분기 야간 배치을 운영 중인데 위험 등급 저장 형식을 새 코드 체계로 마이그레이션한다 그리고 보안 경보 조회 로직을 새 위험 등급 코드 체계로 전환한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "cybersecurity",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "위험 등급 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "보안 경보 조회 로직을 새 위험 등급 코드 체계로 전환한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "데이터 마이그레이션과 조회 로직 전환 중 하나만 배포하면 기존 데이터를 읽지 못한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-265",
+    "query": "유통 분야의 제주 3분기 야간 배치 요청사항:\n- 매장 재고 API 응답에 반품 사유 필드를 추가한다\n- 매장 재고 목록에 새 반품 사유 값을 표시한다",
+    "industry": "retail",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "매장 재고 API 응답에 반품 사유 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "매장 재고 목록에 새 반품 사유 값을 표시한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "API 필드를 소비하는 화면까지 바뀌어야 반품 사유 정보가 사용자에게 전달된다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-270",
+    "query": "농업 분야의 제주 4분기 야간 배치에서 개선이 필요합니다. 농약 사용 기록 상태 코드에 보류 값을 추가한다. 또한 수확 승인 화면에서 새 보류 상태를 선택할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "agriculture",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "농약 사용 기록 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "수확 승인 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "상태 계약과 소비 화면은 한 사용자 흐름을 완성하므로 따로 완료할 수 없다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-275",
+    "query": "연구 분야의 제주 연말 야간 배치 변경 요청입니다. 실험 재현성 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다. 실험 재현성 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다.",
+    "industry": "research",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "실험 재현성 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "실험 재현성 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "화면과 내보내기의 시간대 불일치는 같은 집계 기준에서 함께 고쳐야 한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-280",
+    "query": "게임 분야의 제주 1분기 현장 단말을 운영 중인데 서버 지역 저장 형식을 새 코드 체계로 마이그레이션한다 그리고 길드 활동 조회 로직을 새 서버 지역 코드 체계로 전환한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "gaming",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "서버 지역 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "길드 활동 조회 로직을 새 서버 지역 코드 체계로 전환한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "데이터 마이그레이션과 조회 로직 전환 중 하나만 배포하면 기존 데이터를 읽지 못한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-285",
+    "query": "보안 분야의 제주 2분기 현장 단말 요청사항:\n- 보안 경보 API 응답에 위험 등급 필드를 추가한다\n- 보안 경보 목록에 새 위험 등급 값을 표시한다",
+    "industry": "cybersecurity",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "보안 경보 API 응답에 위험 등급 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "보안 경보 목록에 새 위험 등급 값을 표시한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "API 필드를 소비하는 화면까지 바뀌어야 위험 등급 정보가 사용자에게 전달된다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-290",
+    "query": "유통 분야의 제주 3분기 현장 단말에서 개선이 필요합니다. 반품 접수 상태 코드에 보류 값을 추가한다. 또한 상품 진열 화면에서 새 보류 상태를 선택할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "retail",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "반품 접수 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "상품 진열 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "상태 계약과 소비 화면은 한 사용자 흐름을 완성하므로 따로 완료할 수 없다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-295",
+    "query": "농업 분야의 제주 4분기 현장 단말 변경 요청입니다. 작황 예측 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다. 작황 예측 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다.",
+    "industry": "agriculture",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "작황 예측 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "작황 예측 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "화면과 내보내기의 시간대 불일치는 같은 집계 기준에서 함께 고쳐야 한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-300",
+    "query": "연구 분야의 제주 연말 현장 단말을 운영 중인데 표본 식별자 저장 형식을 새 코드 체계로 마이그레이션한다 그리고 연구 과제 조회 로직을 새 표본 식별자 코드 체계로 전환한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "research",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "표본 식별자 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "연구 과제 조회 로직을 새 표본 식별자 코드 체계로 전환한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore"
+    ],
+    "expected_issue_count": 1,
+    "decision": "single",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "데이터 마이그레이션과 조회 로직 전환 중 하나만 배포하면 기존 데이터를 읽지 못한다.",
+    "exceptions": [
+      "여러 문장이지만 하나의 계약 또는 근본 원인을 공유한다."
+    ],
+    "tags": [
+      "coupled",
+      "same-label",
+      "requirements-2"
+    ]
+  },
+  {
+    "id": "split-305",
+    "query": "에너지 분야의 제주 1분기 웹 운영에서 개선이 필요합니다. 발전 설비 API 응답에 계량기 상태 필드를 추가한다. 또한 발전 설비 목록에 새 계량기 상태 값을 표시한다. 또한 시간대별 발전 보고서 조회가 12초 넘게 걸리는 문제를 수정한다. 또한 출력 급감 발생 시 관제 담당자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "energy",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "발전 설비 API 응답에 계량기 상태 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "발전 설비 목록에 새 계량기 상태 값을 표시한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "시간대별 발전 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "출력 급감 발생 시 관제 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-310",
+    "query": "전자상거래 분야의 제주 2분기 웹 운영 변경 요청입니다. 주문 결제 상태 코드에 보류 값을 추가한다. 환불 검토 화면에서 새 보류 상태를 선택할 수 있게 한다. 주문 결제 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다.",
+    "industry": "ecommerce",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "주문 결제 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "환불 검토 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "주문 결제 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-315",
+    "query": "공공 분야의 제주 3분기 웹 운영을 운영 중인데 민원 처리 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다 그리고 민원 처리 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다 그리고 민원 처리 보고서 조회가 13초 넘게 걸리는 문제를 수정한다 그리고 처리 기한 임박 발생 시 민원 담당자에게 알림을 보내는 기능을 추가한다 그리고 민원 접수 현황 화면에 사용자 지정 기간 필터를 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "public",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "민원 처리 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "민원 처리 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "민원 처리 보고서 조회가 13초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "처리 기한 임박 발생 시 민원 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r5",
+        "text": "민원 접수 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-320",
+    "query": "숙박 분야의 제주 4분기 웹 운영 요청사항:\n- 투숙 인원 저장 형식을 새 코드 체계로 마이그레이션한다\n- 객실 현황 조회 로직을 새 투숙 인원 코드 체계로 전환한다\n- 체크인 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\n- 사용하지 않는 old-booking-export 스크립트를 제거한다",
+    "industry": "hospitality",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "투숙 인원 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "객실 현황 조회 로직을 새 투숙 인원 코드 체계로 전환한다",
+        "label": "chore"
+      },
+      {
+        "id": "r3",
+        "text": "체크인 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "사용하지 않는 old-booking-export 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore",
+      "bug",
+      "chore"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-325",
+    "query": "금융 분야의 제주 연말 웹 운영에서 개선이 필요합니다. 법인 계좌 API 응답에 거래 목적 필드를 추가한다. 또한 법인 계좌 목록에 새 거래 목적 값을 표시한다. 또한 일별 잔액 보고서 조회가 14초 넘게 걸리는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "finance",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "법인 계좌 API 응답에 거래 목적 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "법인 계좌 목록에 새 거래 목적 값을 표시한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "일별 잔액 보고서 조회가 14초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-330",
+    "query": "에너지 분야의 제주 1분기 모바일 운영 변경 요청입니다. 정비 요청 상태 코드에 보류 값을 추가한다. 출력 제한 승인 화면에서 새 보류 상태를 선택할 수 있게 한다. 정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 사용하지 않는 legacy-meter-job 스크립트를 제거한다. 시간대별 발전 보고서 결과를 CSV로 내보내는 기능을 추가한다.",
+    "industry": "energy",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "정비 요청 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "출력 제한 승인 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "사용하지 않는 legacy-meter-job 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r5",
+        "text": "시간대별 발전 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-335",
+    "query": "전자상거래 분야의 제주 2분기 모바일 운영을 운영 중인데 전환율 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다 그리고 전환율 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다 그리고 전환율 보고서 조회가 15초 넘게 걸리는 문제를 수정한다 그리고 결제 이탈 발생 시 셀러 매니저에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "ecommerce",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "전환율 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "전환율 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "전환율 보고서 조회가 15초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "결제 이탈 발생 시 셀러 매니저에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-340",
+    "query": "공공 분야의 제주 3분기 모바일 운영 요청사항:\n- 신청인 유형 저장 형식을 새 코드 체계로 마이그레이션한다\n- 민원 접수 조회 로직을 새 신청인 유형 코드 체계로 전환한다\n- 보조금 신청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+    "industry": "public",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "신청인 유형 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "민원 접수 조회 로직을 새 신청인 유형 코드 체계로 전환한다",
+        "label": "chore"
+      },
+      {
+        "id": "r3",
+        "text": "보조금 신청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-345",
+    "query": "숙박 분야의 제주 4분기 모바일 운영에서 개선이 필요합니다. 객실 현황 API 응답에 투숙 인원 필드를 추가한다. 또한 객실 현황 목록에 새 투숙 인원 값을 표시한다. 또한 점유율 보고서 조회가 16초 넘게 걸리는 문제를 수정한다. 또한 노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다. 또한 객실 현황 현황 화면에 사용자 지정 기간 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "hospitality",
+    "style": "narrative",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "객실 현황 API 응답에 투숙 인원 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "객실 현황 목록에 새 투숙 인원 값을 표시한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "점유율 보고서 조회가 16초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r5",
+        "text": "객실 현황 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-350",
+    "query": "금융 분야의 제주 연말 모바일 운영 변경 요청입니다. 이체 승인 상태 코드에 보류 값을 추가한다. 자금 세탁 검토 화면에서 새 보류 상태를 선택할 수 있게 한다. 이체 승인 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 사용하지 않는 legacy-ledger-sync 스크립트를 제거한다.",
+    "industry": "finance",
+    "style": "concise",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "이체 승인 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "자금 세탁 검토 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "이체 승인 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "사용하지 않는 legacy-ledger-sync 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-355",
+    "query": "에너지 분야의 제주 1분기 야간 배치을 운영 중인데 시간대별 발전 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다 그리고 시간대별 발전 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다 그리고 시간대별 발전 보고서 조회가 8초 넘게 걸리는 문제를 수정한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "energy",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "시간대별 발전 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "시간대별 발전 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "시간대별 발전 보고서 조회가 8초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "same-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-360",
+    "query": "전자상거래 분야의 제주 2분기 야간 배치 요청사항:\n- 배송 옵션 저장 형식을 새 코드 체계로 마이그레이션한다\n- 판매 상품 조회 로직을 새 배송 옵션 코드 체계로 전환한다\n- 주문 결제 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\n- 사용하지 않는 legacy-order-feed 스크립트를 제거한다\n- 전환율 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+    "industry": "ecommerce",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "배송 옵션 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "판매 상품 조회 로직을 새 배송 옵션 코드 체계로 전환한다",
+        "label": "chore"
+      },
+      {
+        "id": "r3",
+        "text": "주문 결제 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "사용하지 않는 legacy-order-feed 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r5",
+        "text": "전환율 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore",
+      "bug",
+      "chore",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-365",
+    "query": "공공 분야의 제주 3분기 야간 배치에서 개선이 필요합니다. 민원 접수 API 응답에 신청인 유형 필드를 추가한다. 또한 민원 접수 목록에 새 신청인 유형 값을 표시한다. 또한 민원 처리 보고서 조회가 9초 넘게 걸리는 문제를 수정한다. 또한 처리 기한 임박 발생 시 민원 담당자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "public",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "민원 접수 API 응답에 신청인 유형 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "민원 접수 목록에 새 신청인 유형 값을 표시한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "민원 처리 보고서 조회가 9초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "처리 기한 임박 발생 시 민원 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-370",
+    "query": "숙박 분야의 제주 4분기 야간 배치 변경 요청입니다. 체크인 요청 상태 코드에 보류 값을 추가한다. 객실 배정 화면에서 새 보류 상태를 선택할 수 있게 한다. 체크인 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다.",
+    "industry": "hospitality",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "체크인 요청 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "객실 배정 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "체크인 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-375",
+    "query": "금융 분야의 제주 연말 야간 배치을 운영 중인데 일별 잔액 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다 그리고 일별 잔액 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다 그리고 일별 잔액 보고서 조회가 10초 넘게 걸리는 문제를 수정한다 그리고 이상 거래 발생 시 준법 담당자에게 알림을 보내는 기능을 추가한다 그리고 법인 계좌 현황 화면에 사용자 지정 기간 필터를 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "finance",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "일별 잔액 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "일별 잔액 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "일별 잔액 보고서 조회가 10초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "이상 거래 발생 시 준법 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r5",
+        "text": "법인 계좌 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-380",
+    "query": "에너지 분야의 제주 1분기 현장 단말 요청사항:\n- 계량기 상태 저장 형식을 새 코드 체계로 마이그레이션한다\n- 발전 설비 조회 로직을 새 계량기 상태 코드 체계로 전환한다\n- 정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다\n- 사용하지 않는 legacy-meter-job 스크립트를 제거한다",
+    "industry": "energy",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "계량기 상태 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "발전 설비 조회 로직을 새 계량기 상태 코드 체계로 전환한다",
+        "label": "chore"
+      },
+      {
+        "id": "r3",
+        "text": "정비 요청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "사용하지 않는 legacy-meter-job 스크립트를 제거한다",
+        "label": "chore"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore",
+      "bug",
+      "chore"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-385",
+    "query": "전자상거래 분야의 제주 2분기 현장 단말에서 개선이 필요합니다. 판매 상품 API 응답에 배송 옵션 필드를 추가한다. 또한 판매 상품 목록에 새 배송 옵션 값을 표시한다. 또한 전환율 보고서 조회가 11초 넘게 걸리는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "ecommerce",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "판매 상품 API 응답에 배송 옵션 필드를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "판매 상품 목록에 새 배송 옵션 값을 표시한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "전환율 보고서 조회가 11초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "api-ui-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-390",
+    "query": "공공 분야의 제주 3분기 현장 단말 변경 요청입니다. 보조금 신청 상태 코드에 보류 값을 추가한다. 서류 심사 화면에서 새 보류 상태를 선택할 수 있게 한다. 보조금 신청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 사용하지 않는 old-civil-export 스크립트를 제거한다. 민원 처리 보고서 결과를 CSV로 내보내는 기능을 추가한다.",
+    "industry": "public",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "보조금 신청 상태 코드에 보류 값을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "서류 심사 화면에서 새 보류 상태를 선택할 수 있게 한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r3",
+        "text": "보조금 신청 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "사용하지 않는 old-civil-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r5",
+        "text": "민원 처리 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "enhancement"
+    ],
+    "expected_issue_count": 4,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-contract"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-5"
+    ]
+  },
+  {
+    "id": "split-395",
+    "query": "숙박 분야의 제주 4분기 현장 단말을 운영 중인데 점유율 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다 그리고 점유율 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다 그리고 점유율 보고서 조회가 12초 넘게 걸리는 문제를 수정한다 그리고 노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "hospitality",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "점유율 보고서가 UTC로 잘못 집계되는 문제를 수정해 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r2",
+        "text": "점유율 보고서 CSV가 UTC로 잘못 출력되는 문제도 지역 시간대로 맞춘다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "점유율 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r4",
+        "text": "노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ]
+    ],
+    "expected_group_labels": [
+      "bug",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 3,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "shared-root-cause"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-4"
+    ]
+  },
+  {
+    "id": "split-400",
+    "query": "금융 분야의 제주 연말 현장 단말 요청사항:\n- 거래 목적 저장 형식을 새 코드 체계로 마이그레이션한다\n- 법인 계좌 조회 로직을 새 거래 목적 코드 체계로 전환한다\n- 이체 승인 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+    "industry": "finance",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "거래 목적 저장 형식을 새 코드 체계로 마이그레이션한다",
+        "label": "chore"
+      },
+      {
+        "id": "r2",
+        "text": "법인 계좌 조회 로직을 새 거래 목적 코드 체계로 전환한다",
+        "label": "chore"
+      },
+      {
+        "id": "r3",
+        "text": "이체 승인 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1",
+        "r2"
+      ],
+      [
+        "r3"
+      ]
+    ],
+    "expected_group_labels": [
+      "chore",
+      "bug"
+    ],
+    "expected_issue_count": 2,
+    "decision": "partial",
+    "dependencies": [
+      {
+        "from": "r1",
+        "to": "r2",
+        "type": "migration-consumer"
+      }
+    ],
+    "rationale": "첫 두 요구사항은 강하게 결합되어 한 이슈로 묶고 나머지는 독립 이슈로 분리한다.",
+    "exceptions": [],
+    "tags": [
+      "partial",
+      "mixed-label",
+      "requirements-3"
+    ]
+  },
+  {
+    "id": "split-405",
+    "query": "보험 분야의 제주 1분기 웹 운영 변경 요청입니다. 보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다. 보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 사용하지 않는 old-policy-export 스크립트를 제거한다. 손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 지급 소요 보고서 조회가 12초 넘게 걸리는 문제를 수정한다. 지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다. 면책 사유 값이 비어도 저장되는 검증 오류를 수정한다.",
+    "industry": "insurance",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-policy-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "지급 소요 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "면책 사유 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-410",
+    "query": "SaaS 분야의 제주 2분기 웹 운영을 운영 중인데 고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다 그리고 사용하지 않는 legacy-billing-export 스크립트를 제거한다 그리고 배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다 그리고 월간 사용량 보고서 조회가 8초 넘게 걸리는 문제를 수정한다 그리고 월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "software",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-billing-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "월간 사용량 보고서 조회가 8초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  },
+  {
+    "id": "split-415",
+    "query": "여행 분야의 제주 3분기 웹 운영 요청사항:\n- 여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다\n- 예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 사용하지 않는 legacy-fare-sync 스크립트를 제거한다\n- 환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\n- 노선 판매 보고서 조회가 13초 넘게 걸리는 문제를 수정한다\n- 노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다\n- 여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다\n- 항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다",
+    "industry": "travel",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-fare-sync 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "노선 판매 보고서 조회가 13초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r8",
+        "text": "항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ],
+      [
+        "r8"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 8,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-8"
+    ]
+  },
+  {
+    "id": "split-420",
+    "query": "건설 분야의 제주 4분기 웹 운영에서 개선이 필요합니다. 공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다. 또한 자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 사용하지 않는 legacy-bim-export 스크립트를 제거한다. 또한 안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 공정 지연 보고서 조회가 9초 넘게 걸리는 문제를 수정한다. 또한 공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 작업 허가 번호 값이 비어도 저장되는 검증 오류를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "construction",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-bim-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "공정 지연 보고서 조회가 9초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "작업 허가 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-425",
+    "query": "물류 분야의 제주 연말 웹 운영 변경 요청입니다. 배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다. 배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 사용하지 않는 old-route-export 스크립트를 제거한다. 상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 배송 지연 보고서 조회가 14초 넘게 걸리는 문제를 수정한다. 배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다.",
+    "industry": "logistics",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-route-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "배송 지연 보고서 조회가 14초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  },
+  {
+    "id": "split-430",
+    "query": "보험 분야의 제주 1분기 모바일 운영을 운영 중인데 보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다 그리고 사용하지 않는 old-policy-export 스크립트를 제거한다 그리고 손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다 그리고 지급 소요 보고서 조회가 10초 넘게 걸리는 문제를 수정한다 그리고 지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다 그리고 면책 사유 값이 비어도 저장되는 검증 오류를 수정한다 그리고 고액 청구 발생 시 보상 담당자에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "insurance",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-policy-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "지급 소요 보고서 조회가 10초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "면책 사유 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r8",
+        "text": "고액 청구 발생 시 보상 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ],
+      [
+        "r8"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 8,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-8"
+    ]
+  },
+  {
+    "id": "split-435",
+    "query": "SaaS 분야의 제주 2분기 모바일 운영 요청사항:\n- 고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다\n- 구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 사용하지 않는 legacy-billing-export 스크립트를 제거한다\n- 배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\n- 월간 사용량 보고서 조회가 15초 넘게 걸리는 문제를 수정한다\n- 월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다\n- 요금제 값이 비어도 저장되는 검증 오류를 수정한다",
+    "industry": "software",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-billing-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "월간 사용량 보고서 조회가 15초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "요금제 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-440",
+    "query": "여행 분야의 제주 3분기 모바일 운영에서 개선이 필요합니다. 여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다. 또한 예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 사용하지 않는 legacy-fare-sync 스크립트를 제거한다. 또한 환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 노선 판매 보고서 조회가 11초 넘게 걸리는 문제를 수정한다. 또한 노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "travel",
+    "style": "narrative",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-fare-sync 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "노선 판매 보고서 조회가 11초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  },
+  {
+    "id": "split-445",
+    "query": "건설 분야의 제주 4분기 모바일 운영 변경 요청입니다. 공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다. 자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 사용하지 않는 legacy-bim-export 스크립트를 제거한다. 안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 공정 지연 보고서 조회가 16초 넘게 걸리는 문제를 수정한다. 공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다. 작업 허가 번호 값이 비어도 저장되는 검증 오류를 수정한다. 안전 기준 위반 발생 시 현장 소장에게 알림을 보내는 기능을 추가한다.",
+    "industry": "construction",
+    "style": "concise",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-bim-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "공정 지연 보고서 조회가 16초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "작업 허가 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r8",
+        "text": "안전 기준 위반 발생 시 현장 소장에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ],
+      [
+        "r8"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 8,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-8"
+    ]
+  },
+  {
+    "id": "split-450",
+    "query": "물류 분야의 제주 연말 모바일 운영을 운영 중인데 배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다 그리고 사용하지 않는 old-route-export 스크립트를 제거한다 그리고 상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다 그리고 배송 지연 보고서 조회가 12초 넘게 걸리는 문제를 수정한다 그리고 배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다 그리고 도착 예정 시각 값이 비어도 저장되는 검증 오류를 수정한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "logistics",
+    "style": "conversational",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-route-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "배송 지연 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "도착 예정 시각 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-455",
+    "query": "보험 분야의 제주 1분기 야간 배치 요청사항:\n- 보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\n- 보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 사용하지 않는 old-policy-export 스크립트를 제거한다\n- 손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\n- 지급 소요 보고서 조회가 8초 넘게 걸리는 문제를 수정한다\n- 지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+    "industry": "insurance",
+    "style": "ticket",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-policy-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "지급 소요 보고서 조회가 8초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  },
+  {
+    "id": "split-460",
+    "query": "SaaS 분야의 제주 2분기 야간 배치에서 개선이 필요합니다. 고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다. 또한 구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 사용하지 않는 legacy-billing-export 스크립트를 제거한다. 또한 배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 월간 사용량 보고서 조회가 13초 넘게 걸리는 문제를 수정한다. 또한 월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 요금제 값이 비어도 저장되는 검증 오류를 수정한다. 또한 결제 실패 발생 시 고객 성공 매니저에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "software",
+    "style": "narrative",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-billing-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "월간 사용량 보고서 조회가 13초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "요금제 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r8",
+        "text": "결제 실패 발생 시 고객 성공 매니저에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ],
+      [
+        "r8"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 8,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-8"
+    ]
+  },
+  {
+    "id": "split-465",
+    "query": "여행 분야의 제주 3분기 야간 배치 변경 요청입니다. 여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다. 예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 사용하지 않는 legacy-fare-sync 스크립트를 제거한다. 환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 노선 판매 보고서 조회가 9초 넘게 걸리는 문제를 수정한다. 노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다. 여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다.",
+    "industry": "travel",
+    "style": "concise",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-fare-sync 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "노선 판매 보고서 조회가 9초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-470",
+    "query": "건설 분야의 제주 4분기 야간 배치을 운영 중인데 공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다 그리고 사용하지 않는 legacy-bim-export 스크립트를 제거한다 그리고 안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다 그리고 공정 지연 보고서 조회가 14초 넘게 걸리는 문제를 수정한다 그리고 공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "construction",
+    "style": "conversational",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-bim-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "공정 지연 보고서 조회가 14초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  },
+  {
+    "id": "split-475",
+    "query": "물류 분야의 제주 연말 야간 배치 요청사항:\n- 배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다\n- 배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 사용하지 않는 old-route-export 스크립트를 제거한다\n- 상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다\n- 배송 지연 보고서 조회가 10초 넘게 걸리는 문제를 수정한다\n- 배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다\n- 도착 예정 시각 값이 비어도 저장되는 검증 오류를 수정한다\n- 배송 지연 발생 시 배차 담당자에게 알림을 보내는 기능을 추가한다",
+    "industry": "logistics",
+    "style": "ticket",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-route-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "배송 지연 보고서 조회가 10초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "도착 예정 시각 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r8",
+        "text": "배송 지연 발생 시 배차 담당자에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ],
+      [
+        "r8"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 8,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-8"
+    ]
+  },
+  {
+    "id": "split-480",
+    "query": "보험 분야의 제주 1분기 현장 단말에서 개선이 필요합니다. 보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다. 또한 보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 사용하지 않는 old-policy-export 스크립트를 제거한다. 또한 손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 지급 소요 보고서 조회가 15초 넘게 걸리는 문제를 수정한다. 또한 지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 면책 사유 값이 비어도 저장되는 검증 오류를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "insurance",
+    "style": "narrative",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-policy-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "지급 소요 보고서 조회가 15초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "면책 사유 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-485",
+    "query": "SaaS 분야의 제주 2분기 현장 단말 변경 요청입니다. 고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다. 구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 사용하지 않는 legacy-billing-export 스크립트를 제거한다. 배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 월간 사용량 보고서 조회가 11초 넘게 걸리는 문제를 수정한다. 월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다.",
+    "industry": "software",
+    "style": "concise",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "고객 계정 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-billing-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "배포 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "월간 사용량 보고서 조회가 11초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "월간 사용량 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  },
+  {
+    "id": "split-490",
+    "query": "여행 분야의 제주 3분기 현장 단말을 운영 중인데 여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다 그리고 예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다 그리고 사용하지 않는 legacy-fare-sync 스크립트를 제거한다 그리고 환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다 그리고 노선 판매 보고서 조회가 16초 넘게 걸리는 문제를 수정한다 그리고 노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다 그리고 여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다 그리고 항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다. 서로 묶어야 하는지까지 판단해 주세요.",
+    "industry": "travel",
+    "style": "conversational",
+    "ambiguity": "medium",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "여행 상품 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-fare-sync 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "환불 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "노선 판매 보고서 조회가 16초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "노선 판매 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "여권 만료일 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r8",
+        "text": "항공편 취소 발생 시 여행 상담사에게 알림을 보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ],
+      [
+        "r8"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 8,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-8"
+    ]
+  },
+  {
+    "id": "split-495",
+    "query": "건설 분야의 제주 4분기 현장 단말 요청사항:\n- 공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다\n- 자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\n- 사용하지 않는 legacy-bim-export 스크립트를 제거한다\n- 안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\n- 공정 지연 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\n- 공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다\n- 작업 허가 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+    "industry": "construction",
+    "style": "ticket",
+    "ambiguity": "low",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "공사 구역 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "자재 반입 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 legacy-bim-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "안전 점검 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "공정 지연 보고서 조회가 12초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "공정 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r7",
+        "text": "작업 허가 번호 값이 비어도 저장되는 검증 오류를 수정한다",
+        "label": "bug"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ],
+      [
+        "r7"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement",
+      "bug"
+    ],
+    "expected_issue_count": 7,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-7"
+    ]
+  },
+  {
+    "id": "split-500",
+    "query": "물류 분야의 제주 연말 현장 단말에서 개선이 필요합니다. 배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다. 또한 배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 사용하지 않는 old-route-export 스크립트를 제거한다. 또한 상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 배송 지연 보고서 조회가 8초 넘게 걸리는 문제를 수정한다. 또한 배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "industry": "logistics",
+    "style": "narrative",
+    "ambiguity": "high",
+    "requirements": [
+      {
+        "id": "r1",
+        "text": "배송 차량 현황 화면에 사용자 지정 기간 필터를 추가한다",
+        "label": "enhancement"
+      },
+      {
+        "id": "r2",
+        "text": "배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r3",
+        "text": "사용하지 않는 old-route-export 스크립트를 제거한다",
+        "label": "chore"
+      },
+      {
+        "id": "r4",
+        "text": "상차 확인 운영 절차 문서를 최신 정책에 맞게 갱신한다",
+        "label": "documentation"
+      },
+      {
+        "id": "r5",
+        "text": "배송 지연 보고서 조회가 8초 넘게 걸리는 문제를 수정한다",
+        "label": "bug"
+      },
+      {
+        "id": "r6",
+        "text": "배송 지연 보고서 결과를 CSV로 내보내는 기능을 추가한다",
+        "label": "enhancement"
+      }
+    ],
+    "expected_groups": [
+      [
+        "r1"
+      ],
+      [
+        "r2"
+      ],
+      [
+        "r3"
+      ],
+      [
+        "r4"
+      ],
+      [
+        "r5"
+      ],
+      [
+        "r6"
+      ]
+    ],
+    "expected_group_labels": [
+      "enhancement",
+      "bug",
+      "chore",
+      "documentation",
+      "bug",
+      "enhancement"
+    ],
+    "expected_issue_count": 6,
+    "decision": "over_limit",
+    "dependencies": [],
+    "rationale": "독립 그룹이 5개를 초과하므로 등록 전에 범위를 줄이거나 관련 작업을 묶도록 사용자 선택을 받는다.",
+    "exceptions": [
+      "5개 상한 초과: 그대로 등록하지 않고 범위 조정 승인이 필요하다."
+    ],
+    "tags": [
+      "over_limit",
+      "mixed-label",
+      "requirements-6"
+    ]
+  }
+]

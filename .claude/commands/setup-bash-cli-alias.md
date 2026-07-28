@@ -1,12 +1,12 @@
 ---
-description: Gist bash 절 기준으로 ~/.zshrc 에 cc/cx CLI alias(tmux·resume·worktree)를 셋업
+description: Gist bash 절 기준으로 ~/.zshrc 에 cc/cx/grok CLI alias(tmux·resume·worktree)를 셋업
 allowed-tools: Read, Edit, Write, Bash(test:*), Bash(ls:*), Bash(grep:*), Bash(wc:*), Bash(head:*), Bash(tail:*), Bash(source:*), Bash(zsh:*), Bash(which:*), Bash(command:*), Bash(date:*), Bash(cat:*), Bash(cp:*)
 argument-hint: [선택 힌트 — 예: dry-run]
 ---
 
 # 목적
 
-[Gist cli-alias-등록.md 의 「프롬프트 for bash」](https://gist.github.com/Mineru98/0be1b95c6585d069ad35446adb212c96#%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-for-bash) 내용만 사용해 `~/.zshrc` 에 Claude Code / Codex CLI alias 를 넣는다.
+[Gist cli-alias-등록.md 의 「프롬프트 for bash」](https://gist.github.com/Mineru98/0be1b95c6585d069ad35446adb212c96#%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-for-bash) 내용만 사용해 `~/.zshrc` 에 Claude Code / Codex / Grok CLI alias 를 넣는다.
 
 PowerShell 프로필 설정은 **절대 하지 않는다.**
 
@@ -16,7 +16,7 @@ PowerShell 프로필 설정은 **절대 하지 않는다.**
 - 대상은 사용자 홈의 `~/.zshrc` 뿐이다. (zsh 전용 문법)
 - 기존 `.zshrc` 의 무관한 설정은 유지한다. 관련 블록만 추가하거나 교체한다.
 - `~/.bashrc` / `~/.bash_profile` / PowerShell 프로필에 쓰지 않는다.
-- `claude`, `codex`, `tmux`, `jq`, `zsh` 가 이미 설치되어 있다고 가정한다. 없으면 설치를 강제하지 말고 누락만 보고한다.
+- `claude`, `codex`, `grok`, `tmux`, `jq`, `zsh` 가 이미 설치되어 있다고 가정한다. 없으면 설치를 강제하지 말고 누락만 보고한다.
 
 사용자 힌트: $ARGUMENTS
 
@@ -28,7 +28,7 @@ PowerShell 프로필 설정은 **절대 하지 않는다.**
 
 ```bash
 echo "SHELL=$SHELL"
-command -v zsh; command -v claude; command -v codex; command -v tmux; command -v jq
+command -v zsh; command -v claude; command -v codex; command -v grok; command -v tmux; command -v jq
 test -f "$HOME/.zshrc" && echo "zshrc=exists" || echo "zshrc=missing"
 ```
 
@@ -39,9 +39,15 @@ test -f "$HOME/.zshrc" && echo "zshrc=exists" || echo "zshrc=missing"
 ```text
 # >>> skills-store bash cli alias (cc/cx) >>>
 # <<< skills-store bash cli alias (cc/cx) <<<
+
+# >>> skills-store bash cli alias (grok) >>>
+# <<< skills-store bash cli alias (grok) <<<
 ```
 
-동등한 기존 `cc()` / `cx()` 함수 정의가 마커 없이 있으면, 충돌 여부를 보고한 뒤 마커 블록으로 통합한다. 사용자 다른 함수는 건드리지 않는다.
+cc/cx 와 grok 은 **서로 분리된 독립 블록**으로 탐지·교체한다. 한쪽을 갱신할 때 다른 블록의 커스터마이즈를 덮지 않는다.
+
+동등한 기존 `cc()` / `cx()` / `grok()` 함수 정의가 마커 없이 있으면, 충돌 여부를 보고한 뒤 해당 마커 블록으로 통합한다. 사용자 다른 함수는 건드리지 않는다.
+`gk` 는 oh-my-zsh git 플러그인이 쓰는 alias 일 수 있으므로 grok 래퍼로 만들거나 수정하지 않는다.
 
 ## 3. 넣을 내용
 
@@ -288,6 +294,116 @@ codex() { cx "$@"; }
 # <<< skills-store bash cli alias (cc/cx) <<<
 ````
 
+grok 은 cc/cx 와 별도 마커 블록으로 관리한다. 아래 블록 전체를 그대로 넣는다.
+`gk` 래퍼는 만들지 않는다. zsh 는 함수 정의 시점에 alias 를 확장하므로, oh-my-zsh 의
+`gk='gitk --all --branches &!'` 와 충돌하면 함수 본문이 깨질 수 있다.
+
+````zsh
+# >>> skills-store bash cli alias (grok) >>>
+grok() {
+  local -a grok_default_args=(--always-approve)
+
+  if [[ "$1" == "--tmux" ]]; then
+    shift
+    local grok_bin="${commands[grok]}"
+    local start_dir="$PWD"
+
+    if [[ "$1" == "--resume" || "$1" == "-r" ]]; then
+      shift
+      local resume_id="$1"
+      local resume_session_name="grok-resume-${resume_id[1,8]:-picker}-$(date +%H%M%S)-$RANDOM"
+
+      if [[ -n "$TMUX" ]]; then
+        tmux new-session -d -s "$resume_session_name" -c "$start_dir" -- \
+          "$grok_bin" "${grok_default_args[@]}" --resume "$@" || return
+        tmux set-option -t "$resume_session_name" detach-on-destroy off
+        tmux switch-client -t "$resume_session_name"
+        while tmux has-session -t "$resume_session_name" 2>/dev/null; do
+          sleep 0.1
+        done
+      else
+        tmux new-session -s "$resume_session_name" -c "$start_dir" -- \
+          "$grok_bin" "${grok_default_args[@]}" --resume "$@"
+      fi
+
+      if [[ -n "$resume_id" ]]; then
+        printf '\nGrok session ID: %s\n' "$resume_id"
+        printf 'Resume: grok --resume %s\n' "$resume_id"
+        printf 'Resume with grok: grok --resume %s\n' "$resume_id"
+        printf 'Resume in tmux: grok --tmux --resume %s\n' "$resume_id"
+        printf 'Resume in tmux with grok: grok --tmux --resume %s\n' "$resume_id"
+      fi
+      return
+    fi
+
+    local use_worktree=false
+    if [[ "$1" == "--worktree" || "$1" == "-w" ]]; then
+      use_worktree=true
+      shift
+    fi
+
+    local session_name="grok-$(date +%Y%m%d-%H%M%S)-$RANDOM"
+    local -a grok_args=("$@")
+    if [[ "$use_worktree" == true ]]; then
+      grok_args=(--worktree "$session_name" "$@")
+    fi
+
+    # 세션 디렉토리는 ~/.grok/sessions/<percent-encoded-cwd>/<uuid>/ 형태다.
+    # 실행 전 스냅샷을 떠 두고, 종료 후 새로 생긴 디렉토리 이름에서 session id 를 얻는다.
+    local -A known_sessions
+    local session_dir
+    for session_dir in "$HOME"/.grok/sessions/*/*(N/); do
+      known_sessions[$session_dir]=1
+    done
+
+    if [[ -n "$TMUX" ]]; then
+      tmux new-session -d -s "$session_name" -c "$start_dir" -- \
+        "$grok_bin" "${grok_default_args[@]}" "${grok_args[@]}" || return
+      tmux set-option -t "$session_name" detach-on-destroy off
+      tmux switch-client -t "$session_name"
+      while tmux has-session -t "$session_name" 2>/dev/null; do
+        sleep 0.1
+      done
+    else
+      tmux new-session -s "$session_name" -c "$start_dir" -- \
+        "$grok_bin" "${grok_default_args[@]}" "${grok_args[@]}"
+    fi
+
+    local session_id=""
+    local enc_dir="${start_dir//\//%2F}"
+    local candidate
+    # 현재 cwd 로 인코딩된 디렉토리를 먼저 보고, 없으면(worktree 등) 전체에서 최신 것을 찾는다.
+    for candidate in \
+      "$HOME"/.grok/sessions/"$enc_dir"/*(N/om) \
+      "$HOME"/.grok/sessions/*/*(N/om); do
+      [[ -n "${known_sessions[$candidate]}" ]] && continue
+      session_id="${candidate:t}"
+      break
+    done
+
+    if [[ -n "$session_id" ]]; then
+      local session_log="$HOME/.grok/grok-tmux-sessions.log"
+      printf '%s\t%s\t%s\t%s\n' \
+        "$(date '+%Y-%m-%dT%H:%M:%S%z')" \
+        "$session_id" "$session_name" "$start_dir" >> "$session_log"
+
+      printf '\nGrok session ID: %s\n' "$session_id"
+      printf 'Resume: grok --resume %s\n' "$session_id"
+      printf 'Resume with grok: grok --resume %s\n' "$session_id"
+      printf 'Resume in tmux: grok --tmux --resume %s\n' "$session_id"
+      printf 'Resume in tmux with grok: grok --tmux --resume %s\n' "$session_id"
+      printf 'Log: %s\n' "$session_log"
+    else
+      printf '\nNo resumable Grok session was found.\n'
+    fi
+    return
+  fi
+
+  VISUAL=code EDITOR=code command grok "${grok_default_args[@]}" "$@"
+}
+# <<< skills-store bash cli alias (grok) <<<
+````
+
 ## 4. 쓰기
 
 1. `~/.zshrc` 가 없으면 생성한다.
@@ -300,7 +416,7 @@ codex() { cx "$@"; }
 
 ```bash
 zsh -n "$HOME/.zshrc"
-zsh -ic 'type cc; type cx; type claude; type codex' 2>/dev/null | head -20
+zsh -ic 'type cc; type cx; type claude; type codex; type grok; type gk' 2>/dev/null | head -30
 ```
 
 가능하면 짧은 smoke (실제 TUI 는 강제하지 않음):
@@ -309,7 +425,11 @@ zsh -ic 'type cc; type cx; type claude; type codex' 2>/dev/null | head -20
 # 함수가 --tmux 를 가로채는지 (바이너리에 --tmux 를 넘기지 않아야 함)
 zsh -ic 'functions cc | head -5'
 zsh -ic 'functions cx | head -5'
+zsh -ic 'functions grok | head -8'
 ```
+
+`type grok` 은 shell function 이어야 한다. `type gk` 가 기존 alias 를 가리키면 그대로 유지된 것이며,
+`grok()` 함수는 `gk` 를 호출하지 않아야 한다.
 
 다음 오류 패턴이 사용자 환경에서 나면 실패로 보고한다.
 
@@ -345,3 +465,14 @@ Error: --tmux requires --worktree
 - `--tmux`: zsh settle wrapper(3초 sleep)로 실행 후 rollout jsonl 로 session id 탐지, `~/.codex/cx-tmux-sessions.log` 기록
 - `--tmux --resume`: resume 경로 + 안내 출력
 - `codex()` 는 `cx "$@"` 위임
+
+## grok
+
+- 코어 함수는 `grok()` 자체다. oh-my-zsh git 플러그인과 충돌하는 `gk` 래퍼는 만들지 않는다
+- 기본 args: `--always-approve`. `--reasoning-effort` 는 기본값에 넣지 않는다
+- 비-tmux: `VISUAL=code EDITOR=code command grok ...`
+- `--tmux`: 새 tmux 세션에서 grok 실행. 이미 tmux 안이면 detach-on-destroy off + switch-client + 세션 종료 대기
+- `--tmux --resume [id]` / `--tmux -r [id]`: resume 세션명 `grok-resume-...`, 종료 후 resume 안내 출력
+- `--tmux --worktree` / `--tmux -w`: grok 네이티브 `--worktree <session_name>` 을 그대로 전달
+- 세션 종료 후 `~/.grok/sessions/<percent-encoded-cwd>/<uuid>/` 의 새 디렉터리명에서 session id 추출
+- session id 를 찾으면 `~/.grok/grok-tmux-sessions.log` 기록 및 resume 안내
