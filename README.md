@@ -175,6 +175,21 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 
 명시적으로 부르지 않아도, 운영 중인 저장소에서 이슈 번호 없이 코드 변경 요청이 들어오면 작업 크기와 관계없이 먼저 발동합니다. 빈 폴더나 막 `git init`한 프로젝트의 초기 뼈대를 만드는 요청은 이슈 없이 그대로 진행합니다.
 
+자동 개입이 너무 강하면 `~/.issue/settings.json`에서 암묵 호출만 끌 수 있습니다.
+
+```json
+{
+  "issue": {
+    "createMode": "direct"
+  }
+}
+```
+
+`issue-first`가 기본값이며 기존처럼 이슈부터 만듭니다. `direct`는 암묵적으로 발동한
+`issue-create`가 조용히 빠지고 원래 변경 요청을 계속하게 합니다. `$issue-create`,
+`/issue-create`, "이슈 만들어줘"처럼 명시적으로 호출하면 `direct`에서도 이슈를 만듭니다.
+알 수 없는 값은 경고 후 `issue-first`로 돌아갑니다.
+
 ### 라벨 체계
 
 라벨은 두 축입니다. 한 이슈에 성격 라벨 하나와 진행 상태 라벨 하나가 함께 붙습니다.
@@ -198,13 +213,14 @@ status:close       이슈 close 직전                         issue-merge   (�
 
 ### 동작
 
-1. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
-2. 요청에서 원자 후보를 추출하고 API/UI 계약, 공통 완료 기준·근본 원인, 배포·마이그레이션 결합만 그룹화한 뒤, 별도 배포·검증·취소·되돌리기가 가능한 그룹을 분리해 **제목·요약·예상 라벨 목록만** 먼저 보여줘 분할안 승인 (상한 5건)
-3. 항목마다 `search`로 유사한 열린 이슈를 찾고, 걸린 항목만 건너뛴 채 나머지는 계속 진행
-4. 항목마다 frontend / backend / both를 판정해 본문 항목과 라벨을 결정
-5. 초안 전문을 한 번에 보여주고 일괄 승인받은 뒤, 설정된 GitHub 또는 Jira 이슈 백엔드에 항목별로 등록하고 `status:open` 자동 부착 (한 건이 실패해도 나머지는 계속)
-6. `unlabeled`로 성격·진행 상태 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
-7. `.issue/<번호>/request.md`에 원본 요청과 그 이슈가 맡는 범위를 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 첫 번호로 `issue-start` 인계 (나머지 번호는 안내만)
+1. 암묵 호출이면 `mode`로 `issue.createMode`를 확인하고, `direct`면 원래 요청으로 복귀
+2. `gate`로 커밋 수, 원격, 이슈/PR 이력, 빌드 설정, 소스 규모를 확인해 READY / ASK / SKIP 판정
+3. 요청에서 원자 후보를 추출하고 API/UI 계약, 공통 완료 기준·근본 원인, 배포·마이그레이션 결합만 그룹화한 뒤, 별도 배포·검증·취소·되돌리기가 가능한 그룹을 분리해 **제목·요약·예상 라벨 목록만** 먼저 보여줘 분할안 승인 (상한 5건)
+4. 항목마다 `search`로 유사한 열린 이슈를 찾고, 걸린 항목만 건너뛴 채 나머지는 계속 진행
+5. 항목마다 frontend / backend / both를 판정해 본문 항목과 라벨을 결정
+6. 초안 전문을 한 번에 보여주고 일괄 승인받은 뒤, 설정된 GitHub 또는 Jira 이슈 백엔드에 항목별로 등록하고 `status:open` 자동 부착 (한 건이 실패해도 나머지는 계속)
+7. `unlabeled`로 성격·진행 상태 라벨이 빠진 기존 이슈를 찾아 제안 목록을 만들고, 승인받아 일괄 보정
+8. `.issue/<번호>/request.md`에 원본 요청과 그 이슈가 맡는 범위를 남기고, `.gitignore`에 `.issue` 블록을 자동 등록한 뒤 첫 번호로 `issue-start` 인계 (나머지 번호는 안내만)
 
 전제 확인·중복 검사·성격 판정은 `issue-verifier` 서브에이전트에 맡깁니다 (Claude는 `haiku`, Codex는 `gpt-5.6-luna`).
 
@@ -223,7 +239,7 @@ status:close       이슈 close 직전                         issue-merge   (�
 ```text
 .claude/skills/issue-create/SKILL.md
 .claude/skills/issue-create/references/{provider-settings,maturity-gate,split-requests,issue-draft,label-audit,create-and-handoff,next-actions}.md
-.claude/skills/issue-create/scripts/issue-create.mjs   # gate / search / labels / create / unlabeled / label / ensure-label / status
+.claude/skills/issue-create/scripts/issue-create.mjs   # mode / gate / search / labels / create / unlabeled / label / ensure-label / status
 .claude/skills/issue-create/scripts/issue-common.mjs   # 공용 모듈 (vendored)
 .codex/skills/issue-create/  (같은 구성 + agents/openai.yaml)
 scripts/test-issue-create.sh                           # gh 를 부르지 않는 경로의 회귀 테스트

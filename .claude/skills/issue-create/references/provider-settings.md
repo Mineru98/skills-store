@@ -1,7 +1,7 @@
-# 이슈 백엔드 설정
+# 이슈 워크플로 설정
 
-`issue-create` / `issue-start` / `issue-end` / `issue-merge` 는 이슈를 어디에 둘지 스스로 정하지 않는다.
-`~/.issue/settings.json` 의 `provider` 가 정한다. 네 스킬이 같은 파일을 읽는다.
+`~/.issue/settings.json` 은 `issue-create` 의 개입 방식과 이슈 백엔드를 함께 정한다.
+네 스킬이 같은 파일을 읽으며, 설정이 없으면 기존 동작을 유지한다.
 
 ## 축이 둘이다
 
@@ -22,6 +22,36 @@ Jira 에는 PR 이라는 개념이 없다. Jira 로 이슈를 관리하는 팀�
 
 구 파일은 지우지 않는다. 구 버전 스킬이 아직 깔린 환경에서 설정을 통째로 잃는 것보다
 파일이 두 벌 남는 쪽이 안전하다.
+
+## issue-create 동작 모드
+
+기본값은 `issue-first` 다. 기존 사용자 설정에는 이 키가 없으므로 지금처럼 변경 요청보다
+이슈 등록을 먼저 진행한다.
+
+```json
+{
+  "issue": {
+    "createMode": "direct"
+  }
+}
+```
+
+```text
+issue-first   암묵적으로 감지한 변경 요청도 이슈 등록부터 진행한다. 기본값이다.
+direct        암묵 호출은 조용히 빠지고 원래 변경 요청을 그대로 수행한다.
+```
+
+`direct` 여도 `$issue-create`, `/issue-create`, "이슈 만들어줘", "이슈부터 등록"처럼 사용자가
+명시적으로 이슈 등록을 요청하면 기존 흐름을 실행한다.
+
+현재 판정은 트래커 인증이나 git 저장소 확인 없이 조회할 수 있다.
+
+```bash
+node <skill>/scripts/issue-create.mjs mode
+```
+
+알 수 없는 값은 경고와 `INVALID_MODE=1` 을 출력하고 `issue-first` 로 동작한다.
+오타 하나로 이슈 안전장치가 조용히 꺼지지 않게 하기 위해서다.
 
 ## GitHub (기본값)
 
