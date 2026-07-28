@@ -99,7 +99,9 @@
         "preflightClean": { "type": "boolean" },
         "preflightCommit": { "type": "string" },
         "pushApproved": { "type": "boolean" },
+        "registeredWorktree": { "type": "string", "minLength": 1 },
         "reopenApproved": { "type": "boolean" },
+        "repositoryRoot": { "type": "string", "minLength": 1 },
         "retainEvidenceBranches": { "type": "boolean" },
         "reviewed": { "type": "boolean" },
         "subcheckpoint": {
@@ -121,6 +123,7 @@
         "verifiedIssues": { "type": "array" },
         "worktree": { "type": "string" },
         "worktreeRemoved": { "type": "boolean" },
+        "worktreeRoot": { "type": "string", "minLength": 1 },
         "worktrees": { "type": "array" }
       }
     }

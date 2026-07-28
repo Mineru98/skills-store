@@ -1,4 +1,10 @@
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import {
+  existsSync,
+  lstatSync,
+  readFileSync,
+  realpathSync,
+} from 'node:fs';
 import path from 'node:path';
 import {
   PHASE_API_VERSION,
@@ -31,15 +37,16 @@ const DATA_KEYS = new Set([
   'expectedHeadSha', 'expectedOnto', 'headSha', 'integrationPassed', 'issue', 'issueClosed',
   'issueState', 'mapped', 'mergeApproved', 'mergeObserved', 'mergeSha', 'mergedSha', 'mode',
   'onto', 'order', 'pr', 'preflightClean', 'preflightCommit', 'pushApproved', 'reopenApproved',
-  'retainEvidenceBranches', 'reviewed', 'triggerRepairApproved', 'worktreeRemoved',
-  'subcheckpoint', 'triggerCount', 'verifiedIssues', 'worktree', 'worktrees',
+  'registeredWorktree', 'repositoryRoot', 'retainEvidenceBranches', 'reviewed',
+  'triggerRepairApproved', 'worktreeRemoved', 'subcheckpoint', 'triggerCount', 'verifiedIssues',
+  'worktree', 'worktreeRoot', 'worktrees',
 ]);
 const STRING_DATA_KEYS = new Set([
   'action', 'accumulatedOnto', 'approvalId', 'baseBranch', 'baseCommit', 'baseHead', 'body', 'bodySha256',
   'branch', 'checksSha256', 'ci', 'criticVerdict', 'decision', 'expectedBaseHead',
   'expectedBodySha256', 'expectedChecksSha256', 'expectedHeadSha', 'expectedOnto', 'headSha',
-  'issueState', 'mergeSha', 'mergedSha', 'mode', 'onto', 'preflightCommit', 'subcheckpoint',
-  'worktree',
+  'issueState', 'mergeSha', 'mergedSha', 'mode', 'onto', 'preflightCommit',
+  'registeredWorktree', 'repositoryRoot', 'subcheckpoint', 'worktree', 'worktreeRoot',
 ]);
 const BOOLEAN_DATA_KEYS = new Set([
   'autoClosed', 'candidate', 'cleanupApproved', 'decisionApproved', 'detached',
@@ -159,6 +166,112 @@ const requiredString = (value, label) => {
 const requiredPositive = (value, label) => {
   if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`${label} must be positive`);
   return value;
+};
+const pathError = (code, message) => {
+  throw new TypeError(`${code}: ${message}`);
+};
+const normalizedAbsolutePath = (value, label) => {
+  requiredString(value, label);
+  if (!path.isAbsolute(value) || path.resolve(value) !== value) {
+    pathError('PATH_NOT_NORMALIZED', `${label} must be a normalized absolute path`);
+  }
+  return value;
+};
+const isWithin = (root, target) => {
+  const relative = path.relative(root, target);
+  return relative === '' || (!path.isAbsolute(relative)
+    && relative !== '..' && !relative.startsWith(`..${path.sep}`));
+};
+const rejectSymlinkAncestors = (target, label) => {
+  const parsed = path.parse(target);
+  let current = parsed.root;
+  for (const part of target.slice(parsed.root.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    let stat;
+    try {
+      stat = lstatSync(current);
+    } catch (error) {
+      if (error?.code === 'ENOENT') break;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) {
+      pathError('PATH_SYMLINK', `${label} must not contain a symlink ancestor`);
+    }
+  }
+};
+const verifiedDirectory = (value, label) => {
+  const target = normalizedAbsolutePath(value, label);
+  rejectSymlinkAncestors(target, label);
+  if (!existsSync(target) || !lstatSync(target).isDirectory()) {
+    pathError('PATH_ROOT_INVALID', `${label} must be an existing directory`);
+  }
+  const real = realpathSync(target);
+  if (real !== target) pathError('PATH_SYMLINK', `${label} must resolve without symlinks`);
+  return real;
+};
+const registeredWorktrees = (repositoryRoot) => {
+  let output;
+  try {
+    const topLevel = execFileSync(
+      'git',
+      ['-C', repositoryRoot, 'rev-parse', '--show-toplevel'],
+      { encoding: 'utf8', timeout: 3000 },
+    ).trim();
+    if (realpathSync(topLevel) !== repositoryRoot) {
+      pathError('REPOSITORY_AUTHORITY_INVALID', 'repositoryRoot must be the git top level');
+    }
+    output = execFileSync(
+      'git',
+      ['-C', repositoryRoot, 'worktree', 'list', '--porcelain', '-z'],
+      { encoding: 'utf8', timeout: 3000 },
+    );
+  } catch (error) {
+    if (error instanceof TypeError) throw error;
+    pathError('REPOSITORY_AUTHORITY_INVALID', 'repositoryRoot must expose its git worktree registry');
+  }
+  return output.split('\0\0').filter(Boolean).map((record) => {
+    const fields = record.split('\0');
+    return {
+      branch: fields.find((field) => field.startsWith('branch '))?.slice('branch '.length) ?? null,
+      worktree: fields.find((field) => field.startsWith('worktree '))?.slice('worktree '.length) ?? null,
+    };
+  });
+};
+const verifiedCleanupTarget = (data, { allowRemoved = false } = {}) => {
+  const repositoryRoot = verifiedDirectory(data.repositoryRoot, 'repositoryRoot');
+  const worktreeRoot = verifiedDirectory(data.worktreeRoot, 'worktreeRoot');
+  const registeredWorktree = normalizedAbsolutePath(data.registeredWorktree, 'registeredWorktree');
+  const worktree = normalizedAbsolutePath(data.worktree, 'worktree');
+  if (worktree !== registeredWorktree) {
+    pathError('WORKTREE_AUTHORITY_MISMATCH', 'worktree must equal registeredWorktree');
+  }
+  if (!isWithin(worktreeRoot, worktree) || worktree === worktreeRoot) {
+    pathError('PATH_OUTSIDE_ROOT', 'worktree must be a child of worktreeRoot');
+  }
+  rejectSymlinkAncestors(worktree, 'worktree');
+  const worktreeExists = existsSync(worktree);
+  if (!worktreeExists && !allowRemoved) {
+    pathError('PATH_ROOT_INVALID', 'worktree must be an existing directory');
+  }
+  const verifiedWorktree = worktreeExists ? verifiedDirectory(worktree, 'worktree') : worktree;
+  if (verifiedWorktree === repositoryRoot) {
+    pathError('WORKTREE_AUTHORITY_MISMATCH', 'cleanup must not target repositoryRoot');
+  }
+  const expectedBranch = `refs/heads/${requiredString(data.branch, 'branch')}`;
+  if (worktreeExists) {
+    const registered = registeredWorktrees(repositoryRoot).some((entry) => (
+      entry.worktree === verifiedWorktree && entry.branch === expectedBranch
+    ));
+    if (!registered) {
+      pathError('WORKTREE_NOT_REGISTERED', 'worktree and branch must match the git worktree registry');
+    }
+  }
+  return {
+    branch: data.branch,
+    repositoryRoot,
+    worktree: verifiedWorktree,
+    worktreeRoot,
+  };
 };
 const argvEffect = (type, argv, classification = 'local-idempotent', id = null) => (
   effect(type, classification, id, { argv })
@@ -449,15 +562,22 @@ const phaseCloseCleanup = (request) => {
   }
   if (data.subcheckpoint !== 'cleanup') return hold(request, 'UNKNOWN_CLEANUP_SUBCHECKPOINT');
   if (data.issueClosed !== true) return hold(request, 'ISSUE_NOT_CLOSED');
+  const authority = verifiedCleanupTarget(data, { allowRemoved: data.worktreeRemoved === true });
   const cleanupEffect = approvalEffect({
     effectRequest: {
       argv: [
-        'cleanup', '--worktree', requiredString(data.worktree, 'worktree'),
-        '--branch', requiredString(data.branch, 'branch'),
+        'cleanup', '--worktree', authority.worktree,
+        '--branch', authority.branch,
       ],
       retainRemoteBranches: true,
     },
-    immutableState: { integrationPassed: true, issue, issueClosed: true },
+    immutableState: {
+      integrationPassed: true,
+      issue,
+      issueClosed: true,
+      repositoryRoot: authority.repositoryRoot,
+      worktreeRoot: authority.worktreeRoot,
+    },
     request,
     type: 'closed-issue-worktree-cleanup',
   });
@@ -470,7 +590,7 @@ const phaseCloseCleanup = (request) => {
   if (data.worktreeRemoved === true) {
     return envelope(request, {
       data: { issue, worktreeRemoved: true, retainEvidenceBranches: true },
-      facts: [fact('git-worktree-state', { worktree: data.worktree, removed: true })],
+      facts: [fact('git-worktree-state', { worktree: authority.worktree, removed: true })],
     });
   }
   return hold(request, 'EFFECT_PROPOSED', {

@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -55,6 +62,30 @@ const response = (script, body) => {
   assert.equal([0, 3].includes(result.status), true, result.stderr);
   assert.equal(result.stderr, '');
   return validatePhaseEnvelope(JSON.parse(result.stdout));
+};
+
+const repositoryAuthorityFixture = () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'issue-merge-authority-'));
+  const repositoryRoot = path.join(root, 'repository');
+  const worktreeRoot = path.join(root, 'worktrees');
+  const registeredWorktree = path.join(worktreeRoot, 'issue-49');
+  mkdirSync(repositoryRoot);
+  mkdirSync(worktreeRoot);
+  execFileSync('git', ['init', '-q', repositoryRoot]);
+  execFileSync('git', ['-C', repositoryRoot, 'config', 'user.email', 'qa@example.invalid']);
+  execFileSync('git', ['-C', repositoryRoot, 'config', 'user.name', 'QA']);
+  writeFileSync(path.join(repositoryRoot, 'tracked.txt'), 'baseline\n');
+  execFileSync('git', ['-C', repositoryRoot, 'add', 'tracked.txt']);
+  execFileSync('git', ['-C', repositoryRoot, 'commit', '-qm', 'baseline']);
+  execFileSync('git', [
+    '-C', repositoryRoot, 'worktree', 'add', '-qb', 'feat/49', registeredWorktree,
+  ]);
+  return {
+    registeredWorktree,
+    repositoryRoot,
+    root,
+    worktreeRoot,
+  };
 };
 
 test('legacy issue-merge unknown mode keeps stdout, stderr, and exit behavior', () => {
@@ -309,10 +340,11 @@ test('[active-required] issue-merge integration failure exposes approved recover
 });
 
 test('[active-required] issue-merge close and cleanup are impossible before verified close and retain evidence branches', () => {
+  const fixture = repositoryAuthorityFixture();
   const premature = invoke(scripts[0], request('issue-merge.close-cleanup', {
     subcheckpoint: 'cleanup',
     issue: 49,
-    worktree: '/tmp/issue-49',
+    worktree: fixture.registeredWorktree,
     branch: 'feat/49',
     integrationPassed: true,
     issueClosed: false,
@@ -321,69 +353,181 @@ test('[active-required] issue-merge close and cleanup are impossible before veri
   assert.equal(premature.status, 3);
   assert.equal(JSON.parse(premature.stdout).data.holdCode, 'ISSUE_NOT_CLOSED');
 
-  const cleanupApproval = response(scripts[0], request('issue-merge.close-cleanup', {
-    subcheckpoint: 'cleanup',
-    issue: 49,
-    worktree: '/tmp/issue-49',
-    branch: 'feat/49',
-    integrationPassed: true,
-    issueClosed: true,
-    cleanupApproved: false,
-  }, 'cleanup'));
-  const cleanup = response(scripts[0], request('issue-merge.close-cleanup', {
-    subcheckpoint: 'cleanup',
-    issue: 49,
-    worktree: '/tmp/issue-49',
-    branch: 'feat/49',
-    integrationPassed: true,
-    issueClosed: true,
-    cleanupApproved: true,
-    approvalId: cleanupApproval.proposedEffect.approvalId,
-  }, 'cleanup'));
-  assert.equal(cleanup.proposedEffect.type, 'closed-issue-worktree-cleanup');
-  assert.equal(cleanup.data.retainEvidenceBranches, true);
-  assert.doesNotMatch(JSON.stringify(cleanup.proposedEffect.request), /evidence\/issue-/);
+  try {
+    const authority = {
+      registeredWorktree: fixture.registeredWorktree,
+      repositoryRoot: fixture.repositoryRoot,
+      worktree: fixture.registeredWorktree,
+      worktreeRoot: fixture.worktreeRoot,
+    };
+    const cleanupApproval = response(scripts[0], request('issue-merge.close-cleanup', {
+      subcheckpoint: 'cleanup',
+      issue: 49,
+      branch: 'feat/49',
+      integrationPassed: true,
+      issueClosed: true,
+      cleanupApproved: false,
+      ...authority,
+    }, 'cleanup'));
+    const cleanup = response(scripts[0], request('issue-merge.close-cleanup', {
+      subcheckpoint: 'cleanup',
+      issue: 49,
+      branch: 'feat/49',
+      integrationPassed: true,
+      issueClosed: true,
+      cleanupApproved: true,
+      approvalId: cleanupApproval.proposedEffect.approvalId,
+      ...authority,
+    }, 'cleanup'));
+    assert.equal(cleanup.proposedEffect.type, 'closed-issue-worktree-cleanup');
+    assert.equal(cleanup.data.retainEvidenceBranches, true);
+    assert.doesNotMatch(JSON.stringify(cleanup.proposedEffect.request), /evidence\/issue-/);
+    execFileSync('git', [
+      '-C', fixture.repositoryRoot, 'worktree', 'remove', '--force', fixture.registeredWorktree,
+    ]);
+    const observedRemoval = response(scripts[0], request('issue-merge.close-cleanup', {
+      subcheckpoint: 'cleanup',
+      issue: 49,
+      branch: 'feat/49',
+      integrationPassed: true,
+      issueClosed: true,
+      cleanupApproved: true,
+      approvalId: cleanupApproval.proposedEffect.approvalId,
+      worktreeRemoved: true,
+      ...authority,
+    }, 'cleanup'));
+    assert.equal(observedRemoval.proposedEffect, null);
+    assert.equal(observedRemoval.data.worktreeRemoved, true);
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
 });
 
 test('[active-required] issue-merge cleanup approvals bind exact targets and reject substitution', () => {
+  const fixture = repositoryAuthorityFixture();
+  const targetBPath = path.join(fixture.worktreeRoot, 'issue-50');
+  execFileSync('git', [
+    '-C', fixture.repositoryRoot, 'worktree', 'add', '-qb', 'branch-b', targetBPath,
+  ]);
   const base = {
     subcheckpoint: 'cleanup',
     issue: 49,
     integrationPassed: true,
     issueClosed: true,
     cleanupApproved: false,
+    repositoryRoot: fixture.repositoryRoot,
+    worktreeRoot: fixture.worktreeRoot,
   };
-  const targetA = response(scripts[0], request('issue-merge.close-cleanup', {
-    ...base,
-    worktree: '/tmp/victim-a',
-    branch: 'branch-a',
-  }, 'cleanup'));
-  const targetB = response(scripts[0], request('issue-merge.close-cleanup', {
-    ...base,
-    worktree: '/tmp/victim-b',
-    branch: 'branch-b',
-  }, 'cleanup'));
-  assert.equal(targetA.proposedEffect.type, 'closed-issue-worktree-cleanup');
-  assert.equal(targetB.proposedEffect.type, 'closed-issue-worktree-cleanup');
-  assert.notEqual(targetA.proposedEffect.approvalId, targetB.proposedEffect.approvalId);
+  try {
+    const targetA = response(scripts[0], request('issue-merge.close-cleanup', {
+      ...base,
+      worktree: fixture.registeredWorktree,
+      registeredWorktree: fixture.registeredWorktree,
+      branch: 'feat/49',
+    }, 'cleanup'));
+    const targetB = response(scripts[0], request('issue-merge.close-cleanup', {
+      ...base,
+      worktree: targetBPath,
+      registeredWorktree: targetBPath,
+      branch: 'branch-b',
+    }, 'cleanup'));
+    assert.equal(targetA.proposedEffect.type, 'closed-issue-worktree-cleanup');
+    assert.equal(targetB.proposedEffect.type, 'closed-issue-worktree-cleanup');
+    assert.notEqual(targetA.proposedEffect.approvalId, targetB.proposedEffect.approvalId);
 
-  const substituted = response(scripts[0], request('issue-merge.close-cleanup', {
-    ...base,
-    worktree: '/tmp/victim-b',
-    branch: 'branch-b',
-    cleanupApproved: true,
-    approvalId: targetA.proposedEffect.approvalId,
-  }, 'cleanup'));
-  assert.equal(substituted.data.holdCode, 'CLEANUP_APPROVAL_MISMATCH');
-  assert.equal(substituted.proposedEffect, null);
+    const substituted = response(scripts[0], request('issue-merge.close-cleanup', {
+      ...base,
+      worktree: targetBPath,
+      registeredWorktree: targetBPath,
+      branch: 'branch-b',
+      cleanupApproved: true,
+      approvalId: targetA.proposedEffect.approvalId,
+    }, 'cleanup'));
+    assert.equal(substituted.data.holdCode, 'CLEANUP_APPROVAL_MISMATCH');
+    assert.equal(substituted.proposedEffect, null);
 
-  const approved = response(scripts[0], request('issue-merge.close-cleanup', {
-    ...base,
-    worktree: '/tmp/victim-a',
-    branch: 'branch-a',
-    cleanupApproved: true,
-    approvalId: targetA.proposedEffect.approvalId,
-  }, 'cleanup'));
-  assert.equal(approved.data.holdCode, 'EFFECT_PROPOSED');
-  assert.equal(approved.proposedEffect.approvalId, targetA.proposedEffect.approvalId);
+    const approved = response(scripts[0], request('issue-merge.close-cleanup', {
+      ...base,
+      worktree: fixture.registeredWorktree,
+      registeredWorktree: fixture.registeredWorktree,
+      branch: 'feat/49',
+      cleanupApproved: true,
+      approvalId: targetA.proposedEffect.approvalId,
+    }, 'cleanup'));
+    assert.equal(approved.data.holdCode, 'EFFECT_PROPOSED');
+    assert.equal(approved.proposedEffect.approvalId, targetA.proposedEffect.approvalId);
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
+});
+
+test('[active-required] issue-merge cleanup rejects targets outside exact registered worktree authority', () => {
+  const fixture = repositoryAuthorityFixture();
+  const siblingRepository = path.join(fixture.root, 'sibling-repository');
+  const symlinkTarget = path.join(fixture.worktreeRoot, 'outside-link');
+  const danglingTarget = path.join(fixture.worktreeRoot, 'dangling-link');
+  mkdirSync(siblingRepository);
+  execFileSync('git', ['init', '-q', siblingRepository]);
+  symlinkSync('/etc', symlinkTarget);
+  symlinkSync(path.join(fixture.root, 'missing-target'), danglingTarget);
+  const base = {
+    subcheckpoint: 'cleanup',
+    issue: 49,
+    integrationPassed: true,
+    issueClosed: true,
+    cleanupApproved: false,
+    branch: 'feat/49',
+    repositoryRoot: fixture.repositoryRoot,
+    worktreeRoot: fixture.worktreeRoot,
+  };
+
+  try {
+    for (const script of scripts) {
+      const legitimate = invoke(script, request('issue-merge.close-cleanup', {
+        ...base,
+        worktree: fixture.registeredWorktree,
+        registeredWorktree: fixture.registeredWorktree,
+      }, 'cleanup-authority'));
+      assert.equal(legitimate.status, 3, legitimate.stderr);
+      const legitimateEnvelope = validatePhaseEnvelope(JSON.parse(legitimate.stdout));
+      assert.equal(legitimateEnvelope.data.holdCode, 'CLEANUP_APPROVAL_REQUIRED');
+      assert.equal(legitimateEnvelope.proposedEffect.request.argv[2], fixture.registeredWorktree);
+
+      for (const [name, worktree, registeredWorktree, errorCode] of [
+        ['system directory', '/etc', fixture.registeredWorktree, 'WORKTREE_AUTHORITY_MISMATCH'],
+        ['sibling repository', siblingRepository, siblingRepository, 'PATH_OUTSIDE_ROOT'],
+        ['existing symlink', symlinkTarget, symlinkTarget, 'PATH_SYMLINK'],
+        ['dangling symlink', danglingTarget, danglingTarget, 'PATH_SYMLINK'],
+        [
+          'nonexistent outside target',
+          path.join(fixture.root, 'outside', 'missing'),
+          path.join(fixture.root, 'outside', 'missing'),
+          'PATH_OUTSIDE_ROOT',
+        ],
+        [
+          'non-normalized traversal',
+          `${fixture.worktreeRoot}${path.sep}..${path.sep}outside`,
+          `${fixture.worktreeRoot}${path.sep}..${path.sep}outside`,
+          'PATH_NOT_NORMALIZED',
+        ],
+        [
+          'mismatched registered worktree',
+          fixture.registeredWorktree,
+          siblingRepository,
+          'WORKTREE_AUTHORITY_MISMATCH',
+        ],
+      ]) {
+        const forbidden = invoke(script, request('issue-merge.close-cleanup', {
+          ...base,
+          worktree,
+          registeredWorktree,
+        }, `cleanup-authority-${name}`));
+        assert.equal(forbidden.status, 2, `${name}: ${forbidden.stderr}`);
+        assert.equal(forbidden.stdout, '', name);
+        assert.match(forbidden.stderr, new RegExp(`: ${errorCode}:`), name);
+      }
+    }
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
 });
