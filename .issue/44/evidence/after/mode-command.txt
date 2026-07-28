@@ -1,0 +1,13 @@
+## default (settings missing)
+MODE=issue-first
+MODE_SOURCE=default
+
+## direct
+MODE=direct
+MODE_SOURCE=settings
+
+## invalid (safe fallback)
+! 알 수 없는 issue.createMode "typo" — issue-first 로 동작합니다.
+MODE=issue-first
+MODE_SOURCE=invalid
+INVALID_MODE=1

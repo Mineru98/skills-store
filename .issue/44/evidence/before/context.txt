@@ -1,0 +1,3 @@
+PURE_HEAD=d1a766f22d5b22ee0ad055fa7e8eb3d01f5fdf53
+BRANCH=feat/44-issue-create-direct-mode
+CODE_STATUS_BEFORE_CAPTURE:

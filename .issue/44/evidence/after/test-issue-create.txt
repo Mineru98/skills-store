@@ -1,0 +1,28 @@
+ok    mode: 설정이 없으면 issue-first
+ok    mode: 기본값 출처를 표시
+ok    mode: Claude/Codex 기본 동작 동일
+ok    mode: direct 설정 반영
+ok    mode: 설정 출처를 표시
+ok    mode: Claude/Codex direct 동작 동일
+ok    mode: 잘못된 값은 issue-first 로 복귀
+ok    mode: 잘못된 값 플래그 출력
+ok    mode: 잘못된 값 경고 출력
+ok    mode: Claude/Codex invalid 동작 동일
+ok    gate: 커밋 2개면 신호가 있어도 SKIP
+ok    gate: 스캐폴딩에서도 build-config 신호는 잡힘
+ok    gate: 커밋 25개 저장소는 SKIP 이 아님
+ok    gate: commits 신호 충족
+ok    gate: source 신호 충족
+ok    gate: 원격 없으면 remote+gh 미충족 (gh 미호출)
+ok    create: --label 없으면 exit 2
+ok    create: --label 없을 때 이유를 출력
+ok    create: --label 없으면 .issue 를 만들지 않음
+ok    dry-run 1: 제목·라벨이 명령에 반영
+ok    dry-run 2: 제목·라벨이 명령에 반영
+ok    dry-run 3: 제목·라벨이 명령에 반영
+ok    dry-run: 세 호출이 서로 다른 명령을 냄
+ok    dry-run: .issue 를 만들지 않음
+ok    dry-run: .gitignore 를 건드리지 않음
+ok    create: 본문 파일이 없으면 실패
+
+test-issue-create: 통과

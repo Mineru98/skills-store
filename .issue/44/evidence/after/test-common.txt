@@ -1,0 +1,2 @@
+! .issue-start/ 는 폐기 예정입니다. `node issue-start.mjs migrate` 를 실행하세요.
+test-common: 통과
