@@ -1,0 +1,38 @@
+BLOCK_MATCH=passed
+ZSH_SYNTAX=passed
+ARGUMENT_ROUTING=passed
+SESSION_LOG=passed
+
+## type and function output
+grok is a shell function from /var/folders/2n/z27zrgrj2m7bb_s3wykhzj0r0000gn/T/tmp.mJoGwxzu2G/.zshrc
+gk is an alias for gitk --all --branches &!
+
+Grok session ID: 00000000-0000-0000-0000-1
+Resume: grok --resume 00000000-0000-0000-0000-1
+Resume with grok: grok --resume 00000000-0000-0000-0000-1
+Resume in tmux: grok --tmux --resume 00000000-0000-0000-0000-1
+Resume in tmux with grok: grok --tmux --resume 00000000-0000-0000-0000-1
+Log: /var/folders/2n/z27zrgrj2m7bb_s3wykhzj0r0000gn/T/tmp.mJoGwxzu2G/home/.grok/grok-tmux-sessions.log
+
+Grok session ID: abcdef12
+Resume: grok --resume abcdef12
+Resume with grok: grok --resume abcdef12
+Resume in tmux: grok --tmux --resume abcdef12
+Resume in tmux with grok: grok --tmux --resume abcdef12
+
+Grok session ID: 00000000-0000-0000-0000-3
+Resume: grok --resume 00000000-0000-0000-0000-3
+Resume with grok: grok --resume 00000000-0000-0000-0000-3
+Resume in tmux: grok --tmux --resume 00000000-0000-0000-0000-3
+Resume in tmux with grok: grok --tmux --resume 00000000-0000-0000-0000-3
+Log: /var/folders/2n/z27zrgrj2m7bb_s3wykhzj0r0000gn/T/tmp.mJoGwxzu2G/home/.grok/grok-tmux-sessions.log
+
+## routed calls
+BIN --always-approve prompt
+TMUX new-session -s grok-20260728-122351-12433 -c /Users/mineru/SourceCode/skills-store-issue-40 -- /var/folders/2n/z27zrgrj2m7bb_s3wykhzj0r0000gn/T/tmp.mJoGwxzu2G/bin/grok --always-approve prompt
+TMUX new-session -s grok-resume-abcdef12-122351-11887 -c /Users/mineru/SourceCode/skills-store-issue-40 -- /var/folders/2n/z27zrgrj2m7bb_s3wykhzj0r0000gn/T/tmp.mJoGwxzu2G/bin/grok --always-approve --resume abcdef12
+TMUX new-session -s grok-20260728-122351-9701 -c /Users/mineru/SourceCode/skills-store-issue-40 -- /var/folders/2n/z27zrgrj2m7bb_s3wykhzj0r0000gn/T/tmp.mJoGwxzu2G/bin/grok --always-approve --worktree grok-20260728-122351-9701 task
+
+## session log
+2026-07-28T12:23:51+0900	00000000-0000-0000-0000-1	grok-20260728-122351-12433	/Users/mineru/SourceCode/skills-store-issue-40
+2026-07-28T12:23:51+0900	00000000-0000-0000-0000-3	grok-20260728-122351-9701	/Users/mineru/SourceCode/skills-store-issue-40
