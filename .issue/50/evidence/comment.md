@@ -131,6 +131,15 @@ schedule.test.mjs     38 pass / 6 fail   ← 아래 참고
 
 ---
 
-증거 원본 — [before](https://github.com/Mineru98/skills-store/blob/main/.issue/50/evidence/before/) · [after](https://github.com/Mineru98/skills-store/blob/main/.issue/50/evidence/after/) · [재현 하네스](https://github.com/Mineru98/skills-store/blob/main/.issue/50/evidence/harness/run-entrypoint-probe.sh)
+증거 원본은 기본 브랜치에 커밋돼 있다. 이 이슈는 CLI 버그라 스크린샷이 없고, 증거는 실행 출력과 exit code 다.
+
+```text
+.issue/50/evidence/before/entrypoint-probe.json   변경 전 측정 (JSON)
+.issue/50/evidence/before/summary.txt             변경 전 측정 (사람이 읽는 표)
+.issue/50/evidence/after/entrypoint-probe.json    변경 후 측정 (JSON)
+.issue/50/evidence/after/summary.txt              변경 후 측정 (사람이 읽는 표)
+.issue/50/evidence/after/test-results.txt         문법 검사·기존 테스트 결과
+.issue/50/evidence/harness/run-entrypoint-probe.sh  재현 하네스
+```
 
 재현: `bash .issue/50/evidence/harness/run-entrypoint-probe.sh after`
