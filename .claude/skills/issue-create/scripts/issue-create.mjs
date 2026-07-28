@@ -2,17 +2,20 @@
 /**
  * issue-create.mjs — 착수 전에 이슈를 만드는 보조 스크립트 (저장소·트래커 비종속).
  *
- * 네 가지 모드로 나뉜다.
+ * 아홉 가지 모드로 나뉜다.
  *
- *   1) gate      : "이슈를 만들 만큼 자리 잡은 프로젝트인가"를 신호로 판정한다.
- *   2) search    : 같은 내용의 이슈가 이미 있는지 찾는다.
- *   3) labels    : 저장소에 실제로 존재하는 라벨만 쓰기 위해 목록을 뽑는다.
- *   4) create    : 이슈를 만들고 issue-start 가 이어받을 request.md 를 남긴다.
- *   5) unlabeled : 라벨이 하나도 없는 기존 이슈를 찾는다.
- *   6) label     : 기존 이슈에 라벨을 붙인다.
- *   7) ensure-label : 표준 라벨이 없을 때 만든다 (사용자 승인 후에만 호출).
+ *   1) mode      : 암묵적인 issue-create 개입 여부를 사용자 설정에서 읽는다.
+ *   2) gate      : "이슈를 만들 만큼 자리 잡은 프로젝트인가"를 신호로 판정한다.
+ *   3) search    : 같은 내용의 이슈가 이미 있는지 찾는다.
+ *   4) labels    : 저장소에 실제로 존재하는 라벨만 쓰기 위해 목록을 뽑는다.
+ *   5) create    : 이슈를 만들고 issue-start 가 이어받을 request.md 를 남긴다.
+ *   6) unlabeled : 라벨이 하나도 없는 기존 이슈를 찾는다.
+ *   7) label     : 기존 이슈에 라벨을 붙인다.
+ *   8) ensure-label : 표준 라벨이 없을 때 만든다 (사용자 승인 후에만 호출).
+ *   9) status    : 진행 상태 라벨을 상호배타적으로 전환한다.
  *
  * 사용:
+ *   node issue-create.mjs mode
  *   node issue-create.mjs gate
  *   node issue-create.mjs search "탭 활성 상태"
  *   node issue-create.mjs labels
@@ -31,7 +34,8 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, WORKSPACE_DIR, STATUS_ORDER, typeLabels, isStatusLabel,
+  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, readIssueSettings,
+  WORKSPACE_DIR, STATUS_ORDER, typeLabels, isStatusLabel,
 } from './issue-common.mjs';
 import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
 
@@ -61,9 +65,22 @@ const BUILD_FILES = [
 ];
 
 const SOURCE_RE = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|rb|php|swift|c|cc|cpp|h|hpp|cs|scala|vue|svelte)$/i;
+const CREATE_MODES = ['issue-first', 'direct'];
+
+export function resolveCreateMode(settings = {}) {
+  const configured = settings?.issue?.createMode;
+  if (typeof configured === 'undefined') {
+    return { mode: 'issue-first', source: 'default', valid: true };
+  }
+  if (CREATE_MODES.includes(configured)) {
+    return { mode: configured, source: 'settings', valid: true };
+  }
+  return { mode: 'issue-first', source: 'invalid', valid: false, configured };
+}
 
 function usage(exitCode = 1) {
   console.error(`Usage:
+  node issue-create.mjs mode
   node issue-create.mjs gate
   node issue-create.mjs search "<질의>" [--repo <owner/name>] [--limit <n>]
   node issue-create.mjs labels [--repo <owner/name>]
@@ -92,6 +109,7 @@ request.md 는 ${WORKSPACE_DIR}/<번호>/ 에 남고, ${WORKSPACE_DIR} 는 .giti
   -h, --help           이 도움말
 
 이슈 백엔드는 ~/.issue/settings.json 의 provider.type 이 정한다 (github 기본 | jira).
+암묵적인 이슈 등록 여부는 issue.createMode 가 정한다 (issue-first 기본 | direct).
 `);
   process.exit(exitCode);
 }
@@ -100,6 +118,18 @@ function run(cmd, args, opts = {}) {
   const res = spawnSync(cmd, args, { encoding: 'utf8', ...opts });
   if (res.error) throw res.error;
   return res;
+}
+
+/* ------------------------------------------------------------------- mode */
+
+function cmdMode() {
+  const result = resolveCreateMode(readIssueSettings());
+  if (!result.valid) {
+    console.warn(`! 알 수 없는 issue.createMode ${JSON.stringify(result.configured)} — issue-first 로 동작합니다.`);
+  }
+  console.log(`MODE=${result.mode}`);
+  console.log(`MODE_SOURCE=${result.source}`);
+  if (!result.valid) console.log('INVALID_MODE=1');
 }
 
 /* ------------------------------------------------------------------- gate */
@@ -366,7 +396,7 @@ function main() {
   if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
   const mode = argv[0];
-  if (!['gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status'].includes(mode)) {
+  if (!['mode', 'gate', 'search', 'labels', 'create', 'unlabeled', 'label', 'ensure-label', 'status'].includes(mode)) {
     console.error(`✗ 알 수 없는 모드: ${mode}`);
     usage();
   }
@@ -396,6 +426,11 @@ function main() {
   }
 
   const positional = positionals[0] ?? null;
+
+  if (mode === 'mode') {
+    cmdMode();
+    return;
+  }
 
   const root = repoRoot();
   const tracker = createTracker(root, { repo: opts.repo });

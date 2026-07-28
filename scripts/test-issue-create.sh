@@ -9,6 +9,7 @@ set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 CREATE="$ROOT/.claude/skills/issue-create/scripts/issue-create.mjs"
+CREATE_CODEX="$ROOT/.codex/skills/issue-create/scripts/issue-create.mjs"
 
 TMP=$(cd "$(mktemp -d)" && pwd -P)
 trap 'rm -rf "$TMP"' EXIT
@@ -27,6 +28,33 @@ init_repo() { # init_repo <경로>
   git config user.name t
   git config commit.gpgsign false
 }
+
+# =====================================================================
+# mode — 암묵 호출 동작 설정
+# 저장소·트래커 전제보다 먼저 읽혀야 하므로 git 저장소 밖에서 검증한다.
+# =====================================================================
+OUT_CLAUDE=$(node "$CREATE" mode)
+OUT_CODEX=$(node "$CREATE_CODEX" mode)
+check "mode: 설정이 없으면 issue-first" "$(echo "$OUT_CLAUDE" | grep -q 'MODE=issue-first' && echo 0 || echo 1)"
+check "mode: 기본값 출처를 표시" "$(echo "$OUT_CLAUDE" | grep -q 'MODE_SOURCE=default' && echo 0 || echo 1)"
+check "mode: Claude/Codex 기본 동작 동일" "$([ "$OUT_CLAUDE" = "$OUT_CODEX" ] && echo 0 || echo 1)"
+
+mkdir -p "$HOME/.issue"
+printf '{"issue":{"createMode":"direct"}}\n' > "$HOME/.issue/settings.json"
+OUT_CLAUDE=$(node "$CREATE" mode)
+OUT_CODEX=$(node "$CREATE_CODEX" mode)
+check "mode: direct 설정 반영" "$(echo "$OUT_CLAUDE" | grep -q 'MODE=direct' && echo 0 || echo 1)"
+check "mode: 설정 출처를 표시" "$(echo "$OUT_CLAUDE" | grep -q 'MODE_SOURCE=settings' && echo 0 || echo 1)"
+check "mode: Claude/Codex direct 동작 동일" "$([ "$OUT_CLAUDE" = "$OUT_CODEX" ] && echo 0 || echo 1)"
+
+printf '{"issue":{"createMode":"typo"}}\n' > "$HOME/.issue/settings.json"
+OUT_CLAUDE=$(node "$CREATE" mode 2>&1)
+OUT_CODEX=$(node "$CREATE_CODEX" mode 2>&1)
+check "mode: 잘못된 값은 issue-first 로 복귀" "$(echo "$OUT_CLAUDE" | grep -q 'MODE=issue-first' && echo 0 || echo 1)"
+check "mode: 잘못된 값 플래그 출력" "$(echo "$OUT_CLAUDE" | grep -q 'INVALID_MODE=1' && echo 0 || echo 1)"
+check "mode: 잘못된 값 경고 출력" "$(echo "$OUT_CLAUDE" | grep -q '알 수 없는 issue.createMode' && echo 0 || echo 1)"
+check "mode: Claude/Codex invalid 동작 동일" "$([ "$OUT_CLAUDE" = "$OUT_CODEX" ] && echo 0 || echo 1)"
+printf '{}\n' > "$HOME/.issue/settings.json"
 
 # =====================================================================
 # gate — 스캐폴딩 저장소
