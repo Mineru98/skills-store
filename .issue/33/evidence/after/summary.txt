@@ -8,20 +8,22 @@ Dataset
 - requirement counts cover 1, 2, 3, 4, 5, and 6+
 
 Controlled model experiment
-- models: tuning baseline/current and holdout current used haiku; holdout baseline used sonnet
+- model: all final baseline/current comparisons use haiku
 - final comparison: tuning 30 baseline + 30 current, holdout 40 baseline + 40 current = 140 trials
 - provenance: model, generated_at, per-case outputs, and metrics are preserved in the four JSON result files
-- limitation: the original model-run shell command output was not preserved, so invocation flags beyond the JSON metadata cannot be reconstructed
+- provenance: exact holdout commands and flags are preserved in tests.txt; both runs use sample 40, repeat 1, concurrency 3, seed 33, and differ only by rubric
 - tuning issue-count accuracy: 86.7% -> 93.3%
 - tuning grouping exact: 83.3% -> 90.0%
 - tuning pairwise grouping F1: 77.4% -> 88.0%
 - tuning decision accuracy: 86.7% -> 96.7%
-- holdout atom F1: 99.7% -> 100.0%
-- holdout issue-count accuracy: 92.5% -> 100.0%
-- holdout grouping exact: 92.5% -> 100.0%
-- holdout pairwise grouping F1: 94.4% -> 100.0%
-- holdout label / decision / over-limit accuracy: 100.0% / 100.0% / 100.0%
-- holdout under/over split: 0.0% / 0.0%
+- holdout atom F1: 99.4% -> 100.0%
+- holdout issue-count accuracy: 80.0% -> 97.5%
+- holdout grouping exact: 77.5% -> 97.5%
+- holdout pairwise grouping F1: 68.3% -> 97.0%
+- holdout label accuracy: 98.4% -> 100.0%
+- holdout decision accuracy: 82.5% -> 97.5%
+- holdout over-limit accuracy: 100.0% -> 100.0%
+- holdout under/over split: 12.5% / 7.5% -> 0.0% / 2.5%
 
 Verification
 - generated dataset matches deterministic generator
