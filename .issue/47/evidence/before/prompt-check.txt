@@ -1,0 +1,16 @@
+# 변경 전 프롬프트 점검
+
+HEAD=88f1078880a3767d9bbbf89cf7ac5e414909b67c
+BRANCH=docs/47-private-image-rendering
+SOURCE_DIRTY=0
+
+## 공개 범위와 무관하게 raw URL을 전제하는 문구
+.codex/skills/issue-start/references/evidence-capture.md:174:이미지는 반드시 `.webp`, 링크는 **기본 브랜치 기준 raw URL** 이다.
+.codex/skills/issue-create/references/create-and-handoff.md:78:`request.md` 와 `plan.md` 는 무시되고, 나중에 `issue-start` 가 만드는 `.issue/<번호>/evidence/` 만 커밋된다. 이슈 코멘트의 이미지가 raw URL 로 렌더링되려면 증거는 커밋돼야 하기 때문이다.
+.codex/skills/issue-start/SKILL.md:184:    Q --> R[evidence-urls: 미러 기준 raw URL]
+.codex/skills/issue-start/SKILL.md:435:순서를 지킨다. 이미지 URL 이 기본 브랜치를 가리켜야 이슈에서 바로 렌더링된다.
+
+## 기존 비공개 저장소 보조 안내
+151:`isPrivate: true` 면 raw URL 은 코멘트에서 렌더링되지 않는다. 이때는 커밋은 유지한 채 이미지를 이슈 웹 UI 에 드래그해 올리고 그 `user-attachments` URL 을 쓴다.
+160:private 저장소에서는 raw/release URL 대신 이슈 웹 UI에 올린 `user-attachments` URL을 쓴다.
+242:3. private 저장소다 → 웹 UI 업로드로 전환

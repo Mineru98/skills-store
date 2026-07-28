@@ -1,0 +1,34 @@
+# 변경 후 프롬프트 점검
+
+HEAD=82699a1c36822f45655124c02a65ef224f94fae7
+BRANCH=docs/47-private-image-rendering
+
+## 공개/비공개 저장소 분기
+.codex/skills/issue-create/references/create-and-handoff.md:80:공개 저장소면 미러 raw URL, 비공개 저장소면 이슈 웹 UI 의 `user-attachments` URL 을 쓴다.
+.codex/skills/issue-create/references/create-and-handoff.md:81:`issue-start` 는 게시 뒤 실제 렌더링까지 확인해야 한다.
+.codex/skills/issue-start/SKILL.md:52:    <rule>증거는 먼저 커밋·푸시한다. 공개 저장소는 미러 raw URL, 비공개 저장소는 이슈 웹 UI의 `user-attachments` URL 로 코멘트하고 실제 렌더링을 확인한다.</rule>
+.codex/skills/issue-start/SKILL.md:441:비공개 저장소는 이슈 웹 UI 에 업로드한 `user-attachments` URL 이어야 바로 렌더링된다.
+.codex/skills/issue-start/SKILL.md:448:gh repo view --json visibility --jq .visibility
+.codex/skills/issue-start/references/evidence-capture.md:13:  공개 저장소   → 미러 raw URL 생성
+.codex/skills/issue-start/references/evidence-capture.md:14:  비공개 저장소 → 이슈 웹 UI 업로드로 user-attachments URL 생성
+.codex/skills/issue-start/references/evidence-capture.md:15:→ report-check → 이슈 코멘트 → 실제 렌더링 확인
+.codex/skills/issue-start/references/evidence-capture.md:154:gh repo view --json visibility --jq .visibility
+.codex/skills/issue-start/references/evidence-capture.md:182:비공개 저장소에서는 raw/blob/release URL 대신 이슈 웹 UI에 올린 `user-attachments` URL을 쓴다.
+
+## 검증 결과
+test-flow: 통과
+test-images: 통과
+check-shared: 통과
+git diff --check: 통과
+
+## 변경 요약
+82699a1 docs(issue): 비공개 저장소 이미지 렌더링 지침 보완
+
+ .../issue-create/references/create-and-handoff.md  |  5 ++-
+ .claude/skills/issue-start/SKILL.md                | 22 +++++++++---
+ .../issue-start/references/evidence-capture.md     | 40 +++++++++++++++++-----
+ .../issue-create/references/create-and-handoff.md  |  5 ++-
+ .codex/skills/issue-start/SKILL.md                 | 22 +++++++++---
+ .../issue-start/references/evidence-capture.md     | 40 +++++++++++++++++-----
+ scripts/test-flow.sh                               |  9 +++++
+ 7 files changed, 115 insertions(+), 28 deletions(-)
