@@ -1,46 +1,52 @@
-SCENARIO=post-implementation capability bundle and lifecycle phase API verification
+SCENARIO=post-remediation capability bundle and lifecycle phase API verification
 BRANCH=feat/49-issue-phase-api
-HEAD=6424edb55abaf2cc6df6842e14015c857c4e4dfb
+IMPLEMENTATION_COMMIT=a966adab3068558e9a1b98cdb0dec00c0de87b16
 BASE=main
 BASE_AT_START=58e93f483c297217c5e184011c00ad47c01d8e63
-WORKTREE_TRACKED_STATUS=clean
 PHASE_COUNTS=issue-start:13,issue-end:11,issue-merge:9,total:33
 INSTALLED_MIRROR_INVOCATIONS=.claude:33,.codex:33,total:66
-CAPABILITY_SET_SHA256=98d8ed89292930fbcc5f43ad1f0cf06099883ae2efe3fedeeb33345811746d48
-CLOSURE_SHA256=b9701b1f9fe31baebb36109d2aa01c6fa478b628883a1f0efddd39da420e7480
+CAPABILITY_SET_SHA256=235d2a50e35bc2f4e05b7b7e6e1d387e3f6702806cf750e2bcb5dafed58c7d0f
+CLOSURE_SHA256=8097512fd6589d7395983484907aa19de6621fb3dbbbef33b0a901cfb95352f9
 CLOSURE_ENTRIES=87
 REPOSITORY_ORIGIN=https://github.com/Mineru98/skills-store
+INTEGRATED_COMMIT=not-yet-merged
 
-INTEGRATED_COMMIT_CHAIN:
+IMPLEMENTATION_COMMIT_CHAIN:
 2d1866b22667ce89d176df7971e607dfcea323b8 feat(issue-api): define canonical machine phase protocol
 46b548e4a0ceb8f6368684976ffe844521267679 feat(issue-start): expose reviewed phase API
 62f124ca48b7c5f0e9361ddfa3a59913bbab21c9 feat(issue-end): expose evidence and PR phase API
 7c2e8d94b6f5cfa5a74acff57f227351fcebf2fd feat(issue-merge): expose cumulative merge phase API
 6424edb55abaf2cc6df6842e14015c857c4e4dfb feat(issue-api): publish active orchestration capability bundle
+a966adab3068558e9a1b98cdb0dec00c0de87b16 fix(issue-api): fail closed on reviewed capability drift
 
 AUTOMATED_GATES:
 check-shared=pass
-test-common=pass
+node-test-suite=88-pass,0-fail
+phase-api-suite=43-pass,0-fail
+capability-compatibility=9-pass,0-fail
 test-flow=pass
 test-preflight=pass
-phase-api-and-compatibility=47-pass,0-fail
-changed-mjs-node-check=pass
-fresh-clone-full-suite=pass
-repeated-compatibility-suite=7-pass,0-fail
+test-issue-create=pass
+forbidden-suppressions=none
 
 MANUAL_QA:
-fresh-clone-bundle-inspection=pass
-all-66-installed-phase-contract-invocations-with-fake-provider=pass
-repository-relative-closure-and-no-symlink=pass
-single-mirror-byte-active-eligibility-rejection=pass
-single-schema-byte-active-eligibility-rejection=pass
+required-unpublished-issue-end-comment=held-with-tracker-comment-effect
+issue-start-outside-root=exit-2-zero-effect
+issue-start-dangling-symlink=exit-2-zero-effect
+cleanup-approval-target-binding=distinct-ids-and-substitution-held-zero-effect
+pristine-capability-bundle=eligible-33-phases
+coherent-self-digested-normative-mutation=NORMATIVE_PHASE_MISMATCH
+cleanup=temp-directories-driver-processes-ports-browsers-none-left
 
 ADVERSARIAL:
-malformed-input=held-or-rejected-with-zero-effect
+malformed-input=rejected-with-zero-effect
 prompt-injection-text=inert-data
 stale-and-dirty-state=held-with-zero-effect
 uncertain-provider-outcome=reconcile-only
 interruption-and-resume=checkpoint-stable
-outside-root-and-symlink=rejected
+outside-root-and-dangling-symlink=rejected
+approval-target-substitution=held-with-zero-effect
+duplicate-valid-phase=PHASE_SET_MISMATCH
+coherent-self-digested-phase-drift=NORMATIVE_PHASE_MISMATCH
 undocumented-effect-and-provider-failure=rejected
 full-suite-repeat=pass

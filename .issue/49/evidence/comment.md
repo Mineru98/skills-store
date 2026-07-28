@@ -8,28 +8,34 @@
 | --- | --- | --- |
 | 기계 단계 API | 사람용 CLI만 존재 | issue-start 13 / issue-end 11 / issue-merge 9, 총 33단계 |
 | 설치 미러 | 단계 계약 없음 | Claude/Codex 양쪽 33단계, 실제 66회 호출 통과 |
-| 무결성 | capability 폐쇄 없음 | 87개 저장소 상대 경로 raw-byte 폐쇄 |
-| capability digest | 없음 | `98d8ed89292930fbcc5f43ad1f0cf06099883ae2efe3fedeeb33345811746d48` |
-| closure digest | 없음 | `b9701b1f9fe31baebb36109d2aa01c6fa478b628883a1f0efddd39da420e7480` |
-| 실패 폐쇄 | 없음 | ID/스키마/미러/경로/심볼릭 링크/효과/공급자 드리프트 모두 거부 |
+| 무결성 | capability 폐쇄 없음 | 87개 저장소 상대 경로 raw-byte 폐쇄와 독립 normative oracle |
+| capability digest | 없음 | `235d2a50e35bc2f4e05b7b7e6e1d387e3f6702806cf750e2bcb5dafed58c7d0f` |
+| closure digest | 없음 | `8097512fd6589d7395983484907aa19de6621fb3dbbbef33b0a901cfb95352f9` |
+| 실패 폐쇄 | 없음 | 경로 이탈·dangling symlink·승인 대상 바꿔치기·중복 단계·self-digested 단계 변조를 거부 |
+
+### 보완 사항
+
+- issue-end는 게시 증거가 있어도 필수 코멘트가 미게시이면 `tracker-comment` 효과를 유지합니다.
+- issue-start는 신뢰된 base checkout/workspace 경계 밖 경로와 symlink ancestor를 효과 제안 전에 거부합니다.
+- 승인 ID는 checkpoint, 전체 효과 요청, 불변 상태를 canonical SHA-256으로 결합해 정확한 대상에 바인딩합니다.
+- capability 검증은 번들 자체 선언이 아니라 코드 소유의 13/11/9 단계 목록과 효과 정책을 기준으로 판정합니다.
 
 ### 검증 명령
 
 - `sh scripts/check-shared.sh` — 통과
-- `node scripts/test-common.mjs` — 통과
+- `node --test scripts/test-*.mjs` — 88개 통과, 실패 0
 - `sh scripts/test-flow.sh` — 통과
 - `sh scripts/test-preflight.sh` — 통과
-- `node --test scripts/test-phase-api.mjs scripts/test-phase-compatibility.mjs` — 47개 통과, 실패 0
-- 변경된 모든 `.mjs`의 `node --check` — 통과
-- commit `6424edb55abaf2cc6df6842e14015c857c4e4dfb`의 fresh clone에서 같은 전체 명령 — 통과
+- `sh scripts/test-issue-create.sh` — 통과
+- 실제 CLI 수동 시나리오 — 필수 코멘트, 경로 이탈/dangling symlink, cleanup 승인 바꿔치기 모두 fail-closed
 
 ### 수동 및 적대적 확인
 
-fresh clone의 실제 capability bundle을 읽어 양쪽 설치 미러의 모든 단계 계약을 fake provider
-receipt로 호출했습니다. 이어서 미러 계약 한 바이트와 canonical schema 한 바이트를 각각 바꿨을 때
-compatibility/active eligibility가 모두 실패하는 것을 확인했습니다. malformed input, prompt-shaped
-issue data, stale/dirty state, uncertain provider outcome, 반복 중단/재개도 외부 효과 없이 held/rejected로
-남는 것을 확인했습니다.
+실제 `.codex` CLI에 canonical 요청 파일을 입력해 외부 효과 없이 상태 코드, stdout/stderr,
+`proposedEffect`를 확인했습니다. 서로 다른 cleanup 대상은 다른 승인 ID를 만들고, 다른 대상의
+승인 ID 재사용은 `CLEANUP_APPROVAL_MISMATCH`와 zero effect로 중단됩니다. 저장소 capability
+bundle은 정상 상태에서 33단계 eligible이며, 단계 효과를 바꾼 뒤 digest까지 다시 계산한 변조본도
+`NORMATIVE_PHASE_MISMATCH`로 거부됩니다. 모든 임시 디렉터리와 QA 드라이버를 제거했습니다.
 
 ### 증거 파일
 
