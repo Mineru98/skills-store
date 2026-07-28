@@ -1,0 +1,33 @@
+✗ 알 수 없는 모드: mode
+Usage:
+  node issue-create.mjs gate
+  node issue-create.mjs search "<질의>" [--repo <owner/name>] [--limit <n>]
+  node issue-create.mjs labels [--repo <owner/name>]
+  node issue-create.mjs create --title <제목> --body-file <파일> [options]
+  node issue-create.mjs unlabeled [--state open|all] [--limit <n>] [--repo <o/n>]
+  node issue-create.mjs label <issue-number> --label <name> [--label <name>...]
+  node issue-create.mjs ensure-label <name> [--color <hex>] [--desc <설명>]
+  node issue-create.mjs status <issue-number> <open|plan|in-process|review|close>
+
+gate:
+  커밋 수·원격·이슈 이력·빌드 설정·소스 규모를 확인해
+  READY / ASK / SKIP 중 하나를 출력한다.
+
+create options:
+  --title <t>          이슈 제목 (필수)
+  --body-file <f>      이슈 본문 마크다운 파일 (필수)
+  --label <name>       라벨 (필수, 여러 번 지정 가능, 저장소에 있는 것만)
+  --no-label           라벨 없이 만든다. 의도적으로 규칙을 벗어날 때만 쓴다
+  --no-status          생성 후 status:open 자동 부착을 생략한다
+  --assignee <login>   담당자 (@me 가능)
+  --request-file <f>   원본 요청 기록. 생략 시 --body-file 을 복사
+  --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin, github 트래커 전용)
+
+request.md 는 .issue/<번호>/ 에 남고, .issue 는 .gitignore 에 자동 등록된다.
+  --dry-run            트래커를 호출하지 않고 실행 계획만 출력
+  -h, --help           이 도움말
+
+이슈 백엔드는 ~/.issue/settings.json 의 provider.type 이 정한다 (github 기본 | jira).
+
+
+EXIT_CODE=1

@@ -1,0 +1,5 @@
+sync-shared: 정본과 모든 사본이 동일하다
+SKILL.md: identical
+issue-create.mjs: identical
+provider-settings.md: identical
+git diff --check: passed

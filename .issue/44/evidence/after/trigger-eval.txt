@@ -1,0 +1,20 @@
+tuning:
+{
+  "set": "tuning",
+  "repeat": 1,
+  "metrics": {
+    "recall": 1,
+    "specificity": 1,
+    "accuracy": 1
+  }
+}
+holdout:
+{
+  "set": "holdout",
+  "repeat": 1,
+  "metrics": {
+    "recall": 1,
+    "specificity": 1,
+    "accuracy": 1
+  }
+}
