@@ -140,6 +140,27 @@ test('[active-required] issue-end published evidence suppresses mirror and comme
   assert.equal(commentEnvelope.proposedEffect, null);
 });
 
+test('[active-required] issue-end never suppresses a required unpublished comment', () => {
+  // Given: evidence is published, but the required report comment is not.
+  for (const flavor of ['.codex', '.claude']) {
+    const result = runPhase(requestFor('issue-end.comment', {
+      commentPublished: false,
+      evidencePublished: true,
+      required: true,
+    }), flavor);
+
+    // When: the canonical comment phase reconciles the inconsistent state.
+    const envelope = parseResult(result);
+
+    // Then: it holds at the distinct tracker-comment approval boundary.
+    assert.equal(result.status, 3);
+    assert.equal(envelope.handback.disposition, 'held');
+    assert.equal(envelope.data.reason, 'comment-publication-approval-required');
+    assert.equal(envelope.proposedEffect.type, 'tracker-comment');
+    assert.equal(envelope.proposedEffect.classification, 'approval-required');
+  }
+});
+
 test('[active-required] issue-end keeps branch push and PR creation as distinct approvals', () => {
   // Given: unpublished approved evidence and a separately review-approved PR candidate.
   const push = runPhase(requestFor('issue-end.publish-evidence', {

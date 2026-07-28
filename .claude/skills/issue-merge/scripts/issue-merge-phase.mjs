@@ -5,6 +5,7 @@ import {
   PHASE_CONTRACT_ID,
   canonicalJsonBytes,
   parseCanonicalJson,
+  phaseApprovalId,
   validatePhaseEnvelope,
 } from './issue-phase-contract.mjs';
 
@@ -23,7 +24,7 @@ const PHASE_IDS = [
 const REQUEST_KEYS = ['apiVersion', 'checkpoint', 'contractId', 'data', 'phaseId'];
 const CHECKPOINT_KEYS = ['attempt', 'id'];
 const DATA_KEYS = new Set([
-  'action', 'accumulatedOnto', 'autoClosed', 'baseBranch', 'baseCommit', 'baseHead',
+  'action', 'accumulatedOnto', 'approvalId', 'autoClosed', 'baseBranch', 'baseCommit', 'baseHead',
   'body', 'bodySha256', 'branch', 'candidate', 'checksSha256', 'ci', 'cleanupApproved',
   'closedIssues', 'conflictAttempt', 'criticVerdict', 'decision', 'decisionApproved',
   'detached', 'evidence', 'expectedBaseHead', 'expectedBodySha256', 'expectedChecksSha256',
@@ -34,7 +35,7 @@ const DATA_KEYS = new Set([
   'subcheckpoint', 'triggerCount', 'verifiedIssues', 'worktree', 'worktrees',
 ]);
 const STRING_DATA_KEYS = new Set([
-  'action', 'accumulatedOnto', 'baseBranch', 'baseCommit', 'baseHead', 'body', 'bodySha256',
+  'action', 'accumulatedOnto', 'approvalId', 'baseBranch', 'baseCommit', 'baseHead', 'body', 'bodySha256',
   'branch', 'checksSha256', 'ci', 'criticVerdict', 'decision', 'expectedBaseHead',
   'expectedBodySha256', 'expectedChecksSha256', 'expectedHeadSha', 'expectedOnto', 'headSha',
   'issueState', 'mergeSha', 'mergedSha', 'mode', 'onto', 'preflightCommit', 'subcheckpoint',
@@ -159,10 +160,32 @@ const requiredPositive = (value, label) => {
   if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`${label} must be positive`);
   return value;
 };
-const approvalId = (kind, value) => `issue-merge-${kind}-${value}`;
 const argvEffect = (type, argv, classification = 'local-idempotent', id = null) => (
   effect(type, classification, id, { argv })
 );
+const approvalEffect = ({
+  effectRequest,
+  immutableState,
+  request,
+  type,
+}) => {
+  const proposed = {
+    classification: 'approval-required',
+    request: effectRequest,
+    type,
+  };
+  return effect(
+    type,
+    proposed.classification,
+    phaseApprovalId({
+      checkpoint: request.checkpoint,
+      effect: proposed,
+      immutableState: { phaseId: request.phaseId, ...immutableState },
+      namespace: 'issue-merge',
+    }),
+    effectRequest,
+  );
+};
 
 const describe = (request) => envelope(request, {
   data: { phaseId: request.phaseId, requestContractId: REQUEST_CONTRACT_ID },
@@ -249,15 +272,15 @@ const phaseResolveReview = (request) => {
   }
   const worktree = requiredString(data.worktree, 'worktree');
   if (data.action === 'push') {
-    const id = approvalId('conflict-push', requiredString(data.branch, 'branch'));
+    const branch = requiredString(data.branch, 'branch');
     return hold(request, data.pushApproved === true ? 'EFFECT_PROPOSED' : 'CONFLICT_PUSH_APPROVAL_REQUIRED', {
       conflictAttempt: attempt,
-    }, argvEffect(
-      'conflict-resolution-push',
-      ['resolve', '--worktree', worktree, '--continue', '--push'],
-      'approval-required',
-      id,
-    ));
+    }, approvalEffect({
+      effectRequest: { argv: ['resolve', '--worktree', worktree, '--continue', '--push'] },
+      immutableState: { branch, conflictAttempt: attempt, worktree },
+      request,
+      type: 'conflict-resolution-push',
+    }));
   }
   const suffix = data.action === 'abort' ? ['--abort']
     : data.action === 'continue' ? ['--continue'] : [];
@@ -292,25 +315,32 @@ const integrationFailure = (request) => {
   const data = request.data;
   const issue = requiredPositive(data.issue, 'issue');
   if (data.decision === 'revert-rework' && data.decisionApproved !== true) {
-    return hold(request, 'RECOVERY_APPROVAL_REQUIRED', { decision: data.decision }, effect(
-      'merge-revert-rework', 'approval-required', approvalId('revert', issue),
-      { issue, mergeSha: data.mergeSha },
-    ));
+    return hold(request, 'RECOVERY_APPROVAL_REQUIRED', { decision: data.decision }, approvalEffect({
+      effectRequest: { issue, mergeSha: data.mergeSha },
+      immutableState: { decision: data.decision },
+      request,
+      type: 'merge-revert-rework',
+    }));
   }
   if (data.decision === 'follow-up-issue' && data.decisionApproved !== true) {
-    return hold(request, 'RECOVERY_APPROVAL_REQUIRED', { decision: data.decision }, effect(
-      'integration-follow-up-issue', 'approval-required', approvalId('follow-up', issue),
-      { issue, mergeSha: data.mergeSha },
-    ));
+    return hold(request, 'RECOVERY_APPROVAL_REQUIRED', { decision: data.decision }, approvalEffect({
+      effectRequest: { issue, mergeSha: data.mergeSha },
+      immutableState: { decision: data.decision },
+      request,
+      type: 'integration-follow-up-issue',
+    }));
   }
   if (!['revert-rework', 'follow-up-issue', 'accept-failure'].includes(data.decision)
     || data.decisionApproved !== true) {
     return hold(request, 'INTEGRATION_OWNER_DECISION_REQUIRED');
   }
   if (data.autoClosed === true && data.reopenApproved !== true) {
-    return hold(request, 'REOPEN_APPROVAL_REQUIRED', { decision: data.decision }, effect(
-      'issue-reopen', 'approval-required', approvalId('reopen', issue), { issue },
-    ));
+    return hold(request, 'REOPEN_APPROVAL_REQUIRED', { decision: data.decision }, approvalEffect({
+      effectRequest: { issue },
+      immutableState: { autoClosed: true, decision: data.decision, mergeSha: data.mergeSha },
+      request,
+      type: 'issue-reopen',
+    }));
   }
   return envelope(request, {
     data: { integrationPassed: false, acceptedDecision: data.decision, reopenApproved: data.reopenApproved === true },
@@ -332,9 +362,11 @@ const phaseMergeVerify = (request) => {
       return hold(request, 'TRIGGER_REPAIR_APPROVAL_REQUIRED', {
         triggerCount: issues.length,
         triggerIssues: issues,
-      }, effect('pr-body-trigger-repair', 'approval-required', approvalId('trigger-repair', pr), {
-        pr,
-        triggerIssues: issues,
+      }, approvalEffect({
+        effectRequest: { pr, triggerIssues: issues },
+        immutableState: { bodySha256: data.bodySha256 ?? null },
+        request,
+        type: 'pr-body-trigger-repair',
       }), [fact('pr-body-trigger-scan', { count: issues.length })]);
     }
     return envelope(request, {
@@ -356,10 +388,19 @@ const phaseMergeVerify = (request) => {
         facts: [fact('provider-merge-state', { pr, merged: true, mergedSha: data.mergedSha })],
       });
     }
-    return hold(request, 'EFFECT_PROPOSED', { pr, onto: data.onto }, effect(
-      'pr-merge', 'approval-required', approvalId('pr', pr),
-      { argv: ['merge', '--pr', String(pr), '--method', 'squash'], onto: data.onto },
-    ), [fact('merge-gates', {
+    return hold(request, 'EFFECT_PROPOSED', { pr, onto: data.onto }, approvalEffect({
+      effectRequest: {
+        argv: ['merge', '--pr', String(pr), '--method', 'squash'],
+        onto: data.onto,
+      },
+      immutableState: {
+        bodySha256: data.bodySha256,
+        checksSha256: data.checksSha256,
+        headSha: data.headSha,
+      },
+      request,
+      type: 'pr-merge',
+    }), [fact('merge-gates', {
       preflightClean: true,
       criticVerdict: 'proceed',
       triggerCount: 0,
@@ -399,14 +440,33 @@ const phaseCloseCleanup = (request) => {
         facts: [fact('tracker-issue-state', { issue, closed: true })],
       });
     }
-    return hold(request, 'EFFECT_PROPOSED', { issue }, effect(
-      'verified-issue-close', 'approval-required', approvalId('close', issue),
-      { argv: ['close', '--issue', String(issue)] },
-    ));
+    return hold(request, 'EFFECT_PROPOSED', { issue }, approvalEffect({
+      effectRequest: { argv: ['close', '--issue', String(issue)] },
+      immutableState: { integrationPassed: true, issue },
+      request,
+      type: 'verified-issue-close',
+    }));
   }
   if (data.subcheckpoint !== 'cleanup') return hold(request, 'UNKNOWN_CLEANUP_SUBCHECKPOINT');
   if (data.issueClosed !== true) return hold(request, 'ISSUE_NOT_CLOSED');
-  if (data.cleanupApproved !== true) return hold(request, 'CLEANUP_APPROVAL_REQUIRED');
+  const cleanupEffect = approvalEffect({
+    effectRequest: {
+      argv: [
+        'cleanup', '--worktree', requiredString(data.worktree, 'worktree'),
+        '--branch', requiredString(data.branch, 'branch'),
+      ],
+      retainRemoteBranches: true,
+    },
+    immutableState: { integrationPassed: true, issue, issueClosed: true },
+    request,
+    type: 'closed-issue-worktree-cleanup',
+  });
+  if (data.cleanupApproved !== true) {
+    return hold(request, 'CLEANUP_APPROVAL_REQUIRED', {}, cleanupEffect);
+  }
+  if (data.approvalId !== cleanupEffect.approvalId) {
+    return hold(request, 'CLEANUP_APPROVAL_MISMATCH');
+  }
   if (data.worktreeRemoved === true) {
     return envelope(request, {
       data: { issue, worktreeRemoved: true, retainEvidenceBranches: true },
@@ -416,18 +476,7 @@ const phaseCloseCleanup = (request) => {
   return hold(request, 'EFFECT_PROPOSED', {
     issue,
     retainEvidenceBranches: true,
-  }, effect(
-    'closed-issue-worktree-cleanup',
-    'approval-required',
-    approvalId('cleanup', issue),
-    {
-      argv: [
-        'cleanup', '--worktree', requiredString(data.worktree, 'worktree'),
-        '--branch', requiredString(data.branch, 'branch'),
-      ],
-      retainRemoteBranches: true,
-    },
-  ));
+  }, cleanupEffect);
 };
 
 const handlers = {

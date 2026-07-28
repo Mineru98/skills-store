@@ -1,10 +1,16 @@
-import { readFileSync } from 'node:fs';
+import {
+  existsSync,
+  lstatSync,
+  readFileSync,
+  realpathSync,
+} from 'node:fs';
 import path from 'node:path';
 import {
   PHASE_API_VERSION,
   canonicalJsonBytes,
   canonicalJsonSha256,
   parseCanonicalJson,
+  phaseApprovalId,
   validatePhaseEnvelope,
 } from './issue-phase-contract.mjs';
 
@@ -63,6 +69,47 @@ const absolute = (value, label, nullable = false) => {
   }
 };
 
+const isWithin = (root, target) => {
+  const relative = path.relative(root, target);
+  return relative === '' || (!path.isAbsolute(relative)
+    && relative !== '..' && !relative.startsWith(`..${path.sep}`));
+};
+
+const rejectSymlinkAncestors = (target, label) => {
+  const parsed = path.parse(target);
+  let current = parsed.root;
+  for (const part of target.slice(parsed.root.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    let stat;
+    try {
+      stat = lstatSync(current);
+    } catch (error) {
+      if (error?.code === 'ENOENT') break;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) {
+      reject('PATH_SYMLINK', `${label} must not contain a symlink ancestor`);
+    }
+  }
+};
+
+const verifiedDirectory = (target, label) => {
+  rejectSymlinkAncestors(target, label);
+  if (!existsSync(target) || !lstatSync(target).isDirectory()) {
+    reject('PATH_ROOT_INVALID', `${label} must be an existing directory`);
+  }
+  const real = realpathSync(target);
+  if (real !== target) reject('PATH_SYMLINK', `${label} must resolve without symlinks`);
+  return real;
+};
+
+const containedPath = (root, target, label) => {
+  if (!isWithin(root, target)) {
+    reject('PATH_OUTSIDE_ROOT', `${label} must stay within ${root}`);
+  }
+  rejectSymlinkAncestors(target, label);
+};
+
 const boolean = (value, label) => {
   if (typeof value !== 'boolean') reject('INVALID_REQUEST', `${label} must be boolean`);
 };
@@ -114,6 +161,24 @@ const validateInput = (input) => {
   string(input.baseBranch, 'input.baseBranch');
 };
 
+const validatePaths = (state, input) => {
+  const baseCheckout = verifiedDirectory(state.baseCheckout, 'state.baseCheckout');
+  const workspaceRoot = path.dirname(baseCheckout);
+  rejectSymlinkAncestors(workspaceRoot, 'workspace root');
+  containedPath(baseCheckout, input.planPath, 'input.planPath');
+  containedPath(workspaceRoot, input.intendedWorktree, 'input.intendedWorktree');
+  for (const name of ['beforeArtifact', 'afterArtifact', 'commentFile']) {
+    containedPath(input.intendedWorktree, input[name], `input.${name}`);
+    containedPath(workspaceRoot, input[name], `input.${name}`);
+  }
+  if (state.issueWorktree !== null) {
+    containedPath(workspaceRoot, state.issueWorktree, 'state.issueWorktree');
+    if (state.issueWorktree !== input.intendedWorktree) {
+      reject('PATH_OUTSIDE_ROOT', 'state.issueWorktree must match input.intendedWorktree');
+    }
+  }
+};
+
 const validateEffectResult = (result) => {
   if (result === null) return;
   exactKeys(result, ['approvalId', 'status', 'receipt'], 'effectResult');
@@ -135,6 +200,10 @@ const validateRequest = (request) => {
   if (!ISSUE_START_PHASES.includes(request.phaseId)) reject('PHASE_ID', 'Unknown issue-start phase');
   validateState(request.state);
   validateInput(request.input);
+  if (request.state.issueWorktree === request.state.baseCheckout) {
+    reject('BASE_CHECKOUT_TARGET', 'issue worktree must not be the base checkout');
+  }
+  validatePaths(request.state, request.input);
   validateEffectResult(request.effectResult);
   const expected = ISSUE_START_PHASES[request.state.completedPhases.length];
   if (request.phaseId !== expected) {
@@ -148,9 +217,6 @@ const validateRequest = (request) => {
   }
   if (!Number.isSafeInteger(request.checkpoint.attempt) || request.checkpoint.attempt < 1) {
     reject('INVALID_REQUEST', 'checkpoint.attempt must be a positive safe integer');
-  }
-  if (request.state.issueWorktree === request.state.baseCheckout) {
-    reject('BASE_CHECKOUT_TARGET', 'issue worktree must not be the base checkout');
   }
   return request;
 };
@@ -279,11 +345,22 @@ const proposedEffect = (request, scriptPath) => {
   };
   const effect = effects[phaseId];
   if (!effect) return null;
-  const digest = canonicalJsonSha256(effect.request);
+  const approvalId = effect.classification === 'approval-required'
+    ? phaseApprovalId({
+      checkpoint: request.checkpoint,
+      effect,
+      immutableState: {
+        branch: state.branch,
+        completedPhases: state.completedPhases,
+        issue: state.issue,
+        issueWorktree: state.issueWorktree,
+        phaseId,
+      },
+      namespace: 'issue-start',
+    })
+    : null;
   return {
-    approvalId: effect.classification === 'approval-required'
-      ? `issue-start:${phaseId}:${digest}`
-      : null,
+    approvalId,
     ...effect,
   };
 };

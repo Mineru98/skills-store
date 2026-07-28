@@ -49,6 +49,7 @@ import {
   PHASE_CONTRACT_ID,
   canonicalJsonBytes,
   parseCanonicalJson,
+  phaseApprovalId,
   validatePhaseEnvelope,
 } from './issue-phase-contract.mjs';
 
@@ -413,12 +414,22 @@ const held = (request, data, proposedEffect = null, observedFacts = []) => valid
   error: null,
 });
 
-const approvalEffect = (request, suffix, type, effectRequest) => ({
-  approvalId: `${request.checkpoint.id}:${suffix}`,
-  classification: 'approval-required',
-  request: effectRequest,
-  type,
-});
+const approvalEffect = (request, suffix, type, effectRequest) => {
+  const proposed = {
+    classification: 'approval-required',
+    request: effectRequest,
+    type,
+  };
+  return {
+    approvalId: phaseApprovalId({
+      checkpoint: request.checkpoint,
+      effect: proposed,
+      immutableState: { phaseId: request.phaseId, suffix },
+      namespace: 'issue-end',
+    }),
+    ...proposed,
+  };
+};
 
 const localEffect = (type, effectRequest) => ({
   approvalId: null,
@@ -577,7 +588,7 @@ function phaseComment(request) {
   requireBoolean(input.commentPublished, 'input.commentPublished');
   requireBoolean(input.evidencePublished, 'input.evidencePublished');
   requireBoolean(input.required, 'input.required');
-  if (!input.required || input.evidencePublished) {
+  if (!input.required) {
     return completed(request, { suppressed: true });
   }
   if (!input.commentPublished) {

@@ -249,7 +249,9 @@ test('[active-required] issue-merge merge proposal requires clean preflight, cri
   };
   const merge = response(scripts[0], request('issue-merge.merge-verify', base, 'merge'));
   assert.equal(merge.proposedEffect.type, 'pr-merge');
-  assert.equal(merge.proposedEffect.approvalId, 'issue-merge-pr-49');
+  assert.match(merge.proposedEffect.approvalId, /^issue-merge:pr-merge:[0-9a-f]{64}$/);
+  const mergeReplay = response(scripts[0], request('issue-merge.merge-verify', base, 'merge'));
+  assert.equal(mergeReplay.proposedEffect.approvalId, merge.proposedEffect.approvalId);
   const resumed = response(scripts[0], request('issue-merge.merge-verify', {
     ...base,
     mergeObserved: true,
@@ -319,6 +321,15 @@ test('[active-required] issue-merge close and cleanup are impossible before veri
   assert.equal(premature.status, 3);
   assert.equal(JSON.parse(premature.stdout).data.holdCode, 'ISSUE_NOT_CLOSED');
 
+  const cleanupApproval = response(scripts[0], request('issue-merge.close-cleanup', {
+    subcheckpoint: 'cleanup',
+    issue: 49,
+    worktree: '/tmp/issue-49',
+    branch: 'feat/49',
+    integrationPassed: true,
+    issueClosed: true,
+    cleanupApproved: false,
+  }, 'cleanup'));
   const cleanup = response(scripts[0], request('issue-merge.close-cleanup', {
     subcheckpoint: 'cleanup',
     issue: 49,
@@ -327,8 +338,52 @@ test('[active-required] issue-merge close and cleanup are impossible before veri
     integrationPassed: true,
     issueClosed: true,
     cleanupApproved: true,
+    approvalId: cleanupApproval.proposedEffect.approvalId,
   }, 'cleanup'));
   assert.equal(cleanup.proposedEffect.type, 'closed-issue-worktree-cleanup');
   assert.equal(cleanup.data.retainEvidenceBranches, true);
   assert.doesNotMatch(JSON.stringify(cleanup.proposedEffect.request), /evidence\/issue-/);
+});
+
+test('[active-required] issue-merge cleanup approvals bind exact targets and reject substitution', () => {
+  const base = {
+    subcheckpoint: 'cleanup',
+    issue: 49,
+    integrationPassed: true,
+    issueClosed: true,
+    cleanupApproved: false,
+  };
+  const targetA = response(scripts[0], request('issue-merge.close-cleanup', {
+    ...base,
+    worktree: '/tmp/victim-a',
+    branch: 'branch-a',
+  }, 'cleanup'));
+  const targetB = response(scripts[0], request('issue-merge.close-cleanup', {
+    ...base,
+    worktree: '/tmp/victim-b',
+    branch: 'branch-b',
+  }, 'cleanup'));
+  assert.equal(targetA.proposedEffect.type, 'closed-issue-worktree-cleanup');
+  assert.equal(targetB.proposedEffect.type, 'closed-issue-worktree-cleanup');
+  assert.notEqual(targetA.proposedEffect.approvalId, targetB.proposedEffect.approvalId);
+
+  const substituted = response(scripts[0], request('issue-merge.close-cleanup', {
+    ...base,
+    worktree: '/tmp/victim-b',
+    branch: 'branch-b',
+    cleanupApproved: true,
+    approvalId: targetA.proposedEffect.approvalId,
+  }, 'cleanup'));
+  assert.equal(substituted.data.holdCode, 'CLEANUP_APPROVAL_MISMATCH');
+  assert.equal(substituted.proposedEffect, null);
+
+  const approved = response(scripts[0], request('issue-merge.close-cleanup', {
+    ...base,
+    worktree: '/tmp/victim-a',
+    branch: 'branch-a',
+    cleanupApproved: true,
+    approvalId: targetA.proposedEffect.approvalId,
+  }, 'cleanup'));
+  assert.equal(approved.data.holdCode, 'EFFECT_PROPOSED');
+  assert.equal(approved.proposedEffect.approvalId, targetA.proposedEffect.approvalId);
 });

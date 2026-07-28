@@ -12,8 +12,9 @@ import {
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { canonicalJsonBytes } from '../tools/issue-phase-contract.mjs';
+import { canonicalJsonBytes, canonicalJsonSha256 } from '../tools/issue-phase-contract.mjs';
 import {
+  buildCapabilityBundle,
   CapabilityCompatibilityError,
   probeCapabilityBundle,
   verifyCapabilityBundle,
@@ -71,6 +72,38 @@ test('[active-required] capability bundle rejects missing and extra phase IDs', 
     } finally {
       rmSync(current.parent, { recursive: true, force: true });
     }
+  }
+});
+
+test('[active-required] capability bundle rejects a duplicate valid phase', () => {
+  const current = fixture();
+  try {
+    const bundle = structuredClone(buildCapabilityBundle(current.root));
+    bundle.phases.push(structuredClone(bundle.phases[0]));
+    const { capabilitySetSha256: _oldDigest, ...preimage } = bundle;
+    bundle.capabilitySetSha256 = canonicalJsonSha256(preimage);
+    writeBundle(current.root, bundle);
+
+    expectCode('PHASE_SET_MISMATCH', () => verifyCapabilityBundle(current.root));
+  } finally {
+    rmSync(current.parent, { recursive: true, force: true });
+  }
+});
+
+test('[active-required] capability bundle rejects coherent self-digested normative effect drift', () => {
+  const current = fixture();
+  try {
+    const bundle = structuredClone(buildCapabilityBundle(current.root));
+    const phase = bundle.phases.find((item) => item.phaseId === 'issue-start.publish-evidence');
+    phase.effects = [{ approvalClass: 'local-idempotent', type: 'undocumented-write' }];
+    phase.approvalClasses = ['local-idempotent'];
+    const { capabilitySetSha256: _oldDigest, ...preimage } = bundle;
+    bundle.capabilitySetSha256 = canonicalJsonSha256(preimage);
+    writeBundle(current.root, bundle);
+
+    expectCode('NORMATIVE_PHASE_MISMATCH', () => verifyCapabilityBundle(current.root));
+  } finally {
+    rmSync(current.parent, { recursive: true, force: true });
   }
 });
 

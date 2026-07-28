@@ -2,7 +2,9 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync,
+} from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -39,6 +41,8 @@ const fixture = () => {
   const root = mkdtempSync(path.join(os.tmpdir(), 'issue-start-phase-'));
   const baseCheckout = path.join(root, 'base');
   const issueWorktree = path.join(root, 'issue-49');
+  mkdirSync(baseCheckout, { recursive: true });
+  mkdirSync(issueWorktree, { recursive: true });
   return {
     root,
     state: {
@@ -399,5 +403,71 @@ test('[active-required] issue-start rejects malformed requests and keeps tracker
     assert.equal(spawnSync('test', ['!', '-e', marker]).status, 0);
   } finally {
     rmSync(current.root, { recursive: true, force: true });
+  }
+});
+
+test('[active-required] issue-start rejects every path escape before proposing an effect', () => {
+  for (const scriptPath of scripts) {
+    const current = fixture();
+    const outside = path.join(current.root, '..', `${path.basename(current.root)}-outside`);
+    mkdirSync(outside, { recursive: true });
+    symlinkSync(outside, path.join(current.state.baseCheckout, 'escape'));
+    symlinkSync(path.join(outside, 'missing-target'), path.join(current.state.baseCheckout, 'dangling'));
+    try {
+      const intakeCases = [
+        ['input.planPath', { ...current.input, planPath: path.join(outside, 'plan.md') }],
+        ['input.intendedWorktree', { ...current.input, intendedWorktree: path.join(outside, 'worktree') }],
+        ['input.beforeArtifact', { ...current.input, beforeArtifact: path.join(outside, 'before.json') }],
+        ['input.afterArtifact', { ...current.input, afterArtifact: path.join(outside, 'after.json') }],
+        ['input.commentFile', { ...current.input, commentFile: path.join(outside, 'comment.md') }],
+        ['input.planPath symlink ancestor', {
+          ...current.input,
+          planPath: path.join(current.state.baseCheckout, 'escape', 'plan.md'),
+        }],
+        ['input.planPath dangling symlink ancestor', {
+          ...current.input,
+          planPath: path.join(current.state.baseCheckout, 'dangling', 'plan.md'),
+        }],
+      ];
+      for (const [label, input] of intakeCases) {
+        const result = invokePhase(
+          scriptPath,
+          requestFor('issue-start.intake', current.state, input),
+        );
+        assert.equal(result.status, 2, `${scriptPath} accepted ${label}`);
+        assert.equal(result.stdout, '');
+        assert.match(result.stderr, /PATH_(?:OUTSIDE_ROOT|SYMLINK)/);
+      }
+
+      const outsideState = {
+        ...current.state,
+        issueWorktree: path.join(outside, 'worktree'),
+        branch: current.input.intendedBranch,
+        completedPhases: phases.slice(0, 5),
+      };
+      const stateResult = invokePhase(
+        scriptPath,
+        requestFor('issue-start.before', outsideState, current.input),
+      );
+      assert.equal(stateResult.status, 2, `${scriptPath} accepted state.issueWorktree`);
+      assert.equal(stateResult.stdout, '');
+      assert.match(stateResult.stderr, /PATH_OUTSIDE_ROOT/);
+
+      const symlinkBase = path.join(current.root, 'base-link');
+      symlinkSync(current.state.baseCheckout, symlinkBase);
+      const baseResult = invokePhase(
+        scriptPath,
+        requestFor('issue-start.intake', {
+          ...current.state,
+          baseCheckout: symlinkBase,
+        }, current.input),
+      );
+      assert.equal(baseResult.status, 2, `${scriptPath} accepted symlink state.baseCheckout`);
+      assert.equal(baseResult.stdout, '');
+      assert.match(baseResult.stderr, /PATH_SYMLINK/);
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+      rmSync(current.root, { recursive: true, force: true });
+    }
   }
 });

@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   lstatSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   realpathSync,
@@ -333,11 +334,17 @@ export function verifyCapabilityBundle(root) {
   ], 'bundle');
   if (!Array.isArray(bundle.phases)) fail('INVALID_BUNDLE', 'phases must be an array');
   const actualIds = bundle.phases.map((phase) => phase.phaseId);
-  if (JSON.stringify(uniqueSorted(actualIds)) !== JSON.stringify(uniqueSorted(PHASE_IDS))
-    || new Set(actualIds).size !== PHASE_IDS.length) {
+  if (actualIds.length !== PHASE_IDS.length
+    || JSON.stringify(actualIds) !== JSON.stringify(PHASE_IDS)) {
     fail('PHASE_SET_MISMATCH', 'Capability phase IDs must equal the exact 13/11/9 inventory');
   }
   bundle.phases.forEach(validatePhase);
+  if (!canonicalJsonBytes(bundle.phases).equals(canonicalJsonBytes(PHASE_CAPABILITIES))) {
+    fail('NORMATIVE_PHASE_MISMATCH', 'Capability phases differ from the independent normative oracle');
+  }
+  if (!canonicalJsonBytes(bundle.mirrors).equals(canonicalJsonBytes(MIRRORS))) {
+    fail('NORMATIVE_MIRROR_MISMATCH', 'Capability mirrors differ from the independent normative oracle');
+  }
   verifyMirrors(root);
   exactKeys(bundle.closure, ['algorithm', 'entries', 'sha256'], 'closure');
   if (bundle.closure.algorithm !== 'sha256-raw-bytes' || !Array.isArray(bundle.closure.entries)) {
@@ -440,17 +447,18 @@ const invokeInstalledMirror = (root, mirror, phases) => {
       commentPublished: false,
       baseSynced: false,
     };
+    mkdirSync(startState.baseCheckout, { recursive: true });
     const startInput = {
       baseDirty: false,
       issueBody: 'Compatibility probe',
       classification: 'backend',
-      planPath: path.join(directory, 'plan.md'),
+      planPath: path.join(startState.baseCheckout, 'plan.md'),
       intendedWorktree: path.join(directory, 'issue-49'),
       intendedBranch: 'feat/49-probe',
       commitMessage: 'test: compatibility probe',
-      beforeArtifact: path.join(directory, 'before.json'),
-      afterArtifact: path.join(directory, 'after.json'),
-      commentFile: path.join(directory, 'comment.md'),
+      beforeArtifact: path.join(directory, 'issue-49', 'before.json'),
+      afterArtifact: path.join(directory, 'issue-49', 'after.json'),
+      commentFile: path.join(directory, 'issue-49', 'comment.md'),
       baseBranch: 'main',
     };
     for (const phase of phases) {
@@ -513,10 +521,9 @@ const invokeInstalledMirror = (root, mirror, phases) => {
 
 export async function probeCapabilityBundle(root, options = {}) {
   const verified = verifyCapabilityBundle(root);
-  const bundle = parseCanonicalJson(readSafeFile(root, BUNDLE_PATH));
-  for (const mirror of bundle.mirrors) {
-    const installed = options.invoke ? null : invokeInstalledMirror(root, mirror, bundle.phases);
-    for (const phase of bundle.phases) {
+  for (const mirror of MIRRORS) {
+    const installed = options.invoke ? null : invokeInstalledMirror(root, mirror, PHASE_CAPABILITIES);
+    for (const phase of PHASE_CAPABILITIES) {
       const outcome = options.invoke
         ? await options.invoke({ mirror, phase })
         : installed.get(phase.phaseId);
@@ -531,5 +538,5 @@ export async function probeCapabilityBundle(root, options = {}) {
       }
     }
   }
-  return { ...verified, probedInvocations: bundle.mirrors.length * bundle.phases.length };
+  return { ...verified, probedInvocations: MIRRORS.length * PHASE_CAPABILITIES.length };
 }

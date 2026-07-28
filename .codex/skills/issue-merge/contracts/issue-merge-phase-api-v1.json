@@ -36,6 +36,7 @@
       "properties": {
         "action": { "type": "string" },
         "accumulatedOnto": { "type": "string" },
+        "approvalId": { "type": "string", "minLength": 1 },
         "autoClosed": { "type": "boolean" },
         "baseBranch": { "type": "string" },
         "baseCommit": { "type": "string" },

@@ -243,6 +243,23 @@ export function canonicalJsonSha256(value) {
   return createHash('sha256').update(canonicalJsonBytes(value)).digest('hex');
 }
 
+export function phaseApprovalId({
+  checkpoint,
+  effect,
+  immutableState,
+  namespace,
+}) {
+  if (typeof namespace !== 'string' || namespace.length === 0) {
+    fail('INVALID_APPROVAL', 'Approval namespace must be a non-empty string');
+  }
+  return `${namespace}:${effect.type}:${canonicalJsonSha256({
+    checkpoint,
+    effect,
+    immutableState,
+    namespace,
+  })}`;
+}
+
 export function parseCanonicalJson(input) {
   const text = decodeInput(input);
   const value = new CanonicalJsonParser(text).parse();
