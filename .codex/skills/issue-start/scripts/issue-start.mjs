@@ -31,9 +31,11 @@
  */
 import {
   mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, renameSync, readdirSync, cpSync,
+  realpathSync,
 } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import {
   git, fail, must, repoRoot, currentBranch, isLinkedWorktree, detectRemote, detectBase,
   branchExists, remoteBranchExists, existingWorktreeFor, isIgnored,
@@ -526,4 +528,29 @@ function main() {
   }
 }
 
-if (process.argv[1] && import.meta.url === `file://${path.resolve(process.argv[1])}`) main();
+/**
+ * 이 파일이 직접 실행된 진입점인지 판별한다.
+ *
+ * 경로 문자열끼리 비교한다. `file://` 를 손으로 이어붙이면 공백·특수문자가 든 경로에서
+ * 퍼센트 인코딩이 빠져 어긋나므로 fileURLToPath 를 쓴다.
+ *
+ * 심볼릭 링크로 설치된 스킬(`~/.claude/skills/<name>` → 저장소)에서는 두 값의 기준이 다르다.
+ * Node ESM 로더는 모듈 URL 을 realpath 로 정규화하는 반면 `process.argv[1]` 은 링크 경로
+ * 그대로다. 그래서 **양쪽 모두** realpath 로 풀어 비교한다. 한쪽만 풀면
+ * `--preserve-symlinks-main` 으로 실행할 때 반대 방향으로 다시 어긋난다.
+ */
+function isMainModule(metaUrl) {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const here = fileURLToPath(metaUrl);
+  const resolved = path.resolve(entry);
+  if (here === resolved) return true;   // 일반 실행 — 파일시스템 접근 없이 끝난다
+  try {
+    return realpathSync(here) === realpathSync(resolved);
+  } catch {
+    // 같은 경로였다면 위에서 이미 true 다. 여기서 실패했다면 진입점이 아니다.
+    return false;
+  }
+}
+
+if (isMainModule(import.meta.url)) main();

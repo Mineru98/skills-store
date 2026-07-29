@@ -7,7 +7,8 @@
  *   node verify.js --input image.png [--verbose]
  */
 import { readFile, stat } from "fs/promises";
-import { dirname, join } from "path";
+import { realpathSync } from "fs";
+import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -129,7 +130,32 @@ async function main() {
   process.exit(result.valid ? 0 : 1);
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+/**
+ * 이 파일이 직접 실행된 진입점인지 판별한다.
+ *
+ * 경로 문자열끼리 비교한다. `file://` 를 손으로 이어붙이면 공백·특수문자가 든 경로에서
+ * 퍼센트 인코딩이 빠져 어긋나므로 fileURLToPath 를 쓴다.
+ *
+ * 심볼릭 링크로 설치된 스킬에서는 두 값의 기준이 다르다. Node ESM 로더는 모듈 URL 을
+ * realpath 로 정규화하는 반면 `process.argv[1]` 은 링크 경로 그대로다. 그래서 **양쪽 모두**
+ * realpath 로 풀어 비교한다. 한쪽만 풀면 `--preserve-symlinks-main` 으로 실행할 때
+ * 반대 방향으로 다시 어긋난다.
+ */
+function isMainModule(metaUrl) {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const here = fileURLToPath(metaUrl);
+  const resolved = resolve(entry);
+  if (here === resolved) return true;   // 일반 실행 — 파일시스템 접근 없이 끝난다
+  try {
+    return realpathSync(here) === realpathSync(resolved);
+  } catch {
+    // 같은 경로였다면 위에서 이미 true 다. 여기서 실패했다면 진입점이 아니다.
+    return false;
+  }
+}
+
+const isMain = isMainModule(import.meta.url);
 if (isMain) {
   main().catch(e => { console.error("[verify] Error:", e.message); process.exit(1); });
 }

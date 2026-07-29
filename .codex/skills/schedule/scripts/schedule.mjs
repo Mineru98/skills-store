@@ -1089,7 +1089,29 @@ function main(argv) {
   }
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+/**
+ * 이 파일이 직접 실행된 진입점인지 판별한다.
+ *
+ * 심볼릭 링크로 설치된 스킬에서는 두 값의 기준이 다르다. Node ESM 로더는 모듈 URL 을
+ * realpath 로 정규화하는 반면 `process.argv[1]` 은 링크 경로 그대로다. 그래서 **양쪽 모두**
+ * realpath 로 풀어 비교한다. 한쪽만 풀면 `--preserve-symlinks-main` 으로 실행할 때
+ * 반대 방향으로 다시 어긋난다.
+ */
+function isMainModule(metaUrl) {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const here = fileURLToPath(metaUrl);
+  const resolved = path.resolve(entry);
+  if (here === resolved) return true;   // 일반 실행 — 파일시스템 접근 없이 끝난다
+  try {
+    return fs.realpathSync(here) === fs.realpathSync(resolved);
+  } catch {
+    // 같은 경로였다면 위에서 이미 true 다. 여기서 실패했다면 진입점이 아니다.
+    return false;
+  }
+}
+
+const isMain = isMainModule(import.meta.url);
 if (isMain) {
   main(process.argv.slice(2));
 }
