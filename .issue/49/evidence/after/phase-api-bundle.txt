@@ -1,28 +1,31 @@
-SCENARIO=post-remediation capability bundle and lifecycle phase API verification
+SCENARIO=SEC-PATH-02-remediated capability bundle and lifecycle phase API verification, rebased onto current main
 BRANCH=feat/49-issue-phase-api
-IMPLEMENTATION_COMMIT=a966adab3068558e9a1b98cdb0dec00c0de87b16
+IMPLEMENTATION_COMMIT=987e358aed8ae125a358459d61df17ee95c07a9e
 BASE=main
 BASE_AT_START=58e93f483c297217c5e184011c00ad47c01d8e63
+BASE_AT_REBASE=e7d72b64921c94cdc0c3b68ee72d3c435b055af8
 PHASE_COUNTS=issue-start:13,issue-end:11,issue-merge:9,total:33
 INSTALLED_MIRROR_INVOCATIONS=.claude:33,.codex:33,total:66
-CAPABILITY_SET_SHA256=235d2a50e35bc2f4e05b7b7e6e1d387e3f6702806cf750e2bcb5dafed58c7d0f
-CLOSURE_SHA256=8097512fd6589d7395983484907aa19de6621fb3dbbbef33b0a901cfb95352f9
+CAPABILITY_SET_SHA256=808c41072003062333bc5c4ca87a7eff9a663e0bbe3e1fc110f569c86222a779
+CLOSURE_SHA256=8c5f36d189ba7ee0bf725be653e181a800266bfc2341dd4fba1ad7f358fb386e
 CLOSURE_ENTRIES=87
 REPOSITORY_ORIGIN=https://github.com/Mineru98/skills-store
 INTEGRATED_COMMIT=not-yet-merged
 
 IMPLEMENTATION_COMMIT_CHAIN:
-2d1866b22667ce89d176df7971e607dfcea323b8 feat(issue-api): define canonical machine phase protocol
-46b548e4a0ceb8f6368684976ffe844521267679 feat(issue-start): expose reviewed phase API
-62f124ca48b7c5f0e9361ddfa3a59913bbab21c9 feat(issue-end): expose evidence and PR phase API
-7c2e8d94b6f5cfa5a74acff57f227351fcebf2fd feat(issue-merge): expose cumulative merge phase API
-6424edb55abaf2cc6df6842e14015c857c4e4dfb feat(issue-api): publish active orchestration capability bundle
-a966adab3068558e9a1b98cdb0dec00c0de87b16 fix(issue-api): fail closed on reviewed capability drift
+166c1e70e2e5e76bad9dea0c11cb6806b366fbc4 feat(issue-api): define canonical machine phase protocol
+6633bb8353b89522a9deb46e051bd04703e76aac feat(issue-start): expose reviewed phase API
+44e85e7bfe1442d811e05757837435aa2a0bb6ae feat(issue-end): expose evidence and PR phase API
+2d47a6e711fd79b0bd3bf0a9f84ca017bf4ab7b0 feat(issue-merge): expose cumulative merge phase API
+c8ebe2a1c5dfd530f1ecbd88ea015f3799d866b9 feat(issue-api): publish active orchestration capability bundle
+b74cdb2d6c2dec9367ccb3ac1d0c3cbc501aa0f1 fix(issue-api): fail closed on reviewed capability drift
+9b7f7b2e31afe472abf41bf7ac3c1c439388e121 fix(issue-merge): bind cleanup to registered worktree
+987e358aed8ae125a358459d61df17ee95c07a9e fix(issue-api): rebind capability closure to rebased main
 
 AUTOMATED_GATES:
 check-shared=pass
-node-test-suite=88-pass,0-fail
-phase-api-suite=43-pass,0-fail
+node-test-suite=90-pass,0-fail
+phase-api-suite=44-pass,0-fail
 capability-compatibility=9-pass,0-fail
 test-flow=pass
 test-preflight=pass
@@ -34,6 +37,9 @@ required-unpublished-issue-end-comment=held-with-tracker-comment-effect
 issue-start-outside-root=exit-2-zero-effect
 issue-start-dangling-symlink=exit-2-zero-effect
 cleanup-approval-target-binding=distinct-ids-and-substitution-held-zero-effect
+cleanup-registered-worktree-authority=legitimate-approval-required
+cleanup-system-sibling-symlink-dangling-nonexistent-mismatch=exit-2-zero-effect
+cleanup-observed-removal=complete-with-bound-approval
 pristine-capability-bundle=eligible-33-phases
 coherent-self-digested-normative-mutation=NORMATIVE_PHASE_MISMATCH
 cleanup=temp-directories-driver-processes-ports-browsers-none-left
@@ -46,6 +52,9 @@ uncertain-provider-outcome=reconcile-only
 interruption-and-resume=checkpoint-stable
 outside-root-and-dangling-symlink=rejected
 approval-target-substitution=held-with-zero-effect
+cleanup-unregistered-targets=rejected-before-effect
+cleanup-existing-and-dangling-symlinks=rejected-before-effect
+cleanup-non-normalized-and-outside-root=rejected-before-effect
 duplicate-valid-phase=PHASE_SET_MISMATCH
 coherent-self-digested-phase-drift=NORMATIVE_PHASE_MISMATCH
 undocumented-effect-and-provider-failure=rejected

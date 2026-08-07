@@ -9,25 +9,41 @@
 | 기계 단계 API | 사람용 CLI만 존재 | issue-start 13 / issue-end 11 / issue-merge 9, 총 33단계 |
 | 설치 미러 | 단계 계약 없음 | Claude/Codex 양쪽 33단계, 실제 66회 호출 통과 |
 | 무결성 | capability 폐쇄 없음 | 87개 저장소 상대 경로 raw-byte 폐쇄와 독립 normative oracle |
-| capability digest | 없음 | `235d2a50e35bc2f4e05b7b7e6e1d387e3f6702806cf750e2bcb5dafed58c7d0f` |
-| closure digest | 없음 | `8097512fd6589d7395983484907aa19de6621fb3dbbbef33b0a901cfb95352f9` |
-| 실패 폐쇄 | 없음 | 경로 이탈·dangling symlink·승인 대상 바꿔치기·중복 단계·self-digested 단계 변조를 거부 |
+| capability digest | 없음 | `808c41072003062333bc5c4ca87a7eff9a663e0bbe3e1fc110f569c86222a779` |
+| closure digest | 없음 | `8c5f36d189ba7ee0bf725be653e181a800266bfc2341dd4fba1ad7f358fb386e` |
+| 실패 폐쇄 | 없음 | 경로 이탈·dangling symlink·미등록 cleanup worktree·승인 대상 바꿔치기·중복 단계·self-digested 단계 변조를 거부 |
 
 ### 보완 사항
 
 - issue-end는 게시 증거가 있어도 필수 코멘트가 미게시이면 `tracker-comment` 효과를 유지합니다.
 - issue-start는 신뢰된 base checkout/workspace 경계 밖 경로와 symlink ancestor를 효과 제안 전에 거부합니다.
+- issue-merge cleanup은 검증된 저장소의 실제 git worktree 등록부, 허용 worktree root,
+  정확한 등록 경로와 브랜치가 모두 일치할 때만 승인 효과를 제안합니다.
 - 승인 ID는 checkpoint, 전체 효과 요청, 불변 상태를 canonical SHA-256으로 결합해 정확한 대상에 바인딩합니다.
 - capability 검증은 번들 자체 선언이 아니라 코드 소유의 13/11/9 단계 목록과 효과 정책을 기준으로 판정합니다.
+
+### 최신 main 위로 rebase
+
+브랜치를 현재 main(`e7d72b6`) 위로 rebase 했습니다. 텍스트 충돌은 없었고, 이미 main 에 반영된
+증거 커밋 2개는 자동으로 skip 됐습니다. 다만 그사이 main 에 들어온 두 변경이
+capability closure 를 깨뜨렸고, fail-closed 설계가 이를 그대로 잡아냈습니다.
+
+- `242e24a` (#48) — `issue-start/SKILL.md`
+- `6670b26` (#50) — `issue-start/scripts/issue-start.mjs`
+
+87개 폐쇄 경로 중 위 두 파일의 Claude/Codex 미러 4개가 `CLOSURE_HASH_MISMATCH` 로 거부됐습니다.
+번들을 재생성하고 미러를 동기화한 뒤(`987e358`) 전체 게이트를 다시 통과시켰으므로,
+capability/closure digest 는 위 표의 값으로 갱신됩니다.
 
 ### 검증 명령
 
 - `sh scripts/check-shared.sh` — 통과
-- `node --test scripts/test-*.mjs` — 88개 통과, 실패 0
+- `node --test scripts/test-*.mjs` — 90개 통과, 실패 0
 - `sh scripts/test-flow.sh` — 통과
 - `sh scripts/test-preflight.sh` — 통과
 - `sh scripts/test-issue-create.sh` — 통과
-- 실제 CLI 수동 시나리오 — 필수 코멘트, 경로 이탈/dangling symlink, cleanup 승인 바꿔치기 모두 fail-closed
+- 실제 CLI 수동 시나리오 — 필수 코멘트, 경로 이탈/dangling symlink, cleanup 승인
+  바꿔치기와 미등록·외부·symlink cleanup target 모두 fail-closed
 
 ### 수동 및 적대적 확인
 
@@ -35,7 +51,10 @@
 `proposedEffect`를 확인했습니다. 서로 다른 cleanup 대상은 다른 승인 ID를 만들고, 다른 대상의
 승인 ID 재사용은 `CLEANUP_APPROVAL_MISMATCH`와 zero effect로 중단됩니다. 저장소 capability
 bundle은 정상 상태에서 33단계 eligible이며, 단계 효과를 바꾼 뒤 digest까지 다시 계산한 변조본도
-`NORMATIVE_PHASE_MISMATCH`로 거부됩니다. 모든 임시 디렉터리와 QA 드라이버를 제거했습니다.
+`NORMATIVE_PHASE_MISMATCH`로 거부됩니다. `/etc`, sibling repository, 기존 symlink, dangling
+symlink, 외부 nonexistent target, 등록 경로 불일치는 두 설치 미러 모두에서 stdout/effect 없이
+exit 2로 거부되고, 실제 등록된 worktree만 안정적인 `CLEANUP_APPROVAL_REQUIRED`에 도달합니다.
+모든 임시 디렉터리와 QA 드라이버를 제거했습니다.
 
 ### 증거 파일
 
