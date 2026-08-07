@@ -9,8 +9,8 @@
 | 기계 단계 API | 사람용 CLI만 존재 | issue-start 13 / issue-end 11 / issue-merge 9, 총 33단계 |
 | 설치 미러 | 단계 계약 없음 | Claude/Codex 양쪽 33단계, 실제 66회 호출 통과 |
 | 무결성 | capability 폐쇄 없음 | 87개 저장소 상대 경로 raw-byte 폐쇄와 독립 normative oracle |
-| capability digest | 없음 | `fcb8fa8ba21b758ec5a9ca53bbd4696d29ce0a055b86a97faf68729810f80e85` |
-| closure digest | 없음 | `dd93cb56dc55cadb1edf2d2b0efdf4df82cfa6ab7840149fc9436f4f4c1bca6a` |
+| capability digest | 없음 | `808c41072003062333bc5c4ca87a7eff9a663e0bbe3e1fc110f569c86222a779` |
+| closure digest | 없음 | `8c5f36d189ba7ee0bf725be653e181a800266bfc2341dd4fba1ad7f358fb386e` |
 | 실패 폐쇄 | 없음 | 경로 이탈·dangling symlink·미등록 cleanup worktree·승인 대상 바꿔치기·중복 단계·self-digested 단계 변조를 거부 |
 
 ### 보완 사항
@@ -21,6 +21,19 @@
   정확한 등록 경로와 브랜치가 모두 일치할 때만 승인 효과를 제안합니다.
 - 승인 ID는 checkpoint, 전체 효과 요청, 불변 상태를 canonical SHA-256으로 결합해 정확한 대상에 바인딩합니다.
 - capability 검증은 번들 자체 선언이 아니라 코드 소유의 13/11/9 단계 목록과 효과 정책을 기준으로 판정합니다.
+
+### 최신 main 위로 rebase
+
+브랜치를 현재 main(`e7d72b6`) 위로 rebase 했습니다. 텍스트 충돌은 없었고, 이미 main 에 반영된
+증거 커밋 2개는 자동으로 skip 됐습니다. 다만 그사이 main 에 들어온 두 변경이
+capability closure 를 깨뜨렸고, fail-closed 설계가 이를 그대로 잡아냈습니다.
+
+- `242e24a` (#48) — `issue-start/SKILL.md`
+- `6670b26` (#50) — `issue-start/scripts/issue-start.mjs`
+
+87개 폐쇄 경로 중 위 두 파일의 Claude/Codex 미러 4개가 `CLOSURE_HASH_MISMATCH` 로 거부됐습니다.
+번들을 재생성하고 미러를 동기화한 뒤(`987e358`) 전체 게이트를 다시 통과시켰으므로,
+capability/closure digest 는 위 표의 값으로 갱신됩니다.
 
 ### 검증 명령
 
