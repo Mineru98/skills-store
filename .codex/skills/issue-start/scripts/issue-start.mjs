@@ -344,7 +344,8 @@ function checkReport(number, root) {
 function cmdReportCheck(number, root) {
   const result = checkReport(number, root);
   console.log(JSON.stringify(result, null, 2));
-  if (!result.ok) process.exit(5);
+  // 5 는 "리포트를 고쳐라", 6 은 "사람이 이미지를 올려야 한다". 스킬이 둘을 다르게 처리한다.
+  if (!result.ok) process.exit(result.needsManualUpload ? 6 : 5);
 }
 
 function cmdEvidenceCommit(number, root) {

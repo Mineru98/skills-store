@@ -100,6 +100,7 @@ description: issue-start 가 증거와 리포트를 게시하고 사람이 승�
  5  리포트 작성·보강
  6  게시 상태 확인·필요 시 재게시
  7  재게시 시 메인 체크아웃 최신화
+7.5 private 이미지 업로드 (private 저장소일 때만)
  8  리포트 코멘트 확인·필요 시 갱신
  9  검토 승인 확인
 10  PR 생성
@@ -292,7 +293,8 @@ node <skill>/scripts/issue-end.mjs context
 ```
 
 출력의 `isLinkedWorktree` / `issue` / `evidenceComplete` / `evidencePublished` /
-`evidencePublishedRef` / `onBaseBranch` / `openPr` 를 읽고 분기한다.
+`evidencePublishedRef` / `onBaseBranch` / `openPr` / `isPrivate` 를 읽고 분기한다.
+`isPrivate: true` 면 5단계에서 이미지 URL 을 확정할 수 없다. 7.5단계가 생긴다는 뜻이므로 1단계 체크리스트에 미리 넣는다.
 세부는 `references/context-triage.md`.
 
 ## 1단계 — 체크리스트 생성
@@ -307,6 +309,7 @@ TodoWrite 로 아래 11개를 만든다. **단계가 끝날 때마다 즉시 완
 5.  필요 시 리포트 보강 (comment.md)
 6.  게시 상태 확인·필요 시 재게시
 7.  재게시 시 메인 체크아웃의 기본 브랜치 최신화
+7.5 private 저장소면 이미지 업로드받아 comment.md 의 이미지 URL 교체
 8.  리포트 코멘트 확인·필요 시 갱신
 9.  게시 리포트 검토 승인 확인
 10. PR 생성

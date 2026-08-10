@@ -1,0 +1,11 @@
+# 테스트 결과 (fix/54-private-evidence-render)
+
+test-images.mjs          test-images: 통과
+test-common.mjs          test-common: 통과
+test-tracker.mjs         test-tracker: 통과
+test-docs.mjs            test-docs: 통과
+test-convention.mjs      test-convention: 통과
+test-flow.sh             test-flow: 통과
+test-preflight.sh        test-preflight: 통과
+test-issue-create.sh     test-issue-create: 통과
+check-shared.sh          check-shared: 통과

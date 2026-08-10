@@ -210,7 +210,8 @@ function cmdReportCheck(args) {
   const { key } = evidenceKey(args, currentBranch());
   const result = checkReport(root, key);
   console.log(JSON.stringify(result, null, 2));
-  if (!result.ok) process.exit(5);
+  // 5 는 "리포트를 고쳐라", 6 은 "사람이 이미지를 올려야 한다". 스킬이 둘을 다르게 처리한다.
+  if (!result.ok) process.exit(result.needsManualUpload ? 6 : 5);
 }
 
 function cmdCommit(args) {
@@ -218,7 +219,12 @@ function cmdCommit(args) {
   const { key, issue } = evidenceKey(args, currentBranch());
   const reportFile = path.join(evidenceDir(root, key), 'comment.md');
   const report = checkReport(root, key);
-  if (!report.ok) fail(`리포트 이미지 검증 실패:\n- ${report.errors.join('\n- ')}`);
+  if (!report.ok) {
+    const head = report.needsManualUpload
+      ? 'private 저장소라 이미지를 사람이 올려야 합니다. 아래를 처리한 뒤 다시 실행하세요'
+      : '리포트 이미지 검증 실패';
+    fail(`${head}:\n- ${report.errors.join('\n- ')}`);
+  }
   const docs = publishDocumentation({ root, key, reportFile });
   if (!docs.ok) console.error(`! Confluence 게시 건너뜀: ${docs.warning}`);
   else if (!docs.skipped) console.log(`✓ Confluence 리포트 게시: ${docs.url}`);

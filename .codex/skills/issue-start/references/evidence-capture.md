@@ -163,11 +163,16 @@ node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <�
 출력의 `isPrivate` 와 `gh repo view` 결과가 다르면 안전한 쪽인 비공개 저장소 절차를 따른다.
 
 ```text
-PUBLIC / isPrivate:false   images[].mirrorUrl 을 사용
-PRIVATE / isPrivate:true   mirrorUrl 을 새 이미지 링크로 쓰지 않음
-                           이슈 웹 UI 에 webp 를 드래그해 올리고
-                           생성된 https://github.com/user-attachments/assets/... URL 을 사용
+renderMode: "raw"            images[].inlineUrl 을 그대로 ![](...) 에 사용
+renderMode: "manual-upload"  inlineUrl 이 null 이다. uploadUrl 의 이슈 코멘트 입력창에
+                             images[].localPath 의 webp 를 드래그해 올리고
+                             생성된 https://github.com/user-attachments/assets/... URL 을 사용
 ```
+
+**비공개 저장소에서 raw URL 이 되는지 시험하지 마라. 안 된다.**
+GitHub 은 `raw.githubusercontent.com` 과 `github.com/<owner>/<repo>/raw/...` 응답을 `Sec-Fetch-Site` 로 가른다.
+주소창으로 열면 서명 토큰이 붙어 이미지가 보이지만, 코멘트의 `<img>` 요청에는 붙지 않아 항상 깨진다.
+release 자산도 같다. **주소창에서 열렸다는 사실은 렌더링 근거가 아니다.**
 
 비공개 저장소에서도 커밋과 미러는 유지한다. 다만 raw/blob/release URL 은 보조 링크로만 남길 수 있고
 `![설명](...)` 안에는 `user-attachments` 직접 이미지 URL 만 넣는다.
@@ -205,7 +210,7 @@ gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comme
 
 | 전 | 후 |
 | --- | --- |
-| ![주문 목록 - 전](<before mirrorUrl>) | ![주문 목록 - 후](<after mirrorUrl>) |
+| ![주문 목록 - 전](<before inlineUrl>) | ![주문 목록 - 후](<after inlineUrl>) |
 
 빨간 박스가 변경 구간입니다. 상태 배지의 색과 라벨이 바뀌었습니다.
 

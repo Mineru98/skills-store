@@ -1,0 +1,7 @@
+classify github.com/o/r/raw/main/a.webp: "raw"
+private 보조 링크 ok: true
+private 보조 링크 errors: []
+public github-raw 인라인 ok: true
+public github-raw 인라인 errors: []
+private raw 인라인 ok: false
+private raw 인라인 needsManualUpload: true

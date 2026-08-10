@@ -1,0 +1,21 @@
+# private 저장소 raw 자산 접근 실측 (Mineru98/flower-rag, private)
+
+## 익명 raw.githubusercontent.com
+HTTP 404
+
+## 익명 github.com/<o>/<r>/raw/... (302 아님 = 토큰 미부여)
+HTTP 404  location=
+
+## 대조군: public 저장소는 raw 로 302 된다
+HTTP 302  location=https://raw.githubusercontent.com/Mineru98/skills-store/main/README.md
+
+## Vary 헤더 — GitHub 이 Sec-Fetch-Site 로 응답을 가른다
+vary: X-PJAX, X-PJAX-Container, Turbo-Visit, Turbo-Frame, X-Requested-With, X-GitHub-Client-Version, Sec-Fetch-Site,Accept-Encoding, Accept, X-Requested-With
+
+## 파일은 실재한다 (origin/main)
+git ls-tree origin/main -- .issue/219/evidence/before/documents-title-before.webp  → 존재 (flower-rag 에서 확인)
+
+## 사람이 브라우저 주소창으로 연 결과
+github.com/<o>/<r>/raw/... → 이미지 보임 (Sec-Fetch-Site: none 이라 서명 토큰 부여)
+raw.githubusercontent.com   → 404
+두 URL 모두 이슈 코멘트의 <img> 로는 깨짐
