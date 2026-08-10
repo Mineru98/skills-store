@@ -863,14 +863,19 @@ export function evidenceUrls({ root, key, issue, branch, mirrorRef, base }) {
     issue,
     branch,
     mirrorRef: ref,
+    renderMode: repo.isPrivate ? 'manual-upload' : 'raw',
+    uploadUrl: repo.isPrivate && issue ? `https://github.com/${repo.nameWithOwner}/issues/${issue}` : null,
     note: repo.isPrivate
-      ? 'private 저장소는 raw URL 이 코멘트에서 렌더링되지 않습니다. 이미지를 웹 UI 로 직접 첨부하고 raw URL 은 보조 링크로만 남기세요.'
+      ? 'private 저장소는 raw URL 이 <img> 로 렌더링되지 않습니다. 이미지를 웹 UI 로 직접 첨부하고 raw URL 은 보조 링크로만 남기세요.'
       : null,
     images: files.map((p) => ({
       path: p,
+      localPath: path.join(root, p),
       phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
       branchUrl: branch ? raw(branch, p) : null,
       mirrorUrl: raw(ref, p),
+      inlineUrl: repo.isPrivate ? null : raw(ref, p),
+      auxUrl: repo.isPrivate ? raw(ref, p) : null,
     })),
   };
 }

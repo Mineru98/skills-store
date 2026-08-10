@@ -450,9 +450,9 @@ node <skill>/scripts/issue-start.mjs report-check {issue_number}
 gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comment.md
 ```
 
-`visibility` 이 `PRIVATE` 이거나 `evidence-urls` 의 `isPrivate` 가 `true` 면 `mirrorUrl` 을
-새 이미지 링크로 쓰지 않는다. 이슈 웹 UI 에 이미지를 올려 받은 `user-attachments` URL 로
-`comment.md` 를 채운 뒤 게시하고, 실제 코멘트에서 렌더링을 확인한다.
+`evidence-urls` 의 `renderMode` 가 `manual-upload` 이면(= `isPrivate: true`) `inlineUrl` 이 `null` 이다.
+raw URL 은 어떤 형태로도 인라인 렌더링되지 않으므로 대체 URL 을 찾지 말고 사용자에게 업로드를 요청한다.
+`uploadUrl` 과 `images[].localPath` 를 보여주고, 받은 `user-attachments` URL 로 `comment.md` 를 채운 뒤 게시한다.
 
 세부와 코멘트 형식은 `references/evidence-capture.md`.
 

@@ -28,6 +28,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import {
   run, fail, detectBase, listEvidence, evidenceRel, repoSlugFromRemote, readIssueSettings,
@@ -604,20 +605,34 @@ export function evidenceUrls({ root, key, issue, branch, mirrorRef, base }) {
   if (files.length === 0) fail(`증거 파일이 없습니다: ${evidenceRel(root, key)}`);
 
   const raw = (r, p) => `https://raw.githubusercontent.com/${repo.nameWithOwner}/${r}/${p}`;
+  // private 저장소는 GitHub 이 Sec-Fetch-Site 로 응답을 가른다.
+  // 주소창으로 열면 서명 토큰이 붙어 보이지만, 코멘트의 <img> 요청에는 붙지 않아 무조건 깨진다.
+  // 저장소 파일 URL 계열(raw / github.com/raw / release)은 전부 같은 제약을 받으므로
+  // 사람이 웹 UI 로 올려 만든 user-attachments URL 외에는 인라인 방법이 없다.
+  const manual = Boolean(repo.isPrivate);
   return {
     repo: repo.nameWithOwner,
     isPrivate: repo.isPrivate,
     issue,
     branch,
     mirrorRef: ref,
-    note: repo.isPrivate
-      ? 'private 저장소는 raw URL 이 코멘트에서 렌더링되지 않습니다. 이미지를 웹 UI 로 직접 첨부하고 raw URL 은 보조 링크로만 남기세요.'
+    renderMode: manual ? 'manual-upload' : 'raw',
+    uploadUrl: manual && issue ? `https://github.com/${repo.nameWithOwner}/issues/${issue}` : null,
+    note: manual
+      ? 'private 저장소입니다. raw URL 은 <img> 로는 렌더링되지 않습니다(주소창으로는 열립니다). '
+        + 'uploadUrl 의 이슈 코멘트 입력창에 images[].localPath 의 webp 를 끌어다 놓아 user-attachments URL 을 얻은 뒤 '
+        + 'comment.md 의 ![설명](...) 에 그 URL 을 넣으세요. raw URL 은 이미지가 아닌 보조 링크 [파일명](auxUrl) 로만 남깁니다.'
       : null,
     images: files.map((p) => ({
       path: p,
+      localPath: path.join(root, p),
       phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
       branchUrl: branch ? raw(branch, p) : null,
       mirrorUrl: raw(ref, p),
+      // 인라인 이미지로 써도 되는 URL. private 이면 없다.
+      inlineUrl: manual ? null : raw(ref, p),
+      // 이미지가 아닌 보조 링크로만 쓰는 URL.
+      auxUrl: manual ? raw(ref, p) : null,
     })),
   };
 }

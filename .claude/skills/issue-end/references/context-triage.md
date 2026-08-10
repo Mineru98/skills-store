@@ -12,7 +12,7 @@ onBaseBranch      지금 main/master 위에 있는지
 issue             브랜치명에서 추론한 이슈 번호
 issueState/Title  gh 로 확인한 실제 이슈
 openPr            이 브랜치로 이미 열린 PR
-isPrivate         private 저장소면 raw URL 렌더링 불가
+isPrivate         true 면 raw URL 이 <img> 로 렌더링되지 않는다 → 7.5단계 필요
 dirty             커밋되지 않은 변경 개수
 upstream/ahead    push 필요 여부
 evidence          before/after 개수, comment.md 유무, 파일 목록

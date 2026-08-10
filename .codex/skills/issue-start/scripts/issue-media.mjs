@@ -38,9 +38,11 @@ function githubParts(url) {
   }
   if (parsed.hostname !== 'github.com' || parts.length < 2) return null;
   const [owner, repo] = parts;
-  if (parts[2] === 'blob' && parts.length >= 5) {
+  // github.com/<o>/<r>/raw/... 은 raw.githubusercontent.com 으로 302 되는 같은 자산이다.
+  // blob 과 달리 이미지 자체를 가리키므로 raw 로 취급한다.
+  if ((parts[2] === 'blob' || parts[2] === 'raw') && parts.length >= 5) {
     return {
-      host: 'github', type: 'blob', owner, repo, ref: parts[3], file: parts.slice(4).join('/'),
+      host: 'github', type: parts[2], owner, repo, ref: parts[3], file: parts.slice(4).join('/'),
     };
   }
   if (parts[2] === 'releases' && parts[3] === 'download' && parts.length >= 6) {
@@ -62,7 +64,7 @@ export function classifyImageUrl(url) {
     return 'invalid';
   }
   const gh = githubParts(url);
-  if (gh?.host === 'raw') return 'raw';
+  if (gh?.host === 'raw' || gh?.type === 'raw') return 'raw';
   if (gh?.type === 'blob') return 'blob';
   if (gh?.type === 'release') return 'release';
   if (parsed.hostname === 'github.com' && parsed.pathname.startsWith('/user-attachments/assets/')) {
@@ -252,7 +254,7 @@ export function resolveDownloadTarget(url, auth) {
   const gh = githubParts(url);
   const apiBase = auth?.githubApiBase ?? 'https://api.github.com';
   if (gh?.host === 'raw') return { ok: true, url, accept: null };
-  if (gh?.type === 'blob') {
+  if (gh?.type === 'blob' || gh?.type === 'raw') {
     return {
       ok: true,
       url: `https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/${gh.ref}/${gh.file}`,
@@ -333,7 +335,15 @@ export function validateEvidenceReport(markdown, { isPrivate = false } = {}) {
     sourceUrl: 'https://github.com/example/repo/issues/1',
   }]);
   const errors = [];
+  // private 저장소는 인라인 렌더링이 불가능해서 raw/blob 링크를 "보조 링크"로 남기도록 안내한다.
+  // 그 안내대로 쓴 링크를 검증기가 되받아치면 마무리가 영원히 막힌다.
+  const isAuxLink = (ref) => isPrivate
+    && ref.syntax === 'markdown-link'
+    && ['raw', 'release', 'blob'].includes(ref.kind);
+  const pendingUploads = [];
+
   for (const ref of refs) {
+    if (isAuxLink(ref)) continue;
     if (ref.syntax === 'html-image') {
       errors.push('HTML <img> 대신 ![설명](직접 이미지 링크)를 사용하세요.');
     }
@@ -350,8 +360,18 @@ export function validateEvidenceReport(markdown, { isPrivate = false } = {}) {
       errors.push(`GitHub 페이지 URL은 직접 이미지 링크가 아닙니다: ${ref.originalUrl}`);
     }
     if (isPrivate && ['raw', 'release'].includes(ref.kind)) {
-      errors.push(`private 저장소의 ${ref.kind} URL은 코멘트에서 렌더링되지 않을 수 있습니다. user-attachments로 전환하세요: ${ref.originalUrl}`);
+      // GitHub 은 이 자산을 Sec-Fetch-Site 로 갈라서 준다.
+      // 주소창으로 열면 보이지만 <img> 요청에는 서명 토큰을 붙이지 않아 깨진다.
+      pendingUploads.push(ref.originalUrl);
+      errors.push(`private 저장소라 인라인 렌더링이 안 됩니다(주소창으로는 열려도 <img>로는 깨집니다): ${ref.originalUrl}\n  → 이슈 웹 UI에 해당 webp를 끌어다 놓고 생성된 user-attachments URL로 바꾸세요. raw 링크를 남기려면 이미지가 아닌 보조 링크 [파일명](URL) 형태로 쓰세요.`);
     }
   }
-  return { ok: errors.length === 0, errors, references: refs };
+  return {
+    ok: errors.length === 0,
+    errors,
+    references: refs,
+    // 실패 원인이 "사람이 업로드해야 하는 건"인지 스킬이 기계적으로 구분할 수 있게 한다.
+    needsManualUpload: pendingUploads.length > 0,
+    pendingUploads,
+  };
 }

@@ -129,6 +129,38 @@ check('HTML 검출', invalid.errors.some((error) => error.includes('HTML')));
 check('bare URL 검출', invalid.errors.some((error) => error.includes('bare URL')));
 check('blob 페이지 검출', invalid.errors.some((error) => error.includes('페이지 URL')));
 check('private raw 검출', invalid.errors.some((error) => error.includes('user-attachments')));
+check('사람 업로드가 필요한 실패로 구분', invalid.needsManualUpload === true, JSON.stringify(invalid.pendingUploads));
+
+// github.com/<o>/<r>/raw/... 는 raw.githubusercontent.com 으로 302 되는 같은 자산이다.
+eq('github raw 경로 분류', classifyImageUrl('https://github.com/acme/private/raw/main/a.webp'), 'raw');
+eq(
+  'github raw 다운로드 대상 치환',
+  resolveDownloadTarget('https://github.com/acme/private/raw/main/docs/a.webp').url,
+  'https://raw.githubusercontent.com/acme/private/main/docs/a.webp',
+);
+
+// public 저장소면 두 형태 모두 인라인으로 렌더링된다.
+const publicRaw = validateEvidenceReport([
+  '![전](https://raw.githubusercontent.com/acme/open/main/a.webp)',
+  '![후](https://github.com/acme/open/raw/main/b.webp)',
+].join('\n'), { isPrivate: false });
+check('public raw 인라인 허용', publicRaw.ok, publicRaw.errors.join(', '));
+
+// private 안내문이 시키는 "보조 링크" 를 검증기가 되받아치면 마무리가 영원히 막힌다.
+const auxLink = validateEvidenceReport([
+  '![목록 화면](https://github.com/user-attachments/assets/abc)',
+  '원본: [before/list.webp](https://raw.githubusercontent.com/acme/private/main/.issue/7/evidence/before/list.webp)',
+  '[after/list.webp](https://github.com/acme/private/blob/main/.issue/7/evidence/after/list.webp)',
+].join('\n'), { isPrivate: true });
+check('private 보조 링크 허용', auxLink.ok, auxLink.errors.join(', '));
+check('보조 링크는 업로드 대기로 세지 않음', auxLink.needsManualUpload === false);
+
+// public 에서는 보조 링크 예외가 없다. 이미지는 이미지 문법으로 써야 한다.
+const publicAux = validateEvidenceReport(
+  '[list.webp](https://raw.githubusercontent.com/acme/open/main/list.webp)',
+  { isPrivate: false },
+);
+check('public 은 일반 링크 이미지 거부', !publicAux.ok);
 
 spawnSync('curl', ['-sS', `${base}/__shutdown`]);
 server.kill();

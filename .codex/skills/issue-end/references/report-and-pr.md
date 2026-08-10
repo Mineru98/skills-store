@@ -24,7 +24,7 @@
 
 | 전 | 후 |
 | --- | --- |
-| ![주문 목록 - 전](<before mirrorUrl>) | ![주문 목록 - 후](<after mirrorUrl>) |
+| ![주문 목록 - 전](<before inlineUrl>) | ![주문 목록 - 후](<after inlineUrl>) |
 
 빨간 박스가 변경 구간입니다. 상태 배지의 색과 라벨이 바뀌었습니다.
 
@@ -60,7 +60,8 @@
 
 - HTML `<img>`는 과거 입력을 읽을 때만 허용한다. 새 이미지는 반드시 설명이 있는 `![제목](<직접 이미지 URL>)` 형식으로 쓴다.
 - bare 이미지 URL, 일반 링크로 감싼 이미지, blob 페이지, 빈 설명을 쓰지 않는다.
-- private 저장소는 raw/release URL 대신 이슈 웹 UI의 `user-attachments` URL을 쓴다.
+- 인라인 이미지에는 `urls` 출력의 `inlineUrl` 만 쓴다. `inlineUrl` 이 `null`(= private)이면 이미지를 아직 쓸 수 없다. 7.5단계로 간다.
+- private 저장소에서 raw URL 을 남기려면 이미지가 아닌 보조 링크 `[파일명](<auxUrl>)` 로만 쓴다.
 - 증거 이미지는 반드시 `.webp`.
 - 숫자는 우측 정렬하고 변화율을 굵게.
 - **악화된 지표를 빼지 않는다.** 못 잰 항목은 빈칸이 아니라 `미측정 (사유)`.
@@ -252,7 +253,45 @@ node <skill>/scripts/issue-end.mjs urls --issue 59 --mirrorRef <mirror 출력의
 
 `--mirrorRef` 를 반드시 미러 출력값으로 넘긴다. 생략하면 기본 브랜치가 쓰이고, 폴백 상황에서 존재하지 않는 URL 이 만들어진다.
 
-`isPrivate: true` 면 raw URL 은 코멘트에서 렌더링되지 않는다. 커밋은 그대로 두고, 이미지를 이슈 웹 UI 에 드래그해 올린 뒤 그 `user-attachments` URL 을 `comment.md` 에 쓴다.
+출력의 `renderMode` 로 갈린다.
+
+```text
+renderMode: "raw"            public 저장소. images[].inlineUrl 을 그대로 ![](...) 에 쓴다.
+renderMode: "manual-upload"  private 저장소. inlineUrl 이 null 이다. 7.5단계로 간다.
+```
+
+## 7.5단계 — private 저장소 이미지 업로드 (renderMode 가 `manual-upload` 일 때만)
+
+private 저장소에서는 **저장소 파일 URL 로 인라인 렌더링이 불가능하다.** 우회로가 없다.
+
+GitHub 은 `raw.githubusercontent.com` 과 `github.com/<owner>/<repo>/raw/...` 응답을 `Sec-Fetch-Site` 로 가른다.
+주소창으로 열면 서명 토큰이 붙어 이미지가 보이지만, 코멘트의 `<img>` 요청에는 토큰이 붙지 않아 항상 깨진다.
+release 자산도 같다. **주소창에서 열린다는 사실은 렌더링 근거가 아니다.**
+
+그래서 사람이 한 번 올려야 한다. 아래를 그대로 질문한다.
+
+```text
+질문: issue-end 7.5단계(private 이미지 업로드)입니다. 이 저장소는 private 이라 raw URL 이 코멘트에서 렌더링되지 않습니다.
+아래 파일을 이슈 코멘트 입력창에 끌어다 놓고, 생성된 user-attachments URL 을 알려주세요.
+
+  업로드할 곳: <urls 출력의 uploadUrl>
+  파일:
+    - <images[].localPath 를 before/after 순서로 나열>
+
+- 업로드 URL 을 입력함     받은 URL 로 comment.md 를 채우고 이어서 진행합니다
+- 이미지 없이 진행         이미지를 빼고 텍스트 증거와 보조 링크만으로 리포트를 만듭니다
+```
+
+받은 URL 을 `comment.md` 의 `![설명](...)` 에 넣고 `report-check` 를 다시 돌린다.
+"이미지 없이 진행" 을 고르면 `![](...)` 를 모두 지우고 `[<파일명>](<auxUrl>)` 보조 링크로 바꾼다.
+보조 링크는 검증기가 통과시킨다. 이미지 문법으로 남은 raw URL 만 막는다.
+
+```bash
+node <skill>/scripts/issue-end.mjs report-check --issue 59
+# exit 0  통과
+# exit 5  리포트 문법 문제 → 5단계로 돌아간다
+# exit 6  private 업로드 미완 → 이 단계를 다시 한다
+```
 
 ## 8단계 — 리포트 코멘트 확인·필요 시 갱신
 
@@ -293,7 +332,7 @@ gh issue view 59 --json comments \
 
 1. 미러 push 가 안 됐다 → `mirror` 출력의 `pushed` 확인
 2. `--mirrorRef` 를 안 넘겼다 → 폴백인데 기본 브랜치 URL 을 썼다
-3. private 저장소다 → 웹 UI 업로드로 전환
+3. private 저장소인데 raw URL 을 이미지로 썼다 → 7.5단계로 돌아간다
 
 ## 10단계 — PR 생성
 
