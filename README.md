@@ -18,6 +18,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 8. 영어 원문 기반 한국어 발표자료를 다듬을 때는 `slide-ko-polish`로 번역체와 줄바꿈을 같이 봅니다.
 9. 문서 AI-feel 점검, 프롬프트 설계, agent 호출은 작업 성격에 맞춰 선택합니다.
 10. Codex 프롬프트를 정해진 간격으로 반복하려면 `loop`, cron이나 특정 시각에 예약하려면 `schedule`을 씁니다.
+11. 같은 프로젝트를 여러 tmux 세션에서 동시에 굴리는 중이라면 `tmux-orchestrate`로 각 세션 상태를 한 번에 파악하고 지시를 전파합니다.
 
 ## 저장소 구조
 
@@ -1123,6 +1124,71 @@ $gh-setup
 
 </details>
 
+<details>
+<summary><strong>18. tmux-orchestrate</strong> - 여러 tmux 세션 상태 파악과 전파</summary>
+
+### Best use case
+
+같은 프로젝트를 여러 tmux 세션(워크트리 포함)에서 동시에 굴리다가 "어느 세션이 어디까지 갔는지" 를 놓쳤을 때 씁니다.
+
+세션 목록을 뽑아 pane 별로 병렬 수집·요약하고, 항상 같은 양식(상태표 → 세션 카드 → 교차 분석 → 전파 제안)으로 보고합니다. 필요하면 판정 결과를 근거로 각 세션에 지시를 전파합니다.
+
+세션을 새로 만들거나 작업을 나눠 배정하는 스킬이 아닙니다. 관측하고, 판정하고, 전달합니다.
+
+### Codex 호출 예시
+
+```text
+$tmux-orchestrate
+```
+
+```text
+$tmux-orchestrate 전파: main 최신화하고 이어서 진행해
+```
+
+### Claude Code 호출 예시
+
+```text
+지금 세션들 어디까지 됐는지 정리해줘.
+```
+
+```text
+다른 세션들한테 main 이 바뀌었다고 알려줘.
+```
+
+### 동작
+
+- 같은 프로젝트 판별은 git common-dir 기준. 경로가 다른 워크트리도 한 프로젝트로 묶입니다
+- pane 3개 이상이면 pane 당 서브에이전트 1개로 병렬 요약. tail 원문은 메인 컨텍스트로 오지 않습니다
+- 상태는 `WAIT / WORK / DONE / ERROR / IDLE / UNKNOWN` 6개로만 판정하고, 근거로 tail 한 줄을 인용합니다
+- 전파는 항상 초안 → 승인 → `--dry-run` → 실행 순서. 승인 없이 보내지 않습니다
+- 전송은 `send-keys -l` 리터럴 입력 + 지연 후 별도 Enter. 개행이 곧 제출인 TUI 에서 메시지가 잘리지 않도록 기본값은 개행을 공백으로 접습니다
+
+### 스크립트 단독 사용
+
+```bash
+S=.claude/skills/tmux-orchestrate/scripts
+
+node $S/tmux-capture.mjs list                                  # 같은 저장소의 pane 목록
+node $S/tmux-capture.mjs capture --lines 160                   # 목록 + 각 pane 의 마지막 160줄
+node $S/tmux-capture.mjs capture --scope all --text            # 전체 pane, 사람이 읽는 형식
+
+node $S/tmux-send.mjs send --target %12 --message "이어서 진행해" --dry-run
+node $S/tmux-send.mjs broadcast --message "main 이 갱신됐다. rebase 후 계속"
+```
+
+종료 코드 — capture: `0` 정상 / `1` 사용법·환경 오류 / `2` pane 없음. send: 여기에 `3` 일부 전송 실패가 추가됩니다.
+
+### 관련 파일
+
+```text
+.claude/skills/tmux-orchestrate/SKILL.md
+.claude/skills/tmux-orchestrate/scripts/tmux-capture.mjs   # list / capture
+.claude/skills/tmux-orchestrate/scripts/tmux-send.mjs      # send / broadcast
+.codex/skills/tmux-orchestrate/  (같은 구성)
+```
+
+</details>
+
 
 ## Codex 자산 목록
 
@@ -1151,6 +1217,7 @@ $gh-setup
 - `migrate-skill-agent`
 - `schedule`
 - `slide-ko-polish`
+- `tmux-orchestrate`
 - `visual-companion`
 
 </details>
@@ -1206,6 +1273,7 @@ $gh-setup
 - `pyautogui-helper`
 - `subagents-creator`
 - `slide-ko-polish`
+- `tmux-orchestrate`
 - `visual-companion`
 
 </details>
