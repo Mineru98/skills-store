@@ -1,0 +1,7 @@
+classify github.com/o/r/raw/main/a.webp: "page"
+private 보조 링크 ok: false
+private 보조 링크 errors: ["이미지가 일반 링크로 작성되었습니다: https://raw.githubusercontent.com/acme/private/main/.issue/7/evidence/before/list.webp","private 저장소의 raw URL은 코멘트에서 렌더링되지 않을 수 있습니다. user-attachments로 전환하세요: https://raw.githubusercontent.com/acme/private/main/.issue/7/evidence/before/list.webp"]
+public github-raw 인라인 ok: false
+public github-raw 인라인 errors: ["GitHub 페이지 URL은 직접 이미지 링크가 아닙니다: https://github.com/acme/open/raw/main/b.webp"]
+private raw 인라인 ok: false
+private raw 인라인 needsManualUpload: "(필드 없음)"
