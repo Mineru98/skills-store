@@ -21,6 +21,6 @@ evals
 !.issue/*/
 !.issue/*/evidence/
 !.issue/*/evidence/**
-!.issue/graph.json
+# GitHub에서 재생성하는 issue graph cache는 private 본문·코멘트를 포함할 수 있어 커밋하지 않는다.
 .issue/**/.auth.json
 .issue/**/storage-state.json

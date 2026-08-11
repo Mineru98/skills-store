@@ -103,6 +103,9 @@ create options:
   --no-status          생성 후 status:open 자동 부착을 생략한다
   --assignee <login>   담당자 (@me 가능)
   --request-file <f>   원본 요청 기록. 생략 시 --body-file 을 복사
+  --duplicate-review-file <f>  candidate/targets JSON으로 생성 전 중복을 검토
+  --duplicate-decision-id <id> 사람이 GitHub에 남긴 duplicate-of 결정 식별자
+  --skip-duplicate-review       검토 불가 사유가 있는 명시적 예외
   --repo <o/n>         대상 저장소 (기본: 현재 디렉터리의 origin, github 트래커 전용)
 
 request.md 는 ${WORKSPACE_DIR}/<번호>/ 에 남고, ${WORKSPACE_DIR} 는 .gitignore 에 자동 등록된다.
@@ -191,15 +194,24 @@ function cmdSearch(query, opts, tracker) {
     console.log('SEARCH_FAILED=1');
     return;
   }
-  for (const it of list) {
+  const tokens = new Set(String(query).toLowerCase().split(/\s+/).filter((token) => token.length > 1));
+  const score = (it) => {
+    const titleTokens = new Set(String(it.title ?? '').toLowerCase().split(/\s+/).filter((token) => token.length > 1));
+    const shared = [...tokens].filter((token) => titleTokens.has(token)).length;
+    return tokens.size ? Number((shared / tokens.size).toFixed(3)) : 0;
+  };
+  const candidates = list.map((it) => ({ ...it, duplicateScore: score(it) }));
+  for (const it of candidates) {
     const labels = (it.labels ?? []).map((l) => l.name).join(', ');
     console.log(`  ${it.key ?? `#${it.number}`} ${it.title}${labels ? `  [${labels}]` : ''}`);
+    console.log(`     duplicate-candidate=${it.duplicateScore >= 0.72 ? 'review' : 'distinct'} score=${it.duplicateScore}`);
     console.log(`     ${it.url}`);
   }
   if (!list.length) console.log('  (유사한 열린 이슈 없음)');
   console.log('');
   console.log(`MATCHES=${list.length}`);
   console.log(`MATCH_NUMBERS=${list.map((i) => i.number).join(' ')}`);
+  console.log(`DUPLICATE_REVIEW_NUMBERS=${candidates.filter((it) => it.duplicateScore >= 0.72).map((it) => it.number).join(' ')}`);
 }
 
 /* ----------------------------------------------------------------- labels */
@@ -324,6 +336,30 @@ function cmdEnsureLabel(name, opts, tracker) {
 
 /* ----------------------------------------------------------------- create */
 
+function reviewDuplicates(file) {
+  const source = path.resolve(file);
+  if (!existsSync(source)) throw new Error(`중복 검토 파일이 없다: ${source}`);
+  const input = JSON.parse(readFileSync(source, 'utf8'));
+  if (!input?.candidate || !Array.isArray(input.targets)) throw new Error('중복 검토 JSON은 candidate와 targets 배열이 필요하다');
+  return input.targets.map((target) => evaluateDuplicate(input.candidate, target));
+}
+
+function evaluateDuplicate(candidate, target) {
+  const conditions = Object.fromEntries(['subject', 'outcome', 'scope', 'acceptance'].map((field) => {
+    const left = candidate[field];
+    const right = target[field];
+    const known = left != null && left !== 'unknown' && right != null && right !== 'unknown';
+    return [field, { result: !known ? 'unknown' : left === right ? 'match' : 'mismatch' }];
+  }));
+  const results = Object.values(conditions).map((condition) => condition.result);
+  const allMatch = target.status === 'open' && results.every((result) => result === 'match');
+  return {
+    candidate: target.number ?? null,
+    conditions,
+    verdict: allMatch ? 'duplicate-review-required' : results.includes('unknown') ? 'review-or-create' : 'distinct',
+  };
+}
+
 function cmdCreate(root, opts, tracker) {
   if (!opts.title || !opts.bodyFile) {
     console.error('✗ --title 과 --body-file 이 모두 필요하다.');
@@ -337,6 +373,25 @@ function cmdCreate(root, opts, tracker) {
     console.error('  없으면 만들기:   node issue-create.mjs ensure-label <이름>   (사용자 승인 후)');
     console.error('  의도적으로 생략하려면 --no-label 을 명시하라.');
     process.exit(2);
+  }
+  if (!opts.duplicateReviewFile && !opts.skipDuplicateReview) {
+    console.error('✗ --duplicate-review-file 또는 --skip-duplicate-review가 필요하다.');
+    console.error('  자동 차단은 하지 않으며, 완전 일치 후보에는 사람이 남긴 --duplicate-decision-id가 필요하다.');
+    process.exit(2);
+  }
+  if (opts.duplicateReviewFile) {
+    let reviews;
+    try { reviews = reviewDuplicates(opts.duplicateReviewFile); } catch (error) {
+      console.error(`✗ 중복 검토를 읽을 수 없다: ${error.message}`);
+      process.exit(2);
+    }
+    const confirmed = reviews.filter((review) => review.verdict === 'duplicate-review-required');
+    console.log(`DUPLICATE_REVIEW_RESULTS=${reviews.map((review) => `${review.candidate}:${review.verdict}`).join(',')}`);
+    if (confirmed.length && !opts.duplicateDecisionId) {
+      console.error(`✗ 완전 일치 후보 ${confirmed.map((review) => `#${review.candidate}`).join(', ')}: GitHub 구조화 결정 id가 필요하다.`);
+      console.error('  중복이면 existing issue에 duplicate-of 승인 결정을 남기고 --duplicate-decision-id를 지정하라.');
+      process.exit(2);
+    }
   }
   const bodyPath = path.resolve(opts.bodyFile);
   if (!existsSync(bodyPath)) {
@@ -372,7 +427,7 @@ function cmdCreate(root, opts, tracker) {
   const request = existsSync(requestSrc) ? readFileSync(requestSrc, 'utf8') : '';
   writeFileSync(
     path.join(dir, 'request.md'),
-    `# ${display} 착수 요청 기록\n\n- 이슈: ${url}\n- 트래커: ${tracker.provider}\n- 생성: issue-create\n\n---\n\n${request.trim()}\n`,
+    `# ${display} 착수 요청 기록\n\n- 이슈: ${url}\n- 트래커: ${tracker.provider}\n- 생성: issue-create\n- 중복 검토: ${opts.duplicateReviewFile ?? '명시적 예외'}\n- 중복 결정: ${opts.duplicateDecisionId ?? '없음'}\n\n---\n\n${request.trim()}\n`,
   );
 
   // 경고만 하지 않고 직접 등록한다. 사용자가 손댈 일을 남기지 않는다.
@@ -412,6 +467,9 @@ function main() {
     else if (arg === '--title') opts.title = argv[++i];
     else if (arg === '--body-file') opts.bodyFile = argv[++i];
     else if (arg === '--request-file') opts.requestFile = argv[++i];
+    else if (arg === '--duplicate-review-file') opts.duplicateReviewFile = argv[++i];
+    else if (arg === '--duplicate-decision-id') opts.duplicateDecisionId = argv[++i];
+    else if (arg === '--skip-duplicate-review') opts.skipDuplicateReview = true;
     else if (arg === '--label') opts.labels.push(argv[++i]);
     else if (arg === '--remove-label') opts.removeLabels.push(argv[++i]);
     else if (arg === '--assignee') opts.assignee = argv[++i];

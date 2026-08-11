@@ -236,6 +236,10 @@ node <skill>/scripts/issue-create.mjs search "<항목 키워드>"
 `MATCHES` 가 0 이 아니고 내용이 겹치면 그 번호와 제목을 보여주고, **그 항목만 빼고** 나머지를 진행한다.
 빠진 항목은 마무리 보고의 `건너뜀` 줄에 남긴다. 항목이 하나뿐이었다면 `/issue-start #N` 을 제안하고 종료한다.
 겹치는지 애매하면 AskUserQuestion 으로 "기존 이슈에 붙일지 / 새로 만들지" 를 묻는다.
+후보마다 `subject`, `outcome`, `scope`, `acceptance`를 채운 `candidate/targets` JSON을 만들고 `create`
+호출에 `--duplicate-review-file`로 넘긴다. 네 조건이 모두 일치한 열린 후보는 자동 차단하지 않지만,
+사람이 GitHub에 남긴 구조화 `duplicate-of` 결정 id 없이는 새 이슈를 만들지 않는다. 판단 불가 또는
+불일치이면 `review-or-create`로 진행한다. 검토 자체가 불가능한 예외만 `--skip-duplicate-review`로 기록한다.
 
 ## 4단계 — 항목별 작업 성격 판정
 

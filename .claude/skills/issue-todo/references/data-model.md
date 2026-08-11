@@ -1,10 +1,12 @@
-# graph.json 데이터 모델
+# graph.json V1 데이터 모델 (폐기됨)
+
+V2 구현부터는 [graph-v2.md](graph-v2.md)가 정본이다. 이 문서는 기존 캐시를 읽는 참고용이며,
+`blocks`·로컬 `link`·로컬 `unlink` 규칙을 새 그래프에 적용하면 안 된다.
 
 ## 위치
 
-`.issue/graph.json` — base 브랜치에 커밋되는 정본. `.gitignore` 는 `.issue/**` 를 무시하지만
-`!.issue/graph.json` 예외로 이 파일만 추적한다(evidence 와 같은 방식). 워크트리마다 다른 그래프를
-만들지 않는다 — 모든 워크트리가 같은 base 그래프를 본다.
+`.issue/graph.json` — V1의 로컬 캐시였다. V2부터 GitHub 이슈·구조화된 결정 코멘트가 정본이며,
+이 파일은 재생성 후에도 추적하지 않는다. 새 구현은 [graph-v2.md](graph-v2.md)를 따른다.
 
 ## 스키마
 
