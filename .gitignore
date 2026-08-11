@@ -21,5 +21,6 @@ evals
 !.issue/*/
 !.issue/*/evidence/
 !.issue/*/evidence/**
+!.issue/graph.json
 .issue/**/.auth.json
 .issue/**/storage-state.json
