@@ -1,22 +1,5 @@
 #!/usr/bin/env node
-/**
- * issue-viz.mjs — issue-todo 가 만든 .issue/graph.json 을 인터랙티브 HTML 로 렌더한다.
- *
- * semantica 의 Knowledge Explorer(force-directed + ego-mode)를 참고하되,
- * 외부 CDN 없이 바닐라 JS 힘-지향 시뮬레이션으로 자립형 HTML 1파일을 만든다.
- * 오프라인에서도 열린다. DAG 분류·critical-path 계산은 브라우저에서 한다.
- *
- * 서브커맨드:
- *   render   graph.json 을 읽어 HTML 을 생성한다(기본).
- *
- * 옵션:
- *   --out <path>              출력 경로 (기본 .issue/viz/graph.html)
- *   --view full|ready|critical-path|ego   초기 뷰 (기본 full)
- *   --focus <n>              ego 뷰의 중심 이슈 번호
- *   --open                   생성 후 브라우저로 연다
- *
- * 요구사항: Node 18+, .issue/graph.json (issue-todo sync 로 생성)
- */
+/** issue-todo 그래프를 V2 이슈 탐색 HTML로 렌더한다. */
 import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -25,319 +8,82 @@ import { fileURLToPath } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME } from './issue-common.mjs';
 
 export const DEFAULT_OUT = `${WORKSPACE_DIR}/viz/graph.html`;
-
 export function loadGraph(root) {
   const file = path.join(root, WORKSPACE_DIR, GRAPH_FILE_NAME);
-  if (!existsSync(file)) {
-    console.error(`✗ ${WORKSPACE_DIR}/${GRAPH_FILE_NAME} 이 없다. 먼저 issue-todo sync 를 실행하라.`);
-    process.exit(1);
-  }
-  try {
-    const g = JSON.parse(readFileSync(file, 'utf8'));
-    return { nodes: g.nodes ?? {}, edges: g.edges ?? [], provider: g.provider ?? 'github', updatedAt: g.updatedAt };
-  } catch (e) {
-    console.error(`✗ graph.json 파싱 실패: ${e.message}`);
-    process.exit(1);
-  }
+  if (!existsSync(file)) throw new Error(`${WORKSPACE_DIR}/${GRAPH_FILE_NAME} 이 없다. 먼저 issue-todo sync 를 실행하라.`);
+  const graph = JSON.parse(readFileSync(file, 'utf8'));
+  return { nodes: graph.nodes ?? {}, edges: graph.edges ?? [], provider: graph.provider ?? 'github', snapshot: graph.snapshot ?? {}, updatedAt: graph.updatedAt };
 }
 
-/** 브라우저에서 도는 클라이언트 스크립트. 백틱·${}} 를 피해 문자열 연결로 쓴다(외부 템플릿과 충돌 방지). */
-const CLIENT_JS = String.raw`
-(function () {
-  var NODES = Object.values(GRAPH.nodes);
-  var EDGES = GRAPH.edges || [];
-  var ORDER = { 'depends-on': 1, 'blocks': 1 };
-  var STATUS_COLOR = {
-    open: '#3b82f6', plan: '#eab308', 'in-process': '#22c55e',
-    review: '#a855f7', close: '#9ca3af'
+export function deriveExecution(graph) {
+  const nodes = Object.values(graph.nodes ?? {});
+  const by = Object.fromEntries(nodes.map((node) => [String(node.number), node]));
+  const active = nodes.filter((node) => node.status !== 'close');
+  const prereqs = Object.fromEntries(nodes.map((node) => [String(node.number), []]));
+  for (const edge of graph.edges ?? []) if (edge.type === 'depends-on' && prereqs[String(edge.from)]) prereqs[String(edge.from)].push(String(edge.to));
+  Object.values(prereqs).forEach((list) => list.sort((a, b) => Number(a) - Number(b)));
+  const marks = {}, stack = [];
+  let cycle = null;
+  function visit(id) {
+    if (cycle || marks[id] === 2) return;
+    if (marks[id] === 1) { cycle = [...stack.slice(stack.indexOf(id)), id]; return; }
+    marks[id] = 1; stack.push(id); (prereqs[id] ?? []).forEach(visit); stack.pop(); marks[id] = 2;
+  }
+  Object.keys(prereqs).sort((a, b) => Number(a) - Number(b)).forEach(visit);
+  const snapshotReady = graph.snapshot?.status === 'complete';
+  const reason = snapshotReady ? null : graph.snapshot?.reason || 'SNAPSHOT_REASON_UNAVAILABLE';
+  const stateOf = (node) => {
+    if (node.status === 'close') return 'done';
+    if ((prereqs[String(node.number)] ?? []).some((id) => !by[id] || by[id].status !== 'close')) return 'blocked';
+    return node.status === 'open' ? 'ready' : 'in-progress';
   };
-  var TYPE_COLOR = {
-    'depends-on': '#ef4444', 'blocks': '#f97316',
-    'relates-to': '#64748b', 'parent-of': '#0ea5e9', 'duplicate-of': '#94a3b8'
-  };
-
-  // ---- 파생: 선행 맵, 분류, critical-path ----
-  function prereqMap() {
-    var m = {};
-    NODES.forEach(function (n) { m[n.number] = {}; });
-    EDGES.forEach(function (e) {
-      if (e.type === 'depends-on') { m[e.from] = m[e.from] || {}; m[e.from][e.to] = 1; }
-      else if (e.type === 'blocks') { m[e.to] = m[e.to] || {}; m[e.to][e.from] = 1; }
-    });
-    return m;
-  }
-  var PRE = prereqMap();
-  var byNum = {};
-  NODES.forEach(function (n) { byNum[n.number] = n; });
-  function statusOf(num) { return (byNum[num] || {}).status || 'open'; }
-  function classOf(num) {
-    if (statusOf(num) === 'close') return 'done';
-    var blockers = Object.keys(PRE[num] || {}).filter(function (d) { return statusOf(d) !== 'close'; });
-    if (blockers.length) return 'blocked';
-    if (statusOf(num) === 'open') return 'ready';
-    return 'in-progress';
-  }
-  // 최장 의존 사슬(노드 집합)
-  function criticalPath() {
-    var memo = {}, parent = {};
-    function depth(num) {
-      if (memo[num] !== undefined) return memo[num];
-      memo[num] = 0;
-      var deps = Object.keys(PRE[num] || {});
-      for (var i = 0; i < deps.length; i++) {
-        if (!byNum[deps[i]]) continue;
-        var d = depth(deps[i]) + 1;
-        if (d > memo[num]) { memo[num] = d; parent[num] = deps[i]; }
-      }
-      return memo[num];
+  const paths = [];
+  if (snapshotReady && !cycle) {
+    const openIds = new Set(active.map((node) => String(node.number)));
+    const memo = {};
+    function bestTo(id) {
+      if (memo[id]) return memo[id];
+      const options = (prereqs[id] ?? []).filter((pre) => openIds.has(pre)).map((pre) => bestTo(pre).map((path) => [...path, id]));
+      const flat = options.flat();
+      const longest = flat.length ? Math.max(...flat.map((path) => path.length)) : 1;
+      return memo[id] = flat.filter((path) => path.length === longest).length ? flat.filter((path) => path.length === longest) : [[id]];
     }
-    var best = -1, tail = null;
-    NODES.forEach(function (n) { var d = depth(n.number); if (d > best) { best = d; tail = n.number; } });
-    var set = {}, cur = tail;
-    while (cur != null) { set[cur] = 1; cur = parent[cur]; }
-    return set;
+    const all = active.flatMap((node) => bestTo(String(node.number)));
+    const longest = all.length ? Math.max(...all.map((path) => path.length)) : 0;
+    const unique = new Map(all.filter((path) => path.length === longest).map((path) => [path.join(','), path]));
+    paths.push(...[...unique.values()].sort((a, b) => a.map(Number).join(',').localeCompare(b.map(Number).join(','), 'en', { numeric: true })));
   }
-  var CRIT = criticalPath();
-  function egoSet(focus, hops) {
-    var set = {}, frontier = {};
-    set[focus] = 1; frontier[focus] = 1;
-    for (var h = 0; h < hops; h++) {
-      var next = {};
-      EDGES.forEach(function (e) {
-        if (frontier[e.from]) { if (!set[e.to]) { set[e.to] = 1; next[e.to] = 1; } }
-        if (frontier[e.to]) { if (!set[e.from]) { set[e.from] = 1; next[e.from] = 1; } }
-      });
-      frontier = next;
-    }
-    return set;
-  }
-
-  // ---- force 시뮬레이션 ----
-  var W = window.innerWidth, H = window.innerHeight - 46;
-  var sim = NODES.map(function (n, i) {
-    var a = (i / NODES.length) * Math.PI * 2;
-    return { num: n.number, x: W / 2 + Math.cos(a) * 250 + (i % 7) * 13,
-             y: H / 2 + Math.sin(a) * 250 + (i % 5) * 11, vx: 0, vy: 0 };
-  });
-  var pos = {};
-  sim.forEach(function (p) { pos[p.num] = p; });
-  var links = EDGES.filter(function (e) { return pos[e.from] && pos[e.to]; });
-
-  function tick() {
-    for (var i = 0; i < sim.length; i++) {
-      var a = sim[i];
-      for (var j = i + 1; j < sim.length; j++) {
-        var b = sim[j];
-        var dx = a.x - b.x, dy = a.y - b.y;
-        var d2 = dx * dx + dy * dy || 1;
-        var f = 3200 / d2;
-        var d = Math.sqrt(d2);
-        a.vx += (dx / d) * f; a.vy += (dy / d) * f;
-        b.vx -= (dx / d) * f; b.vy -= (dy / d) * f;
-      }
-    }
-    links.forEach(function (e) {
-      var a = pos[e.from], b = pos[e.to];
-      var dx = b.x - a.x, dy = b.y - a.y;
-      var d = Math.sqrt(dx * dx + dy * dy) || 1;
-      var f = (d - 120) * 0.02;
-      a.vx += (dx / d) * f; a.vy += (dy / d) * f;
-      b.vx -= (dx / d) * f; b.vy -= (dy / d) * f;
-    });
-    sim.forEach(function (a) {
-      a.vx += (W / 2 - a.x) * 0.002; a.vy += (H / 2 - a.y) * 0.002;
-      a.vx *= 0.85; a.vy *= 0.85;
-      a.x += a.vx; a.y += a.vy;
-    });
-  }
-  for (var it = 0; it < 320; it++) tick();
-
-  // ---- SVG 렌더 ----
-  var svg = document.getElementById('g');
-  var NS = 'http://www.w3.org/2000/svg';
-  function el(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
-
-  var view = { mode: INIT_VIEW, focus: INIT_FOCUS, hops: 1 };
-  function visible(num) {
-    if (view.mode === 'full') return true;
-    if (view.mode === 'ready') return classOf(num) === 'ready';
-    if (view.mode === 'critical-path') return !!CRIT[num];
-    if (view.mode === 'ego') return view.focus != null && egoSet(view.focus, view.hops)[num];
-    return true;
-  }
-
-  function draw() {
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-    var defs = el('defs', {});
-    Object.keys(TYPE_COLOR).forEach(function (t) {
-      var m = el('marker', { id: 'arrow-' + t, viewBox: '0 0 10 10', refX: 18, refY: 5,
-        markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
-      m.appendChild(el('path', { d: 'M0,0 L10,5 L0,10 z', fill: TYPE_COLOR[t] }));
-      defs.appendChild(m);
-    });
-    svg.appendChild(defs);
-
-    links.forEach(function (e) {
-      if (!visible(e.from) || !visible(e.to)) return;
-      var a = pos[e.from], b = pos[e.to];
-      var line = el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y,
-        stroke: TYPE_COLOR[e.type] || '#888', 'stroke-width': ORDER[e.type] ? 2 : 1.2,
-        'stroke-dasharray': ORDER[e.type] ? '' : '5,4',
-        'marker-end': 'url(#arrow-' + (e.type) + ')', opacity: 0.75 });
-      var t = document.createElementNS(NS, 'title');
-      t.textContent = '#' + e.from + ' --' + e.type + '--> #' + e.to + (e.rationale ? ' (' + e.rationale + ')' : '');
-      line.appendChild(t);
-      svg.appendChild(line);
-    });
-
-    NODES.forEach(function (n) {
-      if (!visible(n.number)) return;
-      var p = pos[n.number];
-      var cls = classOf(n.number);
-      var color = STATUS_COLOR[statusOf(n.number)] || '#3b82f6';
-      var nature = (n.labels || []).map(function (l) { return String(l).toLowerCase(); });
-      var isBack = nature.indexOf('backend') >= 0 || nature.indexOf('api') >= 0;
-      var isFront = nature.indexOf('frontend') >= 0 || nature.indexOf('ui') >= 0;
-      var g = el('g', { transform: 'translate(' + p.x + ',' + p.y + ')', style: 'cursor:pointer' });
-      var shape;
-      if (isBack && !isFront) shape = el('rect', { x: -11, y: -11, width: 22, height: 22, rx: 3 });
-      else if (isFront && !isBack) shape = el('circle', { r: 12 });
-      else shape = el('circle', { r: 12 });
-      shape.setAttribute('fill', color);
-      shape.setAttribute('opacity', cls === 'done' ? 0.35 : 1);
-      shape.setAttribute('stroke', CRIT[n.number] && view.mode !== 'critical-path' ? '#111' : '#fff');
-      shape.setAttribute('stroke-width', cls === 'ready' ? 3 : 1.5);
-      g.appendChild(shape);
-      var label = el('text', { x: 0, y: 26, 'text-anchor': 'middle', 'font-size': 10, fill: '#334155' });
-      label.textContent = '#' + n.number;
-      g.appendChild(label);
-      var tt = document.createElementNS(NS, 'title');
-      tt.textContent = '#' + n.number + ' ' + n.title + '\n상태: ' + statusOf(n.number) + ' / ' + cls
-        + (n.labels && n.labels.length ? '\n라벨: ' + n.labels.join(', ') : '');
-      g.appendChild(tt);
-      g.addEventListener('click', function () { if (n.url) window.open(n.url, '_blank'); });
-      svg.appendChild(g);
-    });
-    document.getElementById('status').textContent =
-      '뷰: ' + view.mode + (view.mode === 'ego' && view.focus != null ? ' #' + view.focus : '')
-      + ' · 노드 ' + NODES.filter(function (n) { return visible(n.number); }).length + '/' + NODES.length;
-  }
-
-  function setView(mode) { view.mode = mode; draw(); }
-  window.__setView = setView;
-  window.__ego = function () {
-    var v = document.getElementById('ego').value.replace('#', '').trim();
-    if (v) { view.mode = 'ego'; view.focus = Number(v); draw(); }
-  };
-  draw();
-})();
-`;
-
-function renderHtml(graph, { view, focus }) {
-  // <script> 안에 그대로 넣으므로 '<'(및 '>' '&')를 이스케이프한다. 이슈 제목·rationale 에
-  // </script> 나 <!-- 가 있으면 스크립트가 조기 종료되고 XSS 가 열린다. JSON.stringify 는 '<' 를 건드리지 않는다.
-  const data = JSON.stringify({ nodes: graph.nodes, edges: graph.edges, provider: graph.provider })
-    .replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
-  const legendStatus = [
-    ['open', '#3b82f6'], ['plan', '#eab308'], ['in-process', '#22c55e'],
-    ['review', '#a855f7'], ['close(흐림)', '#9ca3af'],
-  ].map(([k, c]) => `<span class="lg"><i style="background:${c}"></i>${k}</span>`).join('');
-  return `<!doctype html>
-<html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>이슈 DAG — issue-viz</title>
-<style>
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; }
-  #bar { height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 12px;
-         border-bottom: 1px solid #e2e8f0; background: #fff; flex-wrap: wrap; }
-  #bar button { border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 5px 10px;
-                font-size: 13px; cursor: pointer; }
-  #bar button:hover { background: #f1f5f9; }
-  #ego { width: 70px; padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
-  #status { margin-left: auto; font-size: 12px; color: #64748b; }
-  .lg { font-size: 11px; color: #475569; display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; }
-  .lg i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
-  svg { display: block; width: 100vw; }
-</style></head>
-<body>
-<div id="bar">
-  <button onclick="__setView('full')">전체</button>
-  <button onclick="__setView('ready')">착수 가능</button>
-  <button onclick="__setView('critical-path')">임계 경로</button>
-  <input id="ego" placeholder="#번호" onkeydown="if(event.key==='Enter')__ego()">
-  <button onclick="__ego()">ego</button>
-  ${legendStatus}
-  <span id="status"></span>
-</div>
-<svg id="g" height="${'100'}"></svg>
-<script>
-  var GRAPH = ${data};
-  var INIT_VIEW = ${JSON.stringify(view || 'full')};
-  var INIT_FOCUS = ${focus != null ? Number(focus) : 'null'};
-</script>
-<script>
-document.getElementById('g').setAttribute('height', window.innerHeight - 46);
-${CLIENT_JS}
-</script>
-</body></html>
-`;
+  return { active, complete: nodes.filter((node) => node.status === 'close'), shown: nodes, prereqs, cycle, reason, canExecute: snapshotReady && !cycle, stateOf, criticalPaths: paths };
 }
 
-function cmdRender(root, opts) {
-  const graph = loadGraph(root);
-  const out = path.resolve(root, opts.out ?? DEFAULT_OUT);
-  mkdirSync(path.dirname(out), { recursive: true });
-  const html = renderHtml(graph, { view: opts.view, focus: opts.focus });
-  writeFileSync(out, html, 'utf8');
-  const nodes = Object.keys(graph.nodes).length;
-  console.log(`✓ 렌더 완료 — 노드 ${nodes}개, 엣지 ${graph.edges.length}개`);
-  console.log(`  출력: ${path.relative(root, out)}`);
-  console.log('');
-  console.log(`OUT=${out}`);
-  console.log(`NODES=${nodes}`);
-  if (opts.open) {
-    const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-    spawnSync(opener, [out], { stdio: 'ignore' });
-    console.log(`OPENED=1`);
-  }
+const CLIENT_JS = String.raw`(function(){
+var nodes=Object.values(GRAPH.nodes),edges=GRAPH.edges||[],by={};nodes.forEach(function(n){by[n.number]=n});
+var selected=null,mode='context',query='',filters={status:{},labels:{},types:{}};
+function esc(v){return String(v==null?'':typeof v==='object'?JSON.stringify(v):v).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function safeUrl(v){return /^https:\/\/github\.com\//.test(String(v))?String(v):'#'}
+function derive(){var pre={};nodes.forEach(function(n){pre[n.number]=[]});edges.forEach(function(e){if(e.type==='depends-on'&&pre[e.from])pre[e.from].push(e.to)});var marks={},walk=[],cycle=null;function visit(id){if(cycle||marks[id]===2)return;if(marks[id]===1){cycle=walk.slice(walk.indexOf(id)).concat(id);return}marks[id]=1;walk.push(id);(pre[id]||[]).slice().sort(function(a,b){return a-b}).forEach(visit);walk.pop();marks[id]=2}Object.keys(pre).sort(function(a,b){return a-b}).forEach(visit);function state(n){if(n.status==='close')return'done';if((pre[n.number]||[]).some(function(id){return !by[id]||by[id].status!=='close'}))return'blocked';return n.status==='open'?'ready':'in-progress'}var ready=GRAPH.snapshot&&GRAPH.snapshot.status==='complete'&&!cycle;var active=nodes.filter(function(n){return n.status!=='close'}),ids={};active.forEach(function(n){ids[n.number]=1});var memo={};function longest(id){if(memo[id])return memo[id];var paths=(pre[id]||[]).filter(function(x){return ids[x]}).map(longest).flatMap(function(ps){return ps.map(function(p){return p.concat(id)})});var length=paths.length?Math.max.apply(null,paths.map(function(p){return p.length})):1;return memo[id]=paths.filter(function(p){return p.length===length})||[[id]]}var all=ready?active.flatMap(function(n){return longest(n.number)}):[],max=all.length?Math.max.apply(null,all.map(function(p){return p.length})):0,seen={},critical=[];all.filter(function(p){return p.length===max}).forEach(function(p){var k=p.join(',');if(!seen[k]){seen[k]=1;critical.push(p)}});critical.sort(function(a,b){return a.join(',').localeCompare(b.join(','),undefined,{numeric:true})});return{pre:pre,cycle:cycle,can:ready,state:state,active:active,critical:critical}}
+var execution=derive();if(GRAPH.execution){execution.can=GRAPH.execution.can;execution.cycle=GRAPH.execution.cycle;execution.critical=GRAPH.execution.critical;execution.state=function(n){return GRAPH.execution.states[n.number]}}
+function hay(n){var rel=edges.filter(function(e){return e.from===n.number||e.to===n.number});return [n.number,n.title,n.status,(n.labels||[]).join(' '),JSON.stringify(n.context||{}),JSON.stringify(n.provenance||{}),JSON.stringify(rel)].join(' ').toLowerCase()}
+function shown(n){var keys=function(x){return Object.keys(x).filter(function(k){return x[k]})};var q=query.toLowerCase(),s=keys(filters.status),l=keys(filters.labels),t=keys(filters.types);return(!q||hay(n).indexOf(q)>=0)&&(!s.length||s.indexOf(n.status)>=0)&&(!l.length||(n.labels||[]).some(function(x){return l.indexOf(x)>=0}))&&(!t.length||edges.some(function(e){return(e.from===n.number||e.to===n.number)&&t.indexOf(e.type)>=0}))}
+function options(){return{status:[].concat.apply([],nodes.map(function(n){return[n.status]})).filter(function(v,i,a){return a.indexOf(v)===i}).sort(),labels:[].concat.apply([],nodes.map(function(n){return n.labels||[]})).filter(function(v,i,a){return a.indexOf(v)===i}).sort(),types:edges.map(function(e){return e.type}).filter(function(v,i,a){return a.indexOf(v)===i}).sort()}}
+function chips(kind,label,items){return '<fieldset><legend>'+label+'</legend>'+items.map(function(v){return '<button class="chip '+(filters[kind][v]?'on':'')+'" data-filter="'+kind+'" data-value="'+esc(v)+'">'+esc(v)+'</button>'}).join('')+'</fieldset>'}
+function related(id){var set={};edges.forEach(function(e){if(e.from===id)set[e.to]=1;if(e.to===id)set[e.from]=1});return set}
+function card(n,rel){var state=execution.state(n),classes='node '+state+(selected===n.number?' selected':'')+(rel[n.number]?' related':'');return '<button class="'+classes+'" data-node="'+n.number+'"><b>#'+n.number+'</b><span>'+esc(n.title)+'</span><small>'+esc(state)+' · '+esc((n.labels||[]).join(', ')||'라벨 없음')+'</small></button>'}
+function context(list){var rel=selected==null?{}:related(selected);return '<div id="list" class="context-list">'+list.map(function(n){return card(n,rel)}).join('')+'</div>'}
+function executionView(list){if(!execution.can)return '<section class="blocked-execution"><h2>실행 순서를 계산할 수 없습니다</h2><p>'+esc(execution.cycle?'CYCLE: '+execution.cycle.join(' → '):((GRAPH.snapshot||{}).reason||'SNAPSHOT_REASON_UNAVAILABLE'))+'</p></section>';var groups=['ready','in-progress','blocked'];return '<div id="execution"><section class="run-summary">'+groups.map(function(g){return '<div><b>'+g+'</b><strong>'+nodes.filter(function(n){return execution.state(n)===g}).length+'</strong></div>'}).join('')+'</section><section class="paths"><h2>최장 실행 경로</h2>'+(execution.critical.length?execution.critical.map(function(path){return '<ol>'+path.map(function(id){return '<li>#'+id+' '+esc(by[id].title)+'</li>'}).join('')+'</ol>'}).join(''):'<p>미완료 이슈가 없습니다.</p>')+'</section><div id="list" class="execution-list">'+list.map(function(n){return card(n,{})}).join('')+'</div></div>'}
+function drawer(){var n=by[selected];if(!n)return '';var rel=edges.filter(function(e){return e.from===n.number||e.to===n.number});var context=Object.entries(n.context||{}).map(function(pair){var key=pair[0],value=pair[1];var unknown=value&&typeof value==='object'&&value.value==='unknown';return '<li><b>'+esc(key)+'</b>: '+esc(unknown?'unknown':typeof value==='object'?JSON.stringify(value):value)+(unknown?'<small> 사유: '+esc(value.reason||'없음')+' · 출처: '+esc(value.source||'없음')+'</small>':'')+'</li>'}).join('')||'<li>없음</li>';return '<aside id="drawer"><button id="close" aria-label="닫기">×</button><h2>#'+n.number+' '+esc(n.title)+'</h2><a href="'+safeUrl(n.url)+'" target="_blank" rel="noopener">GitHub에서 보기</a><h3>실행 분류</h3><p>'+esc(execution.state(n))+'</p><h3>양방향 관계와 rationale</h3><ul>'+rel.map(function(e){var other=e.from===n.number?e.to:e.from;return '<li>#'+other+' · '+esc(e.type)+'<small>'+esc(e.rationale||'근거 없음')+'</small></li>'}).join('')+'</ul><h3>Context</h3><ul>'+context+'</ul><h3>Node provenance</h3><pre></pre><h3>Edge provenance</h3><pre></pre><h3>Raw JSON</h3><pre></pre></aside>'}
+function render(keepFocus){var list=nodes.filter(shown),opts=options(),active=nodes.filter(function(n){return n.status!=='close'}).length,diag=execution.cycle?'CYCLE: '+execution.cycle.join(' → ')+' · 실행 순서 제어가 차단되었습니다.':!execution.can?((GRAPH.snapshot||{}).reason||'SNAPSHOT_REASON_UNAVAILABLE')+' · 실행 순서 제어가 차단되었습니다.':'';var focusAt=keepFocus&&document.activeElement&&document.activeElement.id==='search'?document.activeElement.selectionStart:null;app.innerHTML='<header><div role="group"><button data-mode="context" class="'+(mode==='context'?'active':'')+'">작업 맥락</button><button data-mode="execution" class="'+(mode==='execution'?'active':'')+'">실행 순서</button></div><input id="search" type="search" placeholder="번호, 제목, 라벨, 상태, context, 관계 근거 검색" value="'+esc(query)+'"><strong>활성 '+active+' · 완료 '+(nodes.length-active)+' · 표시 '+list.length+'</strong><div class="filters">'+chips('status','상태',opts.status)+chips('labels','라벨',opts.labels)+chips('types','관계',opts.types)+'</div>'+(diag?'<p role="alert" class="diag">'+esc(diag)+'</p>':'')+'</header><section id="workspace" class="'+(selected==null?'no-drawer':'')+'"><main>'+ (mode==='context'?context(list):executionView(list))+'</main>'+drawer()+'</section>';var n=by[selected],d=document.getElementById('drawer');if(n&&d){var pre=d.querySelectorAll('pre'),rel=edges.filter(function(e){return e.from===n.number||e.to===n.number});pre[0].textContent=JSON.stringify(n.provenance||{},null,2);pre[1].textContent=JSON.stringify(rel.map(function(e){return e.provenance||{}}),null,2);pre[2].textContent=JSON.stringify(n,null,2)}app.querySelectorAll('[data-mode]').forEach(function(b){b.onclick=function(){mode=b.dataset.mode;render(false)}});app.querySelectorAll('[data-filter]').forEach(function(b){b.onclick=function(){var k=b.dataset.filter,v=b.dataset.value;filters[k][v]=!filters[k][v];render(false)}});app.querySelectorAll('[data-node]').forEach(function(b){b.onclick=function(){selected=Number(b.dataset.node);render(false);var target=document.querySelector('[data-node="'+selected+'"]');if(target)target.scrollIntoView({behavior:'smooth',block:'center'})}});var search=document.getElementById('search');search.oninput=function(){query=search.value;render(true)};var close=document.getElementById('close');if(close)close.onclick=function(){selected=null;render(false)};if(focusAt!=null){var next=document.getElementById('search');next.focus();next.setSelectionRange(focusAt,focusAt)}}
+document.head.insertAdjacentHTML('beforeend','<style>@media(max-width:760px){fieldset{width:100%;flex-wrap:wrap;min-width:0}}</style>');var app=document.createElement('main');app.id='v2';document.body.appendChild(app);render(false);
+})();`;
+
+export function renderHtml(graph) {
+  const run = deriveExecution(graph);
+  const data = JSON.stringify({ ...graph, execution: { can: run.canExecute, cycle: run.cycle, critical: run.criticalPaths, states: Object.fromEntries(Object.values(graph.nodes).map((node) => [node.number, run.stateOf(node)])) } }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>이슈 탐색 — issue-viz</title><style>
+*{box-sizing:border-box}body{margin:0;background:#eef3f8;color:#182433;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}#v2{min-height:100dvh;background:linear-gradient(135deg,#eef3f8,#f8fafc 44%,#e9f1f4)}#v2 header{display:grid;grid-template-columns:auto minmax(240px,1fr) auto;gap:12px;padding:18px 24px 14px;background:#172433;border-bottom:3px solid #42b6ad;box-shadow:0 10px 30px #17243329}#v2 input{padding:10px 13px;color:#edf5f7;border:1px solid #526475;border-radius:9px;background:#233448;outline:none}#v2 input:focus{border-color:#65d1c8;box-shadow:0 0 0 3px #65d1c833}#v2 header strong{color:#dcebf0;align-self:center;font-size:13px}button{font:inherit;cursor:pointer}#v2 button{transition:.16s}#v2 button:hover{transform:translateY(-1px)}#v2 button.active,#v2 .chip.on{background:#42b6ad;border-color:#42b6ad;color:#102128;font-weight:800}#v2 header [role=group]{display:flex;padding:3px;gap:3px;background:#0f1b29;border:1px solid #405267;border-radius:10px}#v2 header [role=group] button{color:#c9d8de;background:transparent;border-color:transparent;padding:7px 10px}.filters{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:13px;padding-top:3px}fieldset{display:flex;gap:5px;align-items:center;border:0;padding:0;margin:0}legend{color:#8fa8b1;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:0 4px 0 0}.chip{color:#c9d8de;border:1px solid #526475;border-radius:7px;background:#233448;font-size:11px;padding:4px 8px}.diag{grid-column:1/-1;margin:0;padding:8px 10px;color:#ffd5ce;background:#5a2026;border-radius:7px;font-weight:700}#workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);min-height:calc(100dvh - 154px)}#workspace.no-drawer{grid-template-columns:minmax(0,1fr)}#workspace main{min-width:0}#list{padding:20px 24px 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(246px,100%),1fr));gap:11px;align-content:start}.node{min-height:112px;padding:13px 14px;min-width:0;text-align:left;border:1px solid #d9e3eb;border-left:5px solid #7e90a0;border-radius:10px;background:#fffffff2;box-shadow:0 4px 14px #1f304310}.node:hover,.node.related{border-color:#8ec9c4;box-shadow:0 9px 22px #1f30431f}.node.ready{border-left-color:#16a394}.node.blocked{border-left-color:#df9b42}.node.in-progress{border-left-color:#4e92d7}.node.done{opacity:.68}.node.selected{outline:3px solid #42b6ad;outline-offset:2px}.node b{color:#0d716b;font-size:12px}.node span,.node small{display:block;word-break:keep-all;overflow-wrap:break-word}.node span{margin-top:6px;font-weight:740;line-height:1.35}.node small{color:#627687;margin-top:8px;font-size:11px}#drawer{padding:25px 22px;border-left:1px solid #d9e3eb;background:#fbfdfe;overflow:auto;word-break:keep-all;overflow-wrap:break-word;box-shadow:-12px 0 30px #1f30430a}#drawer h2{margin:0 28px 8px 0;font-size:19px;line-height:1.35}#drawer h3{margin:22px 0 7px;color:#597080;font-size:11px;letter-spacing:.07em;text-transform:uppercase}#drawer a{color:#087d77;font-weight:700}#drawer li small{display:block;color:#627687;margin:4px 0 8px}#drawer pre{white-space:pre-wrap;font-size:11px;background:#edf3f6;border:1px solid #dce6ec;border-radius:8px;padding:10px}#close{float:right;color:#5c7180;border:0;background:transparent;font-size:24px}.run-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:20px 24px 0}.run-summary div,.paths{padding:14px;border:1px solid #d9e3eb;border-radius:10px;background:#fffffff2}.run-summary b{display:block;color:#627687;font-size:12px}.run-summary strong{font-size:28px}.paths{margin:12px 24px}.paths h2{margin:0 0 8px;font-size:15px}.paths ol{margin:8px 0;padding-left:24px}.blocked-execution{margin:24px;padding:20px;border:1px solid #e6b2aa;border-radius:10px;background:#fff6f4}.blocked-execution h2{margin-top:0}@media(max-width:760px){#v2 header{grid-template-columns:1fr;padding:14px}.filters{gap:8px}#workspace,#workspace.no-drawer{grid-template-columns:1fr}#list{padding:14px;grid-template-columns:1fr}#drawer{border-left:0;border-top:1px solid #d9e1ec;max-height:48dvh}.run-summary{padding:14px;gap:8px}.paths{margin:0 14px 14px}}
+</style></head><body><script>var GRAPH=${data};</script><script>${CLIENT_JS}</script></body></html>`;
 }
-
-function usage(exitCode = 1) {
-  console.error(`Usage:
-  node issue-viz.mjs render [--out <path>] [--view full|ready|critical-path|ego] [--focus <n>] [--open]
-
-graph.json(.issue/graph.json)을 자립형 인터랙티브 HTML 로 렌더한다. 먼저 issue-todo sync 로 그래프를 만든다.
-기본 출력: ${DEFAULT_OUT}
-`);
-  process.exit(exitCode);
-}
-
-function main() {
-  const argv = process.argv.slice(2);
-  if (argv.includes('-h') || argv.includes('--help')) usage(0);
-  const mode = argv.length && !argv[0].startsWith('-') ? argv[0] : 'render';
-  if (mode !== 'render') { console.error(`✗ 알 수 없는 모드: ${mode}`); usage(); }
-
-  const opts = {};
-  for (let i = (argv[0] === 'render' ? 1 : 0); i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (arg === '--out') opts.out = argv[++i];
-    else if (arg === '--view') opts.view = argv[++i];
-    else if (arg === '--focus') opts.focus = argv[++i];
-    else if (arg === '--open') opts.open = true;
-    else if (arg.startsWith('-')) { console.error(`✗ 알 수 없는 옵션: ${arg}`); usage(); }
-  }
-  cmdRender(repoRoot(), opts);
-}
-
-function isMainModule(metaUrl) {
-  const entry = process.argv[1];
-  if (!entry) return false;
-  const here = fileURLToPath(metaUrl);
-  const resolved = path.resolve(entry);
-  if (here === resolved) return true;
-  try { return realpathSync(here) === realpathSync(resolved); } catch { return false; }
-}
-
-if (isMainModule(import.meta.url)) main();
+function cmdRender(root, opts) { const graph = loadGraph(root); const out = path.resolve(root, opts.out ?? DEFAULT_OUT); mkdirSync(path.dirname(out), { recursive: true }); writeFileSync(out, renderHtml(graph), 'utf8'); console.log(`✓ 렌더 완료 — 노드 ${Object.keys(graph.nodes).length}개, 엣지 ${graph.edges.length}개\nOUT=${out}`); if (opts.open) spawnSync(process.platform === 'darwin' ? 'open' : 'xdg-open', [out], { stdio: 'ignore' }); }
+function main() { const args = process.argv.slice(2); if (args.includes('-h') || args.includes('--help')) { console.log('Usage: node issue-viz.mjs render [--out <path>] [--open]'); return; } const opts = {}; for (let i = 0; i < args.length; i += 1) { if (args[i] === 'render') continue; if (args[i] === '--out') opts.out = args[++i]; else if (args[i] === '--open') opts.open = true; else throw new Error(`알 수 없는 옵션: ${args[i]}`); } cmdRender(repoRoot(), opts); }
+function isMain(metaUrl) { const entry = process.argv[1]; if (!entry) return false; const here = fileURLToPath(metaUrl); try { return realpathSync(here) === realpathSync(path.resolve(entry)); } catch { return false; } }
+if (isMain(import.meta.url)) { try { main(); } catch (error) { console.error(`✗ ${error.message}`); process.exit(1); } }
