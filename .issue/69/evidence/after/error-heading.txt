@@ -1,0 +1,17 @@
+Issue #69 after evidence
+
+Both issue-start runtime mirrors now select the error heading from report.needsManualUpload.
+
+Manual-upload heading:
+
+  private 저장소라 이미지를 사람이 올려야 합니다. 아래를 처리한 뒤 다시 실행하세요
+
+Fallback heading:
+
+  리포트 이미지 검증 실패
+
+Verification:
+
+  node --check for both issue-start.mjs files: passed
+  validateEvidenceReport with a private raw image: needsManualUpload=true
+  sh scripts/check-shared.sh: passed
