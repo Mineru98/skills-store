@@ -1,0 +1,88 @@
+{
+  "apiVersion": "issue-phase/v1",
+  "contractId": "issue-end-phase-api-v1",
+  "invocation": [
+    "phase",
+    "--request",
+    "<absolute-canonical-json>"
+  ],
+  "additionalRequestProperties": false,
+  "requestProperties": [
+    "apiVersion",
+    "contractId",
+    "phaseId",
+    "checkpoint",
+    "input"
+  ],
+  "phaseIds": [
+    "issue-end.context",
+    "issue-end.approval-evidence",
+    "issue-end.before-recapture",
+    "issue-end.after-recapture",
+    "issue-end.report",
+    "issue-end.publish-evidence",
+    "issue-end.sync-base",
+    "issue-end.comment",
+    "issue-end.review-approval",
+    "issue-end.pr",
+    "issue-end.handback"
+  ],
+  "effects": {
+    "issue-end.context": [],
+    "issue-end.approval-evidence": [],
+    "issue-end.before-recapture": [
+      "pure-tree-create",
+      "before-capture"
+    ],
+    "issue-end.after-recapture": [
+      "after-capture"
+    ],
+    "issue-end.report": [],
+    "issue-end.publish-evidence": [
+      "branch-push"
+    ],
+    "issue-end.sync-base": [
+      "sync-base"
+    ],
+    "issue-end.comment": [
+      "tracker-comment"
+    ],
+    "issue-end.review-approval": [
+      "review-approval"
+    ],
+    "issue-end.pr": [
+      "pr-create",
+      "status-review"
+    ],
+    "issue-end.handback": []
+  },
+  "approvalBoundaries": [
+    {
+      "effectType": "branch-push",
+      "phaseId": "issue-end.publish-evidence"
+    },
+    {
+      "effectType": "tracker-comment",
+      "phaseId": "issue-end.comment"
+    },
+    {
+      "effectType": "review-approval",
+      "phaseId": "issue-end.review-approval"
+    },
+    {
+      "effectType": "pr-create",
+      "phaseId": "issue-end.pr"
+    }
+  ],
+  "idempotency": {
+    "publishedEvidenceSuppresses": [
+      "branch-push"
+    ],
+    "uncertainPrOutcome": "reconcile-only"
+  },
+  "finalStatus": "review",
+  "forbiddenEffectTypes": [
+    "merge",
+    "worktree-remove"
+  ]
+}

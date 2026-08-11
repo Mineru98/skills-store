@@ -29,6 +29,7 @@ import {
   inferIssue, listWorktrees, listEvidence, evidenceRel, setTerminalTitle, WORKSPACE_DIR,
 } from './issue-common.mjs';
 import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
+import { cmdPhase } from './issue-merge-phase.mjs';
 
 const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|preflight|resolve|merge|close|status|cleanup> [options]
 
@@ -547,6 +548,7 @@ const [, , sub, ...rest] = process.argv;
 const args = parseArgs(rest, ['json', 'dry-run', 'remove', 'force', 'no-status', 'continue', 'abort', 'push']);
 
 switch (sub) {
+  case 'phase': cmdPhase(args); break;
   case 'inventory': cmdInventory(args); break;
   case 'base-tree': cmdBaseTree(args); break;
   case 'plan-dir': cmdPlanDir(args._); break;

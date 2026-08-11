@@ -15,6 +15,7 @@ CHECK=0
 
 SHARED="issue-common.mjs issue-tracker.mjs issue-docs.mjs issue-media.mjs"
 SKILLS="issue-create issue-start issue-end issue-merge"
+PHASE_SKILLS="issue-start issue-end issue-merge"
 FLAVORS=".claude .codex"
 
 TMP=$(mktemp)
@@ -50,6 +51,87 @@ for name in $SHARED; do
     done
   done
 done
+
+name="issue-phase-contract.mjs"
+SRC="$ROOT/tools/$name"
+{
+  echo '// !!! VENDORED FILE — DO NOT EDIT !!!'
+  echo "// canonical: tools/$name"
+  echo '// resync   : sh scripts/sync-shared.sh'
+  cat "$SRC"
+} > "$TMP"
+for flavor in $FLAVORS; do
+  for skill in $PHASE_SKILLS; do
+    dest="$ROOT/$flavor/skills/$skill/scripts/$name"
+    if [ "$CHECK" -eq 1 ]; then
+      if ! cmp -s "$TMP" "$dest" 2>/dev/null; then
+        echo "DRIFT  $flavor/skills/$skill/scripts/$name"
+        drift=1
+      fi
+    else
+      cp "$TMP" "$dest"
+      copied=$((copied + 1))
+    fi
+  done
+done
+
+for flavor in $FLAVORS; do
+  for skill in $PHASE_SKILLS; do
+    dir="$ROOT/$flavor/skills/$skill/schemas/issue-phase"
+    for SRC in "$ROOT"/schemas/issue-phase/*; do
+      dest="$dir/$(basename "$SRC")"
+      if [ "$CHECK" -eq 1 ]; then
+        if ! cmp -s "$SRC" "$dest" 2>/dev/null; then
+          echo "DRIFT  $flavor/skills/$skill/schemas/issue-phase/$(basename "$SRC")"
+          drift=1
+        fi
+      else
+        mkdir -p "$dir"
+        cp "$SRC" "$dest"
+        copied=$((copied + 1))
+      fi
+    done
+  done
+done
+
+for skill in $PHASE_SKILLS; do
+  SRC="$ROOT/contracts/$skill-phase-api-v1.json"
+  [ -f "$SRC" ] || { echo "정본이 없다: $SRC"; exit 1; }
+  for flavor in $FLAVORS; do
+    dir="$ROOT/$flavor/skills/$skill/contracts"
+    dest="$dir/$skill-phase-api-v1.json"
+    if [ "$CHECK" -eq 1 ]; then
+      if ! cmp -s "$SRC" "$dest" 2>/dev/null; then
+        echo "DRIFT  $flavor/skills/$skill/contracts/$skill-phase-api-v1.json"
+        drift=1
+      fi
+    else
+      mkdir -p "$dir"
+      cp "$SRC" "$dest"
+      copied=$((copied + 1))
+    fi
+  done
+done
+
+SRC="$ROOT/contracts/issue-phase-capability-bundle-v1.json"
+if [ -f "$SRC" ]; then
+  for flavor in $FLAVORS; do
+    for skill in $PHASE_SKILLS; do
+      dir="$ROOT/$flavor/skills/$skill/contracts"
+      dest="$dir/issue-phase-capability-bundle-v1.json"
+      if [ "$CHECK" -eq 1 ]; then
+        if ! cmp -s "$SRC" "$dest" 2>/dev/null; then
+          echo "DRIFT  $flavor/skills/$skill/contracts/issue-phase-capability-bundle-v1.json"
+          drift=1
+        fi
+      else
+        mkdir -p "$dir"
+        cp "$SRC" "$dest"
+        copied=$((copied + 1))
+      fi
+    done
+  done
+fi
 
 if [ "$CHECK" -eq 1 ]; then
   if [ "$drift" -ne 0 ]; then

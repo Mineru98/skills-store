@@ -120,6 +120,15 @@ flowchart TD
     N --> O[보고 + 다음 행동 4지선다]
 ```
 
+# 기계 단계 API
+
+자동 오케스트레이터는 `node <skill>/scripts/issue-merge.mjs phase --request
+<absolute-canonical-json>`만 사용한다. 요청 스키마는
+`contracts/issue-merge-phase-api-v1.json`, 전체 9단계 능력·효과·승인·체크포인트·
+재조정 계약과 raw-byte 폐쇄는 `contracts/issue-phase-capability-bundle-v1.json`이다.
+누적 preflight, PR별 승인, 통합 검증 뒤 close, 마지막 cleanup 순서는 유지하며,
+계약 또는 폐쇄 검증이 실패하면 active 실행을 시작하지 않는다.
+
 # 스크립트 경로
 
 아래 중 **존재하는 첫 번째 경로**를 `<skill>` 로 쓴다.

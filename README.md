@@ -145,6 +145,15 @@ gh 인증이 안 되어 있으면 gh-setup 스킬로 설치와 로그인을 이�
 
 여러 작업은 이슈마다 별도 세션과 워크트리에서 `issue-start → issue-end`를 실행합니다. 모든 PR이 준비된 뒤 한 세션에서 `issue-merge`를 호출해 충돌과 통합 동작을 함께 검증합니다. 같은 워크트리에서 여러 이슈를 동시에 시작하지 않습니다.
 
+자동 오케스트레이터는 세 스킬의 사람용 명령을 우회하지 않고, 각 설치 미러의
+`phase --request <absolute-canonical-json>` 경계만 호출합니다. 기계 계약의 정본은
+`contracts/issue-phase-capability-bundle-v1.json`이며, 13개 `issue-start`, 11개
+`issue-end`, 9개 `issue-merge` 단계의 스키마·호출법·효과·승인 구분·체크포인트·
+재조정 조회와 저장소 상대 경로/raw-byte 폐쇄 해시를 함께 고정합니다.
+`node --test scripts/test-phase-compatibility.mjs`는 양쪽 설치 미러를 실제로 호출하고,
+누락/추가 단계, 스키마·미러·폐쇄 드리프트, 경로 탈출·심볼릭 링크, 문서화되지 않은
+효과, 공급자 실패를 모두 active 부적격으로 처리합니다.
+
 ### Best use case
 
 `issue-create`의 목표는 하나입니다. **사용자의 변경 요청이 기본 브랜치에서 바로 시작되지 않게 막고 이슈로 먼저 등록하는 것.**
