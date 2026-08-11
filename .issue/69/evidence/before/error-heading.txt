@@ -1,0 +1,10 @@
+Issue #69 before evidence
+
+Both issue-start runtime mirrors currently use the generic heading:
+
+  리포트 이미지 검증 실패
+
+The matching issue-end command already distinguishes manual uploads:
+
+  private 저장소라 이미지를 사람이 올려야 합니다. 아래를 처리한 뒤 다시 실행하세요
+  리포트 이미지 검증 실패
