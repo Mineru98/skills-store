@@ -63,7 +63,7 @@ export function parseDecisionComments(comments = []) {
 export function decisionEdge(decision) {
   if (decision.action !== 'relation' || decision.decision !== 'approved') return null;
   if (!EDGE_TYPES.includes(decision.type) || !Number.isInteger(decision.from) || !Number.isInteger(decision.to)) return null;
-  if (!Array.isArray(decision.evidence) || !decision.evidence.length) return null;
+  if (!decision.graphRevision || !Array.isArray(decision.evidence) || !decision.evidence.length) return null;
   return normalizeEdge({
     from: decision.from,
     to: decision.to,
@@ -73,6 +73,18 @@ export function decisionEdge(decision) {
     decisionId: decision.id,
     provenance: decision.source,
   });
+}
+
+/** 동일 id의 수정·폐기는 최신 GitHub 코멘트 관찰값 하나로 결정한다. */
+export function resolveDecisions(decisions = []) {
+  const latest = new Map();
+  for (const decision of decisions) {
+    const previous = latest.get(decision.id);
+    const stamp = decision.source?.updatedAt ?? decision.source?.createdAt ?? '';
+    const previousStamp = previous?.source?.updatedAt ?? previous?.source?.createdAt ?? '';
+    if (!previous || stamp >= previousStamp) latest.set(decision.id, decision);
+  }
+  return [...latest.values()].filter((decision) => decision.decision === 'approved');
 }
 
 export function validateGraphV2(graph) {
@@ -132,4 +144,43 @@ export function duplicateVerdict(score) {
   if (score >= 0.88) return 'review-required';
   if (score >= 0.72) return 'candidate';
   return 'distinct';
+}
+
+/** 중복 확정은 유사도와 분리한다. 네 조건이 모두 명시적으로 일치해야 한다. */
+export function evaluateDuplicate(candidate, target) {
+  const fields = [
+    ['subject', 'subject'],
+    ['outcome', 'outcome'],
+    ['scope', 'scope'],
+    ['acceptance', 'acceptance'],
+  ];
+  const conditions = Object.fromEntries(fields.map(([name, key]) => {
+    const left = candidate[key];
+    const right = target[key];
+    const known = left != null && left !== 'unknown' && right != null && right !== 'unknown';
+    return [name, { candidate: left ?? 'unknown', target: right ?? 'unknown', result: !known ? 'unknown' : left === right ? 'match' : 'mismatch' }];
+  }));
+  const results = Object.values(conditions).map((condition) => condition.result);
+  const targetOpen = target.status === 'open';
+  const allMatch = targetOpen && results.every((result) => result === 'match');
+  return {
+    candidate: target.number ?? null,
+    targetOpen,
+    conditions,
+    verdict: allMatch ? 'duplicate-review-required' : results.includes('unknown') ? 'review-or-create' : 'distinct',
+    reason: allMatch ? '네 중복 조건이 모두 일치하지만 사람의 구조화 승인 전에는 관계를 만들지 않음'
+      : !targetOpen ? '닫힌 이슈는 자동 중복 차단 대상이 아님'
+        : results.includes('unknown') ? '필수 조건 중 판단 불가 항목이 있음' : '필수 조건 중 하나 이상이 다름',
+  };
+}
+
+export function measureFieldQuality(records, fields) {
+  const total = records.length || 1;
+  return Object.fromEntries(fields.map((field) => {
+    const values = records.map((record) => record[field]);
+    const unknownCount = values.filter((value) => value?.value === 'unknown' || value === 'unknown' || value == null).length;
+    const correct = values.filter((value) => value?.correct === true).length;
+    const expected = values.filter((value) => value?.expected === true).length;
+    return [field, { accuracy: correct / total, recall: expected / total, unknownRate: unknownCount / total, samples: records.length }];
+  }));
 }

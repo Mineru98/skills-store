@@ -49,7 +49,7 @@ GitHub 이슈와 구조화된 결정 코멘트가 정본이다. `.issue/graph.js
 
 ```html
 <!-- issue-graph-v2-decision
-{"version":1,"id":"relation-78-60-1","action":"relation","decision":"approved","type":"depends-on","from":78,"to":60,"rationale":"...","evidence":["https://github.com/owner/repo/issues/78#issuecomment-1"]}
+{"version":1,"id":"relation-78-60-1","action":"relation","decision":"approved","type":"depends-on","from":78,"to":60,"graphRevision":"sha256:...","rationale":"...","evidence":["https://github.com/owner/repo/issues/78#issuecomment-1"]}
 -->
 ```
 
@@ -57,3 +57,5 @@ GitHub 이슈와 구조화된 결정 코멘트가 정본이다. `.issue/graph.js
 mechanism 25%, acceptance 10%으로 합산한다. 0.88 이상은 `review-required`, 0.72 이상은
 `candidate`, 그 미만은 `distinct`다. 어떤 점수도 자동 등록 차단·이슈 종료·관계 생성을 하지 않는다.
 `duplicate-of`는 사람이 증거를 포함한 승인 코멘트를 남긴 뒤에만 캐시에 반영한다.
+같은 `id`의 최신 코멘트가 `revoked`이면 기존 승인을 폐기한다. `graphRevision`이 없거나
+증거가 비어 있는 결정은 그래프 관계가 되지 않는다.

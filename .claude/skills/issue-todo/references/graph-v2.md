@@ -11,7 +11,7 @@ GitHub 이슈와 구조화된 결정 코멘트가 정본이다. `.issue/graph.js
 
 ```html
 <!-- issue-graph-v2-decision
-{"version":1,"id":"relation-78-60-1","action":"relation","decision":"approved","type":"depends-on","from":78,"to":60,"rationale":"...","evidence":["https://github.com/owner/repo/issues/78#issuecomment-1"]}
+{"version":1,"id":"relation-78-60-1","action":"relation","decision":"approved","type":"depends-on","from":78,"to":60,"graphRevision":"sha256:...","rationale":"...","evidence":["https://github.com/owner/repo/issues/78#issuecomment-1"]}
 -->
 ```
 

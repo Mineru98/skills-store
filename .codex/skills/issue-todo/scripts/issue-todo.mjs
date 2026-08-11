@@ -33,7 +33,7 @@ import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, pa
 import { createTracker } from './issue-tracker.mjs';
 import {
   GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES,
-  digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, validateGraphV2,
+  digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, validateGraphV2,
 } from './issue-graph-v2.mjs';
 
 export const GRAPH_VERSION = V2_GRAPH_VERSION;
@@ -281,7 +281,7 @@ function cmdSync(root, tracker, opts) {
       provenance: source,
     };
   }
-  const approved = decisions.map(decisionEdge).filter(Boolean).filter((edge) => {
+  const approved = resolveDecisions(decisions).map(decisionEdge).filter(Boolean).filter((edge) => {
     const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true;
   });
   graph.edges = [...auto, ...approved];

@@ -31,7 +31,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
-import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, validateGraphV2 } from './issue-graph-v2.mjs';
+import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, validateGraphV2 } from './issue-graph-v2.mjs';
 
 export const GRAPH_VERSION = V2_GRAPH_VERSION;
 export const GRAPH_FILE = GRAPH_FILE_NAME;
@@ -257,7 +257,7 @@ function cmdSync(root, tracker, opts) {
     const source = { url: item.url, updatedAt: item.updatedAt ?? null, kind: 'referenced' };
     graph.nodes[String(number)] = { id: `github:${graph.repository ?? 'unknown'}#${number}`, number, title: item.title, status: deriveStatus(item.labels ?? [], item.state), labels: typeLabels(labels), url: item.url, context: { problem: unknownField('참조된 GitHub 항목의 구조화된 problem 필드가 없음', source), scope: unknownField('참조된 GitHub 항목의 구조화된 scope 필드가 없음', source), acceptance: unknownField('참조된 GitHub 항목의 구조화된 acceptance 필드가 없음', source) }, provenance: source };
   }
-  const approved = decisions.map(decisionEdge).filter(Boolean).filter((edge) => { const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true; });
+  const approved = resolveDecisions(decisions).map(decisionEdge).filter(Boolean).filter((edge) => { const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true; });
   graph.edges = [...auto, ...approved];
   const complete = state === 'all' && list.length < limit && unresolved.length === 0;
   graph.snapshot = { status: complete ? 'complete' : 'partial', fetchedAt: now, digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))), reason: complete ? null : unresolved.length ? `참조 GitHub 항목을 조회할 수 없음: ${unresolved.map((number) => `#${number}`).join(', ')}` : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음' };
