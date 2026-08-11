@@ -1,0 +1,6 @@
+# 회귀 테스트
+test-common: 통과
+test-tracker: 통과
+
+# sync-shared 드리프트
+sync-shared: 정본과 모든 사본이 동일하다

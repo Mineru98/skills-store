@@ -1,0 +1,6 @@
+# 상태 전환 → graph.json 자동 갱신 (스텁 tracker, GitHub 미접촉)
+before: #57 = review
+after : #57 = in-process
+
+# graph.json 없을 때 no-op 안전성
+patchGraphNode 반환: false (false=no-op, throw 안 함)
