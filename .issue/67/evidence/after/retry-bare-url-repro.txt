@@ -1,0 +1,29 @@
+Command:
+node --input-type=module -e "import { validateEvidenceReport } from './tools/issue-media.mjs'; ..."
+
+Output:
+{
+  "bare": {
+    "ok": false,
+    "errors": [
+      "이미지 URL이 bare URL로 작성되었습니다: https://raw.githubusercontent.com/acme/private/main/after.webp"
+    ],
+    "needsManualUpload": false,
+    "pendingUploads": []
+  },
+  "fixed": {
+    "ok": true,
+    "errors": [],
+    "needsManualUpload": false,
+    "pendingUploads": []
+  },
+  "inline": {
+    "ok": false,
+    "needsManualUpload": true,
+    "pendingUploads": [
+      "https://raw.githubusercontent.com/acme/private/main/after.webp"
+    ]
+  }
+}
+
+Result: bare URL은 문법 오류로만 남고, 보조 링크로 고치면 통과한다. private raw 인라인 이미지는 계속 수동 업로드가 필요하다.
