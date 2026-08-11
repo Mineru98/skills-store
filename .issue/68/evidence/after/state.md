@@ -1,6 +1,6 @@
 # Issue #68 after 상태
 
-- 구현 커밋: `7e8991be7bd2b68d840ae73da14e7cf4fafc1192`
+- 구현 커밋: `7b38700f1999f6f836de015c02f0b74a2176fade`
 - `.claude/skills/issue-end/SKILL.md`와 `.codex/skills/issue-end/SKILL.md`에 동일하게 다음을 반영했다.
   - public 저장소는 기본 11개, private 저장소는 `7.5`를 추가해 총 12개라는 개수 안내
   - `7.5 이미지 업로드받아 comment.md 의 이미지 URL 교체 (private 저장소일 때만)` 조건

@@ -14,4 +14,4 @@
 - `git diff --check` 통과
 - `TMPDIR=/private/tmp node --test scripts/test-phase-compatibility.mjs` 통과: 9/9
 
-구현 커밋: `7e8991be7bd2b68d840ae73da14e7cf4fafc1192`
+구현 커밋: `7b38700f1999f6f836de015c02f0b74a2176fade`
