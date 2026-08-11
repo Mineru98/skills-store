@@ -136,3 +136,47 @@ Storage) → Cookies → `github.com` → `user_session` 값을 복사한다. AP
 `gh-setup` 은 이 값을 **읽거나 저장하지 않는다.** `status` 는 `GH_ATTACH_SESSION_TOKEN` 이
 설정돼 있는지 boolean 으로만 확인하고(`GH_ATTACH_SESSION_TOKEN_SET`), 값 자체는 절대 출력하지
 않는다. 값을 발급·회전·서버에 배치하는 것은 사용자의 몫이다.
+
+### 배치 예시 — 쉘 프로파일 / `.env` 파일
+
+값을 `~/.bashrc` 에 직접 `export` 로 박아 넣지 않는다. 셸 시작 로그·`set -x` 추적·`history`에
+남을 수 있다. 별도 파일로 분리하고 그 파일만 읽어 들인다.
+
+```bash
+mkdir -p ~/.config/gh-attach
+# GH_ATTACH_SESSION_TOKEN=<user_session 쿠키 값> 한 줄만 넣는다. 편집기는 GUI 없이도 쓸 수 있는 걸로.
+nano ~/.config/gh-attach/session.env
+chmod 600 ~/.config/gh-attach/session.env   # 소유자만 읽기 — 다중 사용자 서버에서 필수
+```
+
+셸 프로파일에는 **파일 경로만** 적고 값 자체는 적지 않는다.
+
+```bash
+# ~/.bashrc 또는 ~/.profile 끝에 추가
+if [ -r ~/.config/gh-attach/session.env ]; then
+  set -a
+  . ~/.config/gh-attach/session.env
+  set +a
+fi
+```
+
+새 셸을 열고 확인한다. **값은 절대 echo 하지 않는다** — 존재 여부만 본다.
+
+```bash
+node <skill>/scripts/gh-env.mjs status   # "세션 토큰: GH_ATTACH_SESSION_TOKEN 설정됨" 이 나오면 성공
+```
+
+### 다중 사용자 서버 주의
+
+- `~/.config/gh-attach/` 는 홈 디렉터리 권한(보통 `700`)에 이미 보호되지만, `chmod 600` 을 파일에도
+  한 번 더 건다. 홈 디렉터리 권한이 느슨한 서버(공유 계정 등)에서는 이것만으로 부족할 수 있다 —
+  그런 서버라면 셸 프로파일/`.env` 대신 위 표의 "외부 시크릿 매니저" 경로를 쓴다.
+- 이 파일을 백업·동기화 도구(dotfiles 리포, rsync 홈 디렉터리 백업 등)에 포함하지 않는다.
+  `.gitignore`/백업 제외 목록에 `~/.config/gh-attach/` 를 추가해 둔다.
+
+### 만료됐을 때 신호
+
+세션 쿠키가 무효화되면 `gh attach upload` 가 조용히 브라우저 탐색으로 넘어가지 않고
+그 자리에서 인증 오류(HTTP 401/404)로 실패한다. `evidence-urls` 의 `images[].autoUploadError`
+에 그 이유가 그대로 찍히므로, 그 값이 바뀌었으면(예: "쿠키 없음" → "HTTP 401") 세션이 만료된
+것으로 보고 위 과정을 다시 밟아 값을 새로 복사한다.
