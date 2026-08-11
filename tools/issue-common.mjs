@@ -22,6 +22,9 @@ import process from 'node:process';
 /** 작업 폴더. `.issue-start` / `.issue-evidence` 를 통합한 결과다. */
 export const WORKSPACE_DIR = '.issue';
 
+/** issue-todo 의 DAG 파일 이름. `.issue/graph.json`. IGNORE_BLOCK 예외와 issue-todo 가 공유한다. */
+export const GRAPH_FILE_NAME = 'graph.json';
+
 /** 하위호환용 구 경로. 한 릴리스 동안만 읽기 폴백으로 인정한다. */
 export const LEGACY_WORKSPACE_DIR = '.issue-start';
 export const LEGACY_EVIDENCE_DIR = '.issue-evidence';
@@ -43,6 +46,8 @@ export const IGNORE_BLOCK = [
   `!${WORKSPACE_DIR}/*/`,
   `!${WORKSPACE_DIR}/*/evidence/`,
   `!${WORKSPACE_DIR}/*/evidence/**`,
+  // issue-todo 의 DAG. base 브랜치에 커밋해 모든 워크트리가 같은 그래프를 본다.
+  `!${WORKSPACE_DIR}/${GRAPH_FILE_NAME}`,
   `${WORKSPACE_DIR}/**/.auth.json`,
   `${WORKSPACE_DIR}/**/storage-state.json`,
 ];
