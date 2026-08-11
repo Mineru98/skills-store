@@ -162,6 +162,20 @@ const publicAux = validateEvidenceReport(
 );
 check('public 은 일반 링크 이미지 거부', !publicAux.ok);
 
+const bareRawPrivate = validateEvidenceReport(
+  'https://raw.githubusercontent.com/acme/private/main/after.webp',
+  { isPrivate: true },
+);
+check('private bare raw URL은 문법 오류로만 거부', !bareRawPrivate.ok);
+check('private bare raw URL은 업로드 대기가 아님', bareRawPrivate.needsManualUpload === false, JSON.stringify(bareRawPrivate.pendingUploads));
+check('private bare raw URL은 pendingUploads 비어있음', bareRawPrivate.pendingUploads.length === 0);
+
+const bareRawPrivateFixed = validateEvidenceReport(
+  '[after.webp](https://raw.githubusercontent.com/acme/private/main/after.webp)',
+  { isPrivate: true },
+);
+check('bare URL을 보조 링크로 고치면 사람 개입 없이 통과', bareRawPrivateFixed.ok, bareRawPrivateFixed.errors.join(', '));
+
 spawnSync('curl', ['-sS', `${base}/__shutdown`]);
 server.kill();
 rmSync(tmp, { recursive: true, force: true });
