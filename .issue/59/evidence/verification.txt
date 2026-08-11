@@ -1,0 +1,26 @@
+=== node --check ===
+OK
+OK
+OK
+
+=== python -m py_compile ===
+OK
+
+=== sh -n ===
+OK
+
+=== sync-shared drift check ===
+sync-shared: 정본과 모든 사본이 동일하다
+
+=== .claude vs .codex gh-setup diff (agents/, __pycache__ 제외 동일해야 함) ===
+Only in .codex/skills/gh-setup: agents
+=== gh attach 확장 설치 확인 ===
+gh attach	sudosubin/gh-attach	v0.4.2
+
+=== private 저장소(Mineru98/screen-cleaner) 업로드 시도 (gh-attach 확장, 실제 호출) ===
+{
+  "ok": false,
+  "reason": "failed to resolve usable cookie source from 18 attempt(s)"
+}
+
+→ 로그인된 브라우저 쿠키가 없는 이 환경에서는 예외 없이 graceful fallback(ok:false + reason) 확인.
