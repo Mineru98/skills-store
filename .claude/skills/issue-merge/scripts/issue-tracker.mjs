@@ -32,7 +32,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {
   run, fail, detectBase, listEvidence, evidenceRel, repoSlugFromRemote, readIssueSettings,
-  isStatusLabel, resolveStatus, STATUS_LABELS,
+  isStatusLabel, resolveStatus, STATUS_LABELS, repoRoot, patchGraphNode,
 } from './issue-common.mjs';
 
 export const PROVIDERS = ['github', 'jira'];
@@ -591,6 +591,13 @@ export function setTrackerStatus(tracker, number, status, { dryRun = false, quie
     }
   }
   if (!quiet) console.log(`✓ ${tracker.displayKey(number)} ${previous ?? '(없음)'} → ${target}`);
+  // 상태 전환은 모든 스킬이 이 한 곳을 지난다. 여기서 DAG 노드를 자동 갱신한다.
+  // graph.json 이 없으면 no-op 이고, 실패해도 상태 전환 결과를 바꾸지 않는다.
+  patchGraphNode(repoRoot(), {
+    number, title: issue.title, url: issue.url,
+    labels: (issue.labels ?? []).map((l) => l.name),
+    status: target.slice('status:'.length),
+  });
   return { ok: true, changed: true, status: target, previous };
 }
 
