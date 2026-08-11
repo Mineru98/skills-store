@@ -5,13 +5,15 @@
 ## 왜 이 순서인가
 
 공개 저장소의 GitHub 이슈 코멘트는 커밋된 파일의 raw URL 을 쓸 수 있다. 비공개 저장소의
-raw URL 은 인증이 필요한 탓에 코멘트에서 렌더링되지 않으므로 이슈 웹 UI 에 업로드한
-`user-attachments` URL 을 써야 한다. 어느 쪽이든 증거 원본은 먼저 커밋·푸시해 보존한다.
+raw URL 은 인증이 필요한 탓에 코멘트에서 렌더링되지 않으므로 `user-attachments` URL 을 써야
+한다. `gh-attach` 확장(`gh-setup` 이 자동 설치한다)이 있고 로컬에 github.com 로그인 브라우저가
+있으면 `evidence-urls` 가 이 URL 을 자동으로 만든다. 없거나 실패한 이미지만 이슈 웹 UI 업로드로
+폴백한다. 어느 쪽이든 증거 원본은 먼저 커밋·푸시해 보존한다.
 
 ```text
 증거 커밋(작업 브랜치) → 브랜치 push → 기본 브랜치에 미러 커밋·push → 공개 범위 확인
   공개 저장소   → 미러 raw URL 생성
-  비공개 저장소 → 이슈 웹 UI 업로드로 user-attachments URL 생성
+  비공개 저장소 → gh-attach 자동 업로드로 user-attachments URL 생성 (실패한 이미지만 웹 UI 업로드)
 → report-check → 이슈 코멘트 → 실제 렌더링 확인
 ```
 
@@ -163,11 +165,23 @@ node <skill>/scripts/issue-start.mjs evidence-urls {issue_number} --mirrorRef <�
 출력의 `isPrivate` 와 `gh repo view` 결과가 다르면 안전한 쪽인 비공개 저장소 절차를 따른다.
 
 ```text
-renderMode: "raw"            images[].inlineUrl 을 그대로 ![](...) 에 사용
-renderMode: "manual-upload"  inlineUrl 이 null 이다. uploadUrl 의 이슈 코멘트 입력창에
-                             images[].localPath 의 webp 를 드래그해 올리고
-                             생성된 https://github.com/user-attachments/assets/... URL 을 사용
+renderMode: "raw"            images[].inlineUrl 을 그대로 ![](...) 에 사용 (공개 저장소)
+renderMode: "auto-upload"    비공개 저장소. gh-attach 확장이 모든 이미지를 자동 업로드했다.
+                             images[].inlineUrl 이 이미 user-attachments URL 로 채워져 있다.
+renderMode: "manual-upload"  비공개 저장소. 일부·전부가 자동 업로드에 실패했다(로컬에
+                             github.com 로그인 브라우저가 없거나 gh-attach 미설치).
+                             해당 이미지만 inlineUrl 이 null 이고 note 에 실패 사유가 담긴다.
+                             uploadUrl 의 이슈 코멘트 입력창에 그 images[].localPath 의 webp 를
+                             드래그해 올리고 생성된 https://github.com/user-attachments/assets/... URL 을 사용
 ```
+
+`evidence-urls` 는 비공개 저장소일 때 `gh attach upload` (확장 `sudosubin/gh-attach`) 로 이미지별
+업로드를 먼저 시도한다. 성공하면 그 자리에서 `inlineUrl` 이 채워지므로 브라우저를 열거나
+드래그할 필요가 없다. `gh-attach` 는 `gh` 의 OAuth 토큰이 아니라 **로컬에 로그인된 브라우저의
+세션 쿠키**로 업로드한다. 그래서 브라우저 로그인이 없는 환경(순수 헤드리스 서버 등)에서는
+실패하는 게 정상이며, 그때만 이미지 단위로 기존 수동 업로드로 폴백한다. 실패했는데도
+브라우저를 직접 열어 클릭·드래그를 자동화하려고 시도하지 마라 — 그건 사람만 할 수 있는
+단계로 남겨 두고, `uploadUrl` 을 사용자에게 보여주고 AskUserQuestion 으로 완료를 확인받는다.
 
 **비공개 저장소에서 raw URL 이 되는지 시험하지 마라. 안 된다.**
 GitHub 은 `raw.githubusercontent.com` 과 `github.com/<owner>/<repo>/raw/...` 응답을 `Sec-Fetch-Site` 로 가른다.
@@ -184,7 +198,9 @@ release 자산도 같다. **주소창에서 열렸다는 사실은 렌더링 근
 기존 이슈의 HTML `<img>`는 입력 호환 목적으로 읽을 수 있지만 새 리포트에는 쓰지 않는다.
 모든 새 이미지는 설명이 있는 `![설명](직접 이미지 링크)`로 작성한다.
 bare 이미지 URL, 일반 링크로 감싼 이미지, blob 페이지, 빈 설명은 허용하지 않는다.
-비공개 저장소에서는 raw/blob/release URL 대신 이슈 웹 UI에 올린 `user-attachments` URL을 쓴다.
+비공개 저장소에서는 raw/blob/release URL 대신 `user-attachments` URL을 쓴다. `evidence-urls` 가
+`images[].inlineUrl` 에 이미 채워 놓았으면(`autoUploaded: true`) 그대로 쓰고, 비어 있으면
+(`autoUploaded: false`, `autoUploadError` 참고) 그 이미지만 웹 UI에 직접 올린다.
 
 게시 전에 반드시 기계 검사를 통과시킨다. `evidence-commit`도 같은 검사를 다시 실행한다.
 

@@ -88,3 +88,22 @@ macOS 는 `macOS` + `.zip`, arm 은 `arm64` 로 바뀐다. `~/.local/bin` 이 `P
 ```
 
 실행 후 `status` 로 결과를 확인하고, 실패했으면 다음 후보 경로(바이너리 폴백)를 제안한다.
+
+## gh-attach 확장 — private 저장소 이미지 자동 업로드
+
+`gh` 자체가 설치·인증된 뒤, `install` 단계가 이어서 아래를 **자동 실행**한다. 확장 설치는
+플랫폼과 무관하게 `gh` 하나로 끝나고 sudo 도 필요 없어 항상 `[auto]` 다.
+
+```bash
+gh extension install sudosubin/gh-attach   # [auto] gh 만 있으면 OS 무관
+```
+
+`issue-start` / `issue-end` 가 비공개 저장소 증거 이미지를 코멘트에 인라인으로 넣을 때 이 확장으로
+`gh attach upload` 를 호출해 `user-attachments` URL 을 직접 만든다. 이 확장은 `gh` 의 OAuth
+토큰이 아니라 **로컬에 로그인된 브라우저의 세션 쿠키**로 업로드하므로, 로컬에 github.com 에
+로그인된 브라우저가 없는 순수 헤드리스 환경에서는 확장이 설치돼 있어도 업로드가 실패할 수
+있다. 그 경우 해당 스킬이 이미지 단위로 기존 수동 업로드(이슈 웹 UI 드래그)로 폴백하므로
+`gh-setup` 은 설치 여부만 보장하면 된다 — 쿠키 유무까지 검증하거나 실패를 재시도하지 않는다.
+
+`status` 출력의 `gh-attach` 줄과 `GH_ATTACH_INSTALLED` 로 설치 여부를 확인한다. `login` 단계에는
+포함되지 않는다(확장 설치에 로그인 자체가 필요하지 않다).

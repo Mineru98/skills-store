@@ -52,11 +52,14 @@ $Managers = @('winget', 'scoop', 'choco') | Where-Object { Test-Cmd $_ }
 $GhInstalled = 0
 $GhVersion = $null
 $GhAuthenticated = 0
+$GhAttachInstalled = 0
 if (Test-Cmd 'gh') {
   $GhInstalled = 1
   $GhVersion = ((gh --version 2>$null) | Select-Object -First 1) -replace '^gh version (\S+).*$', '$1'
   gh auth status *> $null
   if ($LASTEXITCODE -eq 0) { $GhAuthenticated = 1 }
+  $attachList = (gh extension list 2>$null) -join "`n"
+  if ($attachList -match 'sudosubin/gh-attach') { $GhAttachInstalled = 1 }
 }
 
 function Move-LegacySettings {
@@ -78,10 +81,11 @@ function Write-Settings {
     downloaders     = @($Downloader)
     packageManagers = @($Managers)
     gh              = [ordered]@{
-      installed     = [bool]$GhInstalled
-      version       = $GhVersion
-      authenticated = [bool]$GhAuthenticated
-      account       = $null
+      installed       = [bool]$GhInstalled
+      version         = $GhVersion
+      authenticated   = [bool]$GhAuthenticated
+      account         = $null
+      attachExtension = [bool]$GhAttachInstalled
     }
     updatedAt       = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
   }
@@ -133,6 +137,7 @@ switch ($Mode) {
   'status' {
     Write-Output "  gh        : $(if ($GhInstalled -eq 1) { "설치됨 ($GhVersion)" } else { '없음' })"
     Write-Output "  로그인     : $(if ($GhAuthenticated -eq 1) { '됨' } else { '안 됨' })"
+    Write-Output "  gh-attach  : $(if ($GhAttachInstalled -eq 1) { '설치됨' } else { '없음 (private 저장소 이미지 자동 업로드용)' })"
     Write-Output ''
     Write-Settings
     Write-Output ''
@@ -143,6 +148,10 @@ switch ($Mode) {
     Write-Output '폴백에서는 자동 설치를 하지 않는다. 아래 명령을 직접 실행하라.'
     Write-Output ''
     Write-Plan
+    if ($GhInstalled -eq 1 -and $GhAttachInstalled -ne 1) {
+      Write-Output '  추가. [auto] gh extension install sudosubin/gh-attach   # private 저장소 이미지 자동 업로드용'
+      Write-Output ''
+    }
   }
   'config' {
     Write-Output "폴백에서는 설정 편집을 지원하지 않는다. 파일을 직접 고쳐라: $SettingsPath"
@@ -161,4 +170,5 @@ Write-Output "TERMINAL=$Terminal"
 Write-Output "DOWNLOADER=$Downloader"
 Write-Output "GH_INSTALLED=$GhInstalled"
 Write-Output "GH_AUTHENTICATED=$GhAuthenticated"
+Write-Output "GH_ATTACH_INSTALLED=$GhAttachInstalled"
 Write-Output "SETTINGS_PATH=$SettingsPath"

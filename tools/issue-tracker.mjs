@@ -109,6 +109,32 @@ export const gitHost = {
     const r = run('gh', ['pr', 'list', '--state', 'all', '--limit', '1', '--json', 'number'], opts);
     return r.code === 0 && r.out.trim() !== '[]';
   },
+
+  /** gh-attach 확장(sudosubin/gh-attach) 설치 여부. private 저장소 이미지 자동 업로드에 쓴다. */
+  hasAttachExtension(opts = {}) {
+    const r = run('gh', ['extension', 'list'], opts);
+    return r.code === 0 && /\bsudosubin\/gh-attach\b/i.test(r.out);
+  },
+
+  /**
+   * 로컬 파일을 GitHub user-attachments 로 올려 인라인 렌더링 가능한 URL 을 받는다.
+   * gh-attach 는 gh 의 OAuth 토큰이 아니라 로그인된 브라우저의 세션 쿠키(또는
+   * GH_ATTACH_SESSION_TOKEN)로 업로드한다. 로컬에 github.com 에 로그인된 브라우저가
+   * 없으면 실패하는 게 정상이라 예외를 던지지 않고 ok:false 로 알려 호출부가
+   * 기존 수동 업로드 안내로 조용히 폴백하게 한다.
+   */
+  uploadAttachment(filePath, repo, opts = {}) {
+    if (!this.hasAttachExtension(opts)) return { ok: false, reason: 'gh-attach 확장이 설치되어 있지 않음' };
+    const r = run('gh', ['attach', 'upload', filePath, '-R', repo, '--json', 'href,name'], opts);
+    if (r.code !== 0) return { ok: false, reason: (r.err || r.out || 'gh attach 실패').split('\n')[0] };
+    try {
+      const [item] = JSON.parse(r.out);
+      if (!item?.href) return { ok: false, reason: 'gh attach 응답에 href 없음' };
+      return { ok: true, href: item.href };
+    } catch {
+      return { ok: false, reason: 'gh attach 응답 파싱 실패' };
+    }
+  },
 };
 
 /* ------------------------------------------------------- GitHub 트래커 */
@@ -605,31 +631,50 @@ export function evidenceUrls({ root, key, issue, branch, mirrorRef, base }) {
   // private 저장소는 GitHub 이 Sec-Fetch-Site 로 응답을 가른다.
   // 주소창으로 열면 서명 토큰이 붙어 보이지만, 코멘트의 <img> 요청에는 붙지 않아 무조건 깨진다.
   // 저장소 파일 URL 계열(raw / github.com/raw / release)은 전부 같은 제약을 받으므로
-  // 사람이 웹 UI 로 올려 만든 user-attachments URL 외에는 인라인 방법이 없다.
+  // user-attachments URL 외에는 인라인 방법이 없다. gh-attach 확장이 있으면 그 URL을
+  // 자동으로 만들고, 없거나(로컬에 로그인된 브라우저가 없어) 실패하면 사람이 웹 UI로
+  // 직접 올리는 기존 경로로 이미지별로 폴백한다.
   const manual = Boolean(repo.isPrivate);
+  const images = files.map((p) => {
+    const localPath = path.join(root, p);
+    const entry = {
+      path: p,
+      localPath,
+      phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
+      branchUrl: branch ? raw(branch, p) : null,
+      mirrorUrl: raw(ref, p),
+    };
+    if (!manual) return { ...entry, inlineUrl: raw(ref, p), auxUrl: null, autoUploaded: false, autoUploadError: null };
+
+    const uploaded = gitHost.uploadAttachment(localPath, repo.nameWithOwner, root ? { cwd: root } : {});
+    return {
+      ...entry,
+      // 인라인 이미지로 써도 되는 URL. gh-attach 자동 업로드가 실패했으면 null.
+      inlineUrl: uploaded.ok ? uploaded.href : null,
+      // 이미지가 아닌 보조 링크로만 쓰는 URL.
+      auxUrl: raw(ref, p),
+      autoUploaded: uploaded.ok,
+      autoUploadError: uploaded.ok ? null : uploaded.reason,
+    };
+  });
+  const pendingManual = manual ? images.filter((img) => !img.inlineUrl) : [];
+
   return {
     repo: repo.nameWithOwner,
     isPrivate: repo.isPrivate,
     issue,
     branch,
     mirrorRef: ref,
-    renderMode: manual ? 'manual-upload' : 'raw',
-    uploadUrl: manual && issue ? `https://github.com/${repo.nameWithOwner}/issues/${issue}` : null,
-    note: manual
-      ? 'private 저장소입니다. raw URL 은 <img> 로는 렌더링되지 않습니다(주소창으로는 열립니다). '
-        + 'uploadUrl 의 이슈 코멘트 입력창에 images[].localPath 의 webp 를 끌어다 놓아 user-attachments URL 을 얻은 뒤 '
-        + 'comment.md 의 ![설명](...) 에 그 URL 을 넣으세요. raw URL 은 이미지가 아닌 보조 링크 [파일명](auxUrl) 로만 남깁니다.'
-      : null,
-    images: files.map((p) => ({
-      path: p,
-      localPath: path.join(root, p),
-      phase: p.includes('/before/') ? 'before' : p.includes('/after/') ? 'after' : 'other',
-      branchUrl: branch ? raw(branch, p) : null,
-      mirrorUrl: raw(ref, p),
-      // 인라인 이미지로 써도 되는 URL. private 이면 없다.
-      inlineUrl: manual ? null : raw(ref, p),
-      // 이미지가 아닌 보조 링크로만 쓰는 URL.
-      auxUrl: manual ? raw(ref, p) : null,
-    })),
+    renderMode: !manual ? 'raw' : pendingManual.length ? 'manual-upload' : 'auto-upload',
+    uploadUrl: pendingManual.length && issue ? `https://github.com/${repo.nameWithOwner}/issues/${issue}` : null,
+    note: !manual
+      ? null
+      : pendingManual.length
+        ? 'private 저장소입니다. raw URL 은 <img> 로는 렌더링되지 않습니다(주소창으로는 열립니다). '
+          + `gh-attach 자동 업로드로 안 된 ${pendingManual.length}장이 있습니다(${pendingManual.map((img) => `${img.path}: ${img.autoUploadError}`).join('; ')}). `
+          + 'uploadUrl 의 이슈 코멘트 입력창에 해당 images[].localPath 의 webp 를 끌어다 놓아 user-attachments URL 을 얻은 뒤 '
+          + 'comment.md 의 ![설명](...) 에 그 URL 을 넣으세요. raw URL 은 이미지가 아닌 보조 링크 [파일명](auxUrl) 로만 남깁니다.'
+        : 'private 저장소입니다. 모든 이미지를 gh-attach 로 자동 업로드해 inlineUrl 을 채웠습니다. 그대로 comment.md 의 ![설명](inlineUrl) 에 쓰세요.',
+    images,
   };
 }
