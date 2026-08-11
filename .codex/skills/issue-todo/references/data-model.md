@@ -1,4 +1,7 @@
-# graph.json 데이터 모델
+# graph.json V1 데이터 모델 (폐기됨)
+
+V2 구현부터는 [graph-v2.md](graph-v2.md)가 정본이다. 이 문서는 기존 캐시를 읽는 참고용이며,
+`blocks`·로컬 `link`·로컬 `unlink` 규칙을 새 그래프에 적용하면 안 된다.
 
 ## 위치
 

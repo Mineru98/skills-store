@@ -191,15 +191,24 @@ function cmdSearch(query, opts, tracker) {
     console.log('SEARCH_FAILED=1');
     return;
   }
-  for (const it of list) {
+  const tokens = new Set(String(query).toLowerCase().split(/\s+/).filter((token) => token.length > 1));
+  const score = (it) => {
+    const titleTokens = new Set(String(it.title ?? '').toLowerCase().split(/\s+/).filter((token) => token.length > 1));
+    const shared = [...tokens].filter((token) => titleTokens.has(token)).length;
+    return tokens.size ? Number((shared / tokens.size).toFixed(3)) : 0;
+  };
+  const candidates = list.map((it) => ({ ...it, duplicateScore: score(it) }));
+  for (const it of candidates) {
     const labels = (it.labels ?? []).map((l) => l.name).join(', ');
     console.log(`  ${it.key ?? `#${it.number}`} ${it.title}${labels ? `  [${labels}]` : ''}`);
+    console.log(`     duplicate-candidate=${it.duplicateScore >= 0.72 ? 'review' : 'distinct'} score=${it.duplicateScore}`);
     console.log(`     ${it.url}`);
   }
   if (!list.length) console.log('  (유사한 열린 이슈 없음)');
   console.log('');
   console.log(`MATCHES=${list.length}`);
   console.log(`MATCH_NUMBERS=${list.map((i) => i.number).join(' ')}`);
+  console.log(`DUPLICATE_REVIEW_NUMBERS=${candidates.filter((it) => it.duplicateScore >= 0.72).map((it) => it.number).join(' ')}`);
 }
 
 /* ----------------------------------------------------------------- labels */

@@ -26,16 +26,16 @@ description: 열린·닫힌 이슈를 DAG(방향성 비순환 그래프)로 묶�
   </preconditions>
 
   <routing>
-    <always>references/data-model.md — graph.json 스키마와 엣지 방향 규약</always>
-    <always>references/dag-ops.md — sync·link·plan·next·validate 사용법과 판정 규칙</always>
+    <always>references/graph-v2.md — GitHub 정본, V2 스키마, 구조화 승인 및 중복 판정</always>
     <always>references/next-actions.md — 마무리 뒤 다음 행동 4지선다</always>
   </routing>
 
   <hard-rules>
     <rule>코드를 수정하지 않는다. graph.json 과 그 질의만 다룬다.</rule>
     <rule>graph.json 은 base 브랜치에 커밋되는 정본이다. 워크트리마다 다른 그래프를 만들지 않는다.</rule>
-    <rule>엣지 방향은 한 방향만 저장한다: from --depends-on--> to = "from 은 to 가 close 전엔 착수 불가". blocks 등은 파생으로 취급한다.</rule>
-    <rule>link 로 순서 엣지(depends-on/blocks)를 걸 때 순환이 생기면 추가하지 않고 거부한다(exit 2).</rule>
+    <rule>V2 관계는 depends-on, parent-of, duplicate-of, relates-to, supersedes다. 실행 순서는 depends-on만 사용한다.</rule>
+    <rule>관계·중복·override는 GitHub 구조화 승인 코멘트가 정본이다. link/unlink는 로컬 캐시를 바꾸지 않는다.</rule>
+    <rule>불완전·실패·미검증 snapshot, 순환 의존, 지원하지 않는 스키마에서는 plan/next를 fail-closed 한다.</rule>
     <rule>sync 는 트래커를 정본으로 노드를 갱신하고, 본문에서 자동 감지한 엣지(createdBy=sync)만 다시 계산한다. 손으로 건 엣지(createdBy=link)는 보존한다.</rule>
     <rule>이슈를 만들거나 상태를 바꾸거나 PR·코멘트를 남기지 않는다. 그건 issue-create/start/end/merge 의 몫이다.</rule>
   </hard-rules>
