@@ -1,0 +1,7 @@
+✓ sync 완료 — 노드 33개, 엣지 2개 (자동 2, 수동 0)
+  저장: .issue/graph.json
+
+SYNCED=33
+EDGES=2
+AUTO_EDGES=2
+CYCLE=
