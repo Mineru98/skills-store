@@ -27,8 +27,9 @@ NEXT_ISSUE=3
 
 `scripts/test-issue-graph-v2.mjs` covers deterministic digest, symmetric
 `relates-to` normalization, approved duplicate provenance, snapshot fail-close,
-parent hierarchy cycles, and duplicate decision bands. `scripts/test-issue-create.sh`
-and `scripts/check-shared.sh` pass.
+parent hierarchy cycles, 10 deterministic duplicate decisions, revoked approval,
+and duplicate condition output. `scripts/test-issue-create.sh` and
+`scripts/check-shared.sh` pass.
 
 The live repository's #73 references #2, which is a merged pull request excluded from
 `gh issue list`. V2 resolves that GitHub item individually, records its provenance, and
