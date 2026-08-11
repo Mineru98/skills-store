@@ -1,0 +1,5 @@
+✓ 렌더 완료 — 노드 33개, 엣지 2개
+  출력: .issue/viz/graph.html
+
+OUT=/Users/mineru/SourceCode/skills-store-issue-61/.issue/viz/graph.html
+NODES=33
