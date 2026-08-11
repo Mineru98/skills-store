@@ -1,0 +1,8 @@
+# before — issue-todo 스킬 부재 상태
+
+$ ls .claude/skills/ | grep issue-todo
+(issue-todo 없음 — 미구현)
+
+$ ls .issue/graph.json
+ls: .issue/graph.json: No such file or directory
+(graph.json 없음)

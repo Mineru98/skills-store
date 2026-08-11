@@ -1,0 +1,4 @@
+다음 착수 추천: #3 feat(codex): 누락된 스킬 UI 메타데이터 추가
+
+NEXT_ISSUE=3
+NEXT=/issue-start #3
