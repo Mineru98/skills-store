@@ -359,7 +359,9 @@ export function validateEvidenceReport(markdown, { isPrivate = false } = {}) {
     if (ref.kind === 'blob' || ref.kind === 'page') {
       errors.push(`GitHub 페이지 URL은 직접 이미지 링크가 아닙니다: ${ref.originalUrl}`);
     }
-    if (isPrivate && ['raw', 'release'].includes(ref.kind)) {
+    // bare-url 은 문법만 [파일명](URL) 보조 링크로 고치면 위 isAuxLink 예외로 통과한다.
+    // 사람 업로드가 아니라 문법 오류(위 'bare URL로 작성되었습니다')로만 거부한다.
+    if (isPrivate && ['raw', 'release'].includes(ref.kind) && ref.syntax !== 'bare-url') {
       // GitHub 은 이 자산을 Sec-Fetch-Site 로 갈라서 준다.
       // 주소창으로 열면 보이지만 <img> 요청에는 서명 토큰을 붙이지 않아 깨진다.
       pendingUploads.push(ref.originalUrl);
