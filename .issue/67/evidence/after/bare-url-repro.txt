@@ -1,0 +1,22 @@
+{
+  "ok": false,
+  "errors": [
+    "이미지 URL이 bare URL로 작성되었습니다: https://raw.githubusercontent.com/acme/private/main/after.webp"
+  ],
+  "references": [
+    {
+      "syntax": "bare-url",
+      "alt": "",
+      "originalUrl": "https://raw.githubusercontent.com/acme/private/main/after.webp",
+      "resolvedUrl": "https://raw.githubusercontent.com/acme/private/main/after.webp",
+      "source": "comment.md",
+      "sourceUrl": "https://github.com/example/repo/issues/1",
+      "inline": false,
+      "kind": "raw",
+      "start": 0,
+      "end": 62
+    }
+  ],
+  "needsManualUpload": false,
+  "pendingUploads": []
+}
