@@ -29,7 +29,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {
   run, fail, detectBase, listEvidence, evidenceRel, repoSlugFromRemote, readIssueSettings,
-  isStatusLabel, resolveStatus, STATUS_LABELS, repoRoot, patchGraphNode,
+  isStatusLabel, resolveStatus, STATUS_LABELS, mainCheckout, patchGraphNode,
 } from './issue-common.mjs';
 
 export const PROVIDERS = ['github', 'jira'];
@@ -616,11 +616,20 @@ export function setTrackerStatus(tracker, number, status, { dryRun = false, quie
   if (!quiet) console.log(`✓ ${tracker.displayKey(number)} ${previous ?? '(없음)'} → ${target}`);
   // 상태 전환은 모든 스킬이 이 한 곳을 지난다. 여기서 DAG 노드를 자동 갱신한다.
   // graph.json 이 없으면 no-op 이고, 실패해도 상태 전환 결과를 바꾸지 않는다.
-  patchGraphNode(repoRoot(), {
-    number, title: issue.title, url: issue.url,
-    labels: (issue.labels ?? []).map((l) => l.name),
-    status: target.slice('status:'.length),
-  });
+  // repoRoot() 는 저장소가 아니면 process.exit 하는데(try/catch 로 못 막음) 상태 전환은
+  // 이미 성공했으므로 절대 죽으면 안 된다. 안전하게 top-level 을 구하고, 워크트리가 아니라
+  // base 를 담은 메인 체크아웃의 graph 를 갱신해 모든 워크트리가 같은 그래프를 본다.
+  try {
+    const top = run('git', ['rev-parse', '--show-toplevel']);
+    const graphRoot = top.code === 0 && top.out ? (mainCheckout(top.out) ?? top.out) : null;
+    if (graphRoot) {
+      patchGraphNode(graphRoot, {
+        number, title: issue.title, url: issue.url,
+        labels: (issue.labels ?? []).map((l) => l.name),
+        status: target.slice('status:'.length),
+      });
+    }
+  } catch { /* 그래프 갱신 실패는 상태 전환을 막지 않는다 */ }
   return { ok: true, changed: true, status: target, previous };
 }
 

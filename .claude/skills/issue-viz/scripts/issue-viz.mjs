@@ -234,7 +234,10 @@ const CLIENT_JS = String.raw`
 `;
 
 function renderHtml(graph, { view, focus }) {
-  const data = JSON.stringify({ nodes: graph.nodes, edges: graph.edges, provider: graph.provider });
+  // <script> 안에 그대로 넣으므로 '<'(및 '>' '&')를 이스케이프한다. 이슈 제목·rationale 에
+  // </script> 나 <!-- 가 있으면 스크립트가 조기 종료되고 XSS 가 열린다. JSON.stringify 는 '<' 를 건드리지 않는다.
+  const data = JSON.stringify({ nodes: graph.nodes, edges: graph.edges, provider: graph.provider })
+    .replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
   const legendStatus = [
     ['open', '#3b82f6'], ['plan', '#eab308'], ['in-process', '#22c55e'],
     ['review', '#a855f7'], ['close(흐림)', '#9ca3af'],
