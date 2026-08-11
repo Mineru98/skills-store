@@ -1,0 +1,21 @@
+# 이슈 DAG todo
+
+## ▶ 착수 가능 (ready) — 1개
+  - #3 feat(codex): 누락된 스킬 UI 메타데이터 추가
+
+## ⏳ 진행 중 (in-progress) — 3개
+  - #57 capability bundle 이 낡은 채로 merge 되는 것을 막는 검사가 없다 (review)
+  - #59 issue-*, gh-setup: private 저장소 증거 이미지 자동 업로드 (gh-attach 통합) (in-process)
+  - #60 feat(issue-todo): 이슈 DAG 관리 스킬 (in-process)
+
+## ⛔ 막힘 (blocked) — 2개
+  - #61 feat(issue-viz): 이슈 DAG 인터랙티브 시각화 스킬  ← 대기: #60
+  - #62 feat(issue-pipeline): 기존 4스킬 DAG 배선  ← 대기: #60
+
+## ✔ 완료 (done) — 27개
+  #1, #5, #6, #8, #9, #11, #12, #13, #14, #15, #20, #23, #24, #26, #27, #32, #33, #34, #35, #36, #40, #44, #47, #49, #50, #52, #54
+
+READY_NUMBERS=3
+BLOCKED_NUMBERS=61 62
+IN_PROGRESS_NUMBERS=57 59 60
+DONE_NUMBERS=1 5 6 8 9 11 12 13 14 15 20 23 24 26 27 32 33 34 35 36 40 44 47 49 50 52 54

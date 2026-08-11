@@ -1,0 +1,4 @@
+# before — issue-viz 부재 상태
+
+$ ls .claude/skills/ | grep issue-viz
+(issue-viz 없음 — 미구현)

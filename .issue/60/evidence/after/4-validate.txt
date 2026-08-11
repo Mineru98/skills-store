@@ -1,0 +1,15 @@
+# validate — 정상 그래프
+✓ 문제 없음 — DAG 정상, dangling·불일치 없음
+
+VALID=1
+PROBLEMS=0
+
+exit=0
+
+# validate — 인위 사이클 주입 (60 depends-on 61)
+✗ 문제 발견:
+  - 순환 의존: 60 → 61 → 60
+
+VALID=0
+PROBLEMS=1
+exit=2
