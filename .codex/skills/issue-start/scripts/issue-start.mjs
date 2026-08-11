@@ -353,7 +353,12 @@ function cmdEvidenceCommit(number, root) {
   const key = String(number);
   const reportFile = path.join(evidenceDir(root, key), 'comment.md');
   const report = checkReport(number, root);
-  if (!report.ok) fail(`리포트 이미지 검증 실패:\n- ${report.errors.join('\n- ')}`);
+  if (!report.ok) {
+    const head = report.needsManualUpload
+      ? 'private 저장소라 이미지를 사람이 올려야 합니다. 아래를 처리한 뒤 다시 실행하세요'
+      : '리포트 이미지 검증 실패';
+    fail(`${head}:\n- ${report.errors.join('\n- ')}`);
+  }
   const docs = publishDocumentation({ root, key, reportFile });
   if (!docs.ok) console.error(`! Confluence 게시 건너뜀: ${docs.warning}`);
   else if (!docs.skipped) console.log(`✓ Confluence 리포트 게시: ${docs.url}`);
