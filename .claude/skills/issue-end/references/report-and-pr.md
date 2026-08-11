@@ -257,26 +257,33 @@ node <skill>/scripts/issue-end.mjs urls --issue 59 --mirrorRef <mirror 출력의
 
 ```text
 renderMode: "raw"            public 저장소. images[].inlineUrl 을 그대로 ![](...) 에 쓴다.
-renderMode: "manual-upload"  private 저장소. inlineUrl 이 null 이다. 7.5단계로 간다.
+renderMode: "auto-upload"    private 저장소. gh-attach 확장이 모든 이미지를 자동 업로드했다.
+                             images[].inlineUrl 이 이미 채워져 있으니 그대로 쓴다. 7.5단계는 건너뛴다.
+renderMode: "manual-upload"  private 저장소. 일부·전부가 자동 업로드에 실패했다. inlineUrl 이
+                             null 인 이미지만 7.5단계로 간다(images[].autoUploadError 에 사유).
 ```
 
-## 7.5단계 — private 저장소 이미지 업로드 (renderMode 가 `manual-upload` 일 때만)
+## 7.5단계 — private 저장소 이미지 업로드 (renderMode 가 `manual-upload` 이고 inlineUrl 이 비어 있는 이미지만)
 
-private 저장소에서는 **저장소 파일 URL 로 인라인 렌더링이 불가능하다.** 우회로가 없다.
+`urls` 는 private 저장소마다 `gh attach upload`(`sudosubin/gh-attach` 확장, `gh-setup` 이 자동 설치한다)로
+이미지별 자동 업로드를 먼저 시도한다. 성공한 이미지는 `inlineUrl` 이 이미 채워져 있으므로 이 단계를
+건너뛴다. **저장소 파일 URL(raw/blob/release) 로는 애초에 인라인 렌더링이 불가능하니 그쪽으로 우회를
+시도하지 않는다** — GitHub 이 `raw.githubusercontent.com` 과 `github.com/<owner>/<repo>/raw/...` 응답을
+`Sec-Fetch-Site` 로 가르기 때문이다. 주소창으로 열면 서명 토큰이 붙어 보이지만 코멘트의 `<img>` 요청에는
+붙지 않아 항상 깨진다. release 자산도 같다. **주소창에서 열린다는 사실은 렌더링 근거가 아니다.**
 
-GitHub 은 `raw.githubusercontent.com` 과 `github.com/<owner>/<repo>/raw/...` 응답을 `Sec-Fetch-Site` 로 가른다.
-주소창으로 열면 서명 토큰이 붙어 이미지가 보이지만, 코멘트의 `<img>` 요청에는 토큰이 붙지 않아 항상 깨진다.
-release 자산도 같다. **주소창에서 열린다는 사실은 렌더링 근거가 아니다.**
-
-그래서 사람이 한 번 올려야 한다. 아래를 그대로 질문한다.
+자동 업로드가 실패한 이미지(로컬에 github.com 로그인 브라우저가 없거나 gh-attach 미설치인 경우)만
+사람이 한 번 올려야 한다. **이 단계를 브라우저 자동화(클릭·드래그 스크립팅)로 대신하려 하지 않는다.**
+아래를 그대로 질문한다.
 
 ```text
-질문: issue-end 7.5단계(private 이미지 업로드)입니다. 이 저장소는 private 이라 raw URL 이 코멘트에서 렌더링되지 않습니다.
+질문: issue-end 7.5단계(private 이미지 업로드)입니다. 이 저장소는 private 이고, 아래 이미지는
+gh-attach 자동 업로드가 실패했습니다(<images[].autoUploadError>).
 아래 파일을 이슈 코멘트 입력창에 끌어다 놓고, 생성된 user-attachments URL 을 알려주세요.
 
   업로드할 곳: <urls 출력의 uploadUrl>
   파일:
-    - <images[].localPath 를 before/after 순서로 나열>
+    - <inlineUrl 이 null 인 images[].localPath 만 before/after 순서로 나열>
 
 - 업로드 URL 을 입력함     받은 URL 로 comment.md 를 채우고 이어서 진행합니다
 - 이미지 없이 진행         이미지를 빼고 텍스트 증거와 보조 링크만으로 리포트를 만듭니다

@@ -11,7 +11,7 @@ mkdir -p "$TMP/scripts" \
 cp "$SOURCE_ROOT/scripts/check-shared.sh" "$TMP/scripts/check-shared.sh"
 
 printf '#!/usr/bin/env bash\nexit 0\n' > "$TMP/scripts/sync-shared.sh"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$TMP/scripts/build-phase-capability-bundle.mjs"
+printf 'process.exit(0);\n' > "$TMP/scripts/build-phase-capability-bundle.mjs"
 chmod +x "$TMP/scripts/sync-shared.sh" "$TMP/scripts/build-phase-capability-bundle.mjs"
 
 printf '호출: `/issue-create`, `/issue-create`\n' > "$TMP/.claude/skills/issue-create/SKILL.md"

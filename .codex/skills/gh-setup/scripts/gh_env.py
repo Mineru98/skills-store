@@ -229,7 +229,9 @@ def cmd_detect(opts):
         "terminals": merge_preference(prev.get("terminals"), detect_terminals(os_name)),
         "downloaders": merge_preference(prev.get("downloaders"), detect_downloaders()),
         "packageManagers": merge_preference(prev.get("packageManagers"), detect_package_managers(os_name)),
-        "gh": prev.get("gh") or {"installed": False, "version": None, "authenticated": False, "account": None},
+        "gh": prev.get("gh") or {
+            "installed": False, "version": None, "authenticated": False, "account": None, "attachExtension": False,
+        },
     })
     write_settings(settings)
 
@@ -264,6 +266,29 @@ def gh_state():
     }
 
 
+def attach_extension_installed():
+    """gh-attach 확장(sudosubin/gh-attach) 설치 여부. private 저장소 증거 이미지 자동 업로드에 쓴다."""
+    code, out, _ = run(["gh", "extension", "list"])
+    return code == 0 and re.search(r"\bsudosubin/gh-attach\b", out, re.I) is not None
+
+
+def ensure_attach_extension(dry_run=False):
+    """없으면 설치까지 시도한다. sudo 가 필요 없는 gh 자체 기능이라 install 단계에서 자동 실행 대상이다."""
+    if attach_extension_installed():
+        return True
+    if dry_run:
+        print("  (dry-run) gh extension install sudosubin/gh-attach 를 실행하지 않았다.")
+        return False
+    print("$ gh extension install sudosubin/gh-attach")
+    code, out, err = run(["gh", "extension", "install", "sudosubin/gh-attach"])
+    if code != 0:
+        reason = (err or out or "unknown error").strip().splitlines()[0] if (err or out) else "unknown error"
+        sys.stderr.write("✗ gh-attach 확장 설치 실패: %s\n" % reason)
+        return False
+    print("✓ gh-attach 확장 설치됨 (private 저장소 이미지 자동 업로드용)")
+    return True
+
+
 def load_or_detect():
     existing = read_settings()
     if existing:
@@ -272,15 +297,25 @@ def load_or_detect():
     return read_settings()
 
 
+def attach_session_token_set():
+    """GH_ATTACH_SESSION_TOKEN 존재 여부만 본다. 값은 절대 읽어서 출력하거나 저장하지 않는다 —
+    브라우저 로그인이 불가능한 헤드리스 서버(Ubuntu server 등)용 대안 인증 경로다."""
+    return bool(os.environ.get("GH_ATTACH_SESSION_TOKEN"))
+
+
 def cmd_status():
     settings = read_settings() or load_or_detect()
     settings["gh"] = gh_state()
+    settings["gh"]["attachExtension"] = attach_extension_installed() if settings["gh"]["installed"] else False
     write_settings(settings)
     gh = settings["gh"]
+    session_token_set = attach_session_token_set()
     print("  gh        : %s" % ("설치됨 (%s)" % gh["version"] if gh["installed"] else "없음"))
     print("  로그인     : %s" % ("됨 (%s)" % (gh["account"] or "unknown") if gh["authenticated"] else "안 됨"))
+    print("  gh-attach  : %s" % ("설치됨" if gh["attachExtension"] else "없음 (private 저장소 이미지 자동 업로드용, install 단계에서 자동 설치)"))
+    print("  세션 토큰  : %s" % ("GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)" if session_token_set else "없음 (브라우저 쿠키로 대체 시도)"))
     print("")
-    emit(settings)
+    emit(settings, {"GH_ATTACH_SESSION_TOKEN_SET": 1 if session_token_set else 0})
 
 
 # ---------------------------------------------------------------------- plan
@@ -417,6 +452,7 @@ def cmd_install(opts):
     current = gh_state()
     if current["installed"]:
         print("✓ gh 가 이미 설치되어 있다 (%s)" % current["version"])
+        current["attachExtension"] = ensure_attach_extension(dry_run=opts.get("dry_run"))
         settings["gh"] = current
         write_settings(settings)
         emit(settings)
@@ -453,6 +489,8 @@ def cmd_install(opts):
         return
 
     settings["gh"] = gh_state()
+    if settings["gh"]["installed"]:
+        settings["gh"]["attachExtension"] = ensure_attach_extension()
     write_settings(settings)
     print("")
     print("INSTALLED=%d" % (1 if settings["gh"]["installed"] else 0))
@@ -467,7 +505,9 @@ def cmd_install(opts):
 
 def cmd_login():
     settings = load_or_detect()
+    attach_extension = (settings.get("gh") or {}).get("attachExtension", False)
     settings["gh"] = gh_state()
+    settings["gh"]["attachExtension"] = attach_extension
     write_settings(settings)
 
     if not settings["gh"]["installed"]:
@@ -544,6 +584,7 @@ def emit(settings, extra=None):
         "DOWNLOADER": (settings.get("downloaders") or [""])[0],
         "GH_INSTALLED": 1 if gh.get("installed") else 0,
         "GH_AUTHENTICATED": 1 if gh.get("authenticated") else 0,
+        "GH_ATTACH_INSTALLED": 1 if gh.get("attachExtension") else 0,
         "SETTINGS_PATH": str(SETTINGS_PATH),
     }
     out.update(extra or {})

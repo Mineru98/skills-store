@@ -1,0 +1,5 @@
+# before — 상태 전환 자동 그래프 갱신 부재
+
+$ grep -c patchGraphNode tools/issue-tracker.mjs
+0
+(0 = 자동 훅 없음 — 상태 전환이 graph.json 을 갱신하지 않음, 수동 sync 필요)

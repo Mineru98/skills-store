@@ -49,7 +49,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     <rule>사용자가 정해야 할 것은 전부 AskUserQuestion 으로 묻는다. 평문 질문으로 끝내지 않는다.</rule>
     <rule>커밋은 `guard` 가 통과할 때만 사용자 확인 없이 한다. 실패하면 커밋하지 않고 AskUserQuestion 으로 확인을 받는다.</rule>
     <rule>기본 브랜치에서는 절대 구현하지 않는다. 현재 워크트리에서 브랜치를 갈아타지도 않는다.</rule>
-    <rule>증거는 먼저 커밋·푸시한다. 공개 저장소는 미러 raw URL, 비공개 저장소는 이슈 웹 UI의 `user-attachments` URL 로 코멘트하고 실제 렌더링을 확인한다.</rule>
+    <rule>증거는 먼저 커밋·푸시한다. 공개 저장소는 미러 raw URL, 비공개 저장소는 `user-attachments` URL(gh-attach 자동 업로드, 실패 시에만 이슈 웹 UI 수동 업로드)로 코멘트하고 실제 렌더링을 확인한다.</rule>
     <rule>증거 이미지는 webp 로만 만들고, after 에는 변경 구간을 가리키는 바운딩 박스를 넣는다.</rule>
     <rule>첨부 이미지는 요약만 믿지 않고 Read 로 직접 열어본다.</rule>
     <rule>이슈 상태 변경, PR 생성, merge 를 하지 않는다. 각각 issue-end 와 issue-merge 의 몫이다.</rule>
@@ -183,8 +183,11 @@ flowchart TD
     P --> Q[evidence-mirror --push: 기본 브랜치에 증거 커밋]
     Q --> R{비공개 저장소?}
     R -- 아니오 --> R1[evidence-urls: 미러 기준 raw URL]
-    R -- 예 --> R2[이슈 웹 UI 업로드: user-attachments URL]
-    R1 --> S[report-check + gh issue comment]
+    R -- 예 --> R3[evidence-urls: gh-attach 자동 업로드 시도]
+    R3 --> R4{전부 성공?}
+    R4 -- 예 --> S[report-check + gh issue comment]
+    R4 -- 아니오 --> R2[실패한 이미지만 이슈 웹 UI 업로드: user-attachments URL]
+    R1 --> S
     R2 --> S
     S --> S0{이미지 렌더링 확인}
     S0 -- 깨짐 --> R
@@ -446,7 +449,8 @@ before 와 같은 URL·상태·뷰포트로 찍고, 변경 구간에 `--box` 를
 ## 10~11단계 — 미러 커밋과 이슈 코멘트
 
 순서를 지키고 저장소 공개 범위에 따라 이미지 URL 을 고른다. 공개 저장소는 미러 기준 raw URL,
-비공개 저장소는 이슈 웹 UI 에 업로드한 `user-attachments` URL 이어야 바로 렌더링된다.
+비공개 저장소는 `user-attachments` URL 이어야 바로 렌더링된다. `evidence-urls` 가 비공개 저장소면
+`gh-attach` 확장으로 이미지별 자동 업로드를 먼저 시도하므로 보통은 별도 조치가 필요 없다.
 
 ```bash
 node <skill>/scripts/issue-start.mjs evidence-commit {issue_number}
@@ -458,9 +462,12 @@ node <skill>/scripts/issue-start.mjs report-check {issue_number}
 gh issue comment {issue_number} --body-file .issue/{issue_number}/evidence/comment.md
 ```
 
-`evidence-urls` 의 `renderMode` 가 `manual-upload` 이면(= `isPrivate: true`) `inlineUrl` 이 `null` 이다.
-raw URL 은 어떤 형태로도 인라인 렌더링되지 않으므로 대체 URL 을 찾지 말고 사용자에게 업로드를 요청한다.
-`uploadUrl` 과 `images[].localPath` 를 보여주고, 받은 `user-attachments` URL 로 `comment.md` 를 채운 뒤 게시한다.
+`evidence-urls` 의 `renderMode` 가 `auto-upload` 면(= `isPrivate: true` 이고 gh-attach 가 전부 성공)
+`images[].inlineUrl` 이 이미 채워져 있으니 그대로 쓴다. `manual-upload` 면 그중 자동 업로드에 실패한
+이미지만 `inlineUrl` 이 `null` 이다(`images[].autoUploadError` 에 사유). raw URL 은 어떤 형태로도
+인라인 렌더링되지 않으므로 대체 URL 을 찾거나 브라우저 자동화로 우회하지 말고, 그 이미지만 사용자에게
+업로드를 요청한다. `uploadUrl` 과 해당 `images[].localPath` 를 보여주고, 받은 `user-attachments` URL 로
+`comment.md` 를 채운 뒤 게시한다.
 
 세부와 코멘트 형식은 `references/evidence-capture.md`.
 

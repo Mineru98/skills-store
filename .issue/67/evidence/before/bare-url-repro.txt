@@ -1,0 +1,25 @@
+{
+  "ok": false,
+  "errors": [
+    "이미지 URL이 bare URL로 작성되었습니다: https://raw.githubusercontent.com/acme/private/main/after.webp",
+    "private 저장소라 인라인 렌더링이 안 됩니다(주소창으로는 열려도 <img>로는 깨집니다): https://raw.githubusercontent.com/acme/private/main/after.webp\n  → 이슈 웹 UI에 해당 webp를 끌어다 놓고 생성된 user-attachments URL로 바꾸세요. raw 링크를 남기려면 이미지가 아닌 보조 링크 [파일명](URL) 형태로 쓰세요."
+  ],
+  "references": [
+    {
+      "syntax": "bare-url",
+      "alt": "",
+      "originalUrl": "https://raw.githubusercontent.com/acme/private/main/after.webp",
+      "resolvedUrl": "https://raw.githubusercontent.com/acme/private/main/after.webp",
+      "source": "comment.md",
+      "sourceUrl": "https://github.com/example/repo/issues/1",
+      "inline": false,
+      "kind": "raw",
+      "start": 0,
+      "end": 62
+    }
+  ],
+  "needsManualUpload": true,
+  "pendingUploads": [
+    "https://raw.githubusercontent.com/acme/private/main/after.webp"
+  ]
+}
