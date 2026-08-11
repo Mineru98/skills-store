@@ -1,0 +1,37 @@
+sync-shared: 정본과 모든 사본이 동일하다
+
+check-shared: 통과
+✔ [active-required] capability bundle accepts the exact 13/11/9 phase inventory and complete closure (12.735167ms)
+✔ [active-required] capability bundle rejects missing and extra phase IDs (190.323208ms)
+✔ [active-required] capability bundle rejects a duplicate valid phase (88.968292ms)
+✔ [active-required] capability bundle rejects coherent self-digested normative effect drift (92.491875ms)
+✔ [active-required] capability bundle rejects schema, mirror, and raw-byte closure drift (254.653208ms)
+✔ [active-required] capability bundle rejects outside-root and symlink closure paths (161.458667ms)
+✔ [active-required] capability probe rejects undocumented effects and fake-provider failures (13.674542ms)
+✔ [active-required] capability probe invokes every phase through both installed mirrors (6.612125ms)
+✖ [active-required] installed phase contracts complete through both mirrors with fake providers (912.418292ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1781.589083
+
+✖ failing tests:
+
+test at scripts/test-phase-compatibility.mjs:208:1
+✖ [active-required] installed phase contracts complete through both mirrors with fake providers (912.418292ms)
+  Error [CapabilityCompatibilityError]: claude:issue-start.intake exited 2
+      at fail (file:///Users/mineru/SourceCode/skills-store-issue-57/tools/issue-phase-capabilities.mjs:49:9)
+      at probeCapabilityBundle (file:///Users/mineru/SourceCode/skills-store-issue-57/tools/issue-phase-capabilities.mjs:531:9)
+      at TestContext.<anonymous> (file:///Users/mineru/SourceCode/skills-store-issue-57/scripts/test-phase-compatibility.mjs:209:24)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    code: 'PROVIDER_FAILURE'
+  }
