@@ -24,3 +24,36 @@ gh attach	sudosubin/gh-attach	v0.4.2
 }
 
 → 로그인된 브라우저 쿠키가 없는 이 환경에서는 예외 없이 graceful fallback(ok:false + reason) 확인.
+
+=== 추가 검증 (2b1bf17, e5c00c6) ===
+
+--- gh-setup status: gh-attach + 세션 토큰 감지 (값은 절대 안 찍힘) ---
+  gh        : 설치됨 (2.92.0)
+  로그인     : 됨 (Mineru98)
+  gh-attach  : 설치됨
+  세션 토큰  : 없음 (브라우저 쿠키로 대체 시도)
+
+RUNTIME=node
+OS=unknown
+FAMILY=unknown
+TERMINAL=
+DOWNLOADER=
+GH_INSTALLED=1
+GH_AUTHENTICATED=1
+GH_ATTACH_INSTALLED=1
+SETTINGS_PATH=/Users/mineru/.issue/settings.json
+GH_ATTACH_SESSION_TOKEN_SET=0
+
+--- GH_ATTACH_SESSION_TOKEN 이 flag 없이 자동으로 읽히는지 실측 ---
+가짜 값으로 시도 → 브라우저 쿠키 탐색을 건너뛰고 그 값으로 바로 요청이 감:
+HTTP 404 (https://github.com/upload/policies/assets)
+
+→ 코드 변경(gitHost.uploadAttachment()) 없이 서버 환경변수만으로 헤드리스 업로드 경로가 동작함을 확인.
+
+--- node/python/sh 문법 재검사 (2b1bf17, e5c00c6 반영 후) ---
+OK
+OK
+OK
+OK
+sync-shared: 정본과 모든 사본이 동일하다
+Only in .codex/skills/gh-setup: agents
