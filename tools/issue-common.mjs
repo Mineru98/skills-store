@@ -418,6 +418,15 @@ export function patchGraphNode(root, node) {
       url: node.url ?? prev.url ?? '',
       ...(prev.priority !== undefined ? { priority: prev.priority } : {}),
     };
+    // issue-todo saveGraph 와 같은 정렬 규율을 지킨다 — 노드는 번호순, 엣지는 (from,to,type)순.
+    // 안 지키면 공유 커밋 파일(base 브랜치)에 노이즈 diff 와 머지 충돌이 생긴다.
+    const sortedNodes = {};
+    for (const k of Object.keys(g.nodes).sort((a, b) => Number(a) - Number(b))) sortedNodes[k] = g.nodes[k];
+    g.nodes = sortedNodes;
+    if (Array.isArray(g.edges)) {
+      g.edges = [...g.edges].sort((a, b) =>
+        a.from - b.from || a.to - b.to || String(a.type).localeCompare(String(b.type)));
+    }
     g.updatedAt = new Date().toISOString();
     writeFileSync(file, `${JSON.stringify(g, null, 2)}\n`, 'utf8');
     return true;

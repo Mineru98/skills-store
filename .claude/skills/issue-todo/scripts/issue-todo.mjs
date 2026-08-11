@@ -157,7 +157,9 @@ export function classify(graph) {
   for (const num of Object.keys(graph.nodes).map(Number)) {
     const st = statusOf(num);
     if (st === DONE) { out.done.push(num); continue; }
-    const blockers = [...(prereq.get(num) ?? [])].filter((d) => statusOf(d) !== DONE);
+    // 그래프에 없는 선행(다른 저장소 참조·오타·fetch 창 밖)은 blocker 로 치지 않는다.
+    // 안 그러면 그 이슈가 영원히 blocked 로 남아 ready/next 에서 사라진다. dangling 은 validate 가 계속 경고한다.
+    const blockers = [...(prereq.get(num) ?? [])].filter((d) => graph.nodes[String(d)] && statusOf(d) !== DONE);
     if (blockers.length) { out.blocked.push({ num, blockers }); continue; }
     if (IN_PROGRESS.has(st)) { out.inProgress.push(num); continue; }
     out.ready.push(num);
@@ -180,10 +182,10 @@ export function parseDependencies(body = '') {
     let m;
     while ((m = re.exec(text)) !== null) refs.push({ type, to: Number(m[1]) });
   };
-  // "depends on #N", "depends-on #N", "blocked by #N", "needs #N" → depends-on
+  // "depends on #N", "depends-on #N", "blocked by #N" → depends-on
+  // "needs #N" 은 "needs #2 more tests" 처럼 수량을 가리키는 경우가 많아 의존으로 보지 않는다.
   grab(/\bdepends[\s-]?on\s+#(\d{1,6})/gi, 'depends-on');
   grab(/\bblocked[\s-]?by\s+#(\d{1,6})/gi, 'depends-on');
-  grab(/\bneeds\s+#(\d{1,6})/gi, 'depends-on');
   // "blocks #N" → blocks
   grab(/\bblocks\s+#(\d{1,6})/gi, 'blocks');
   return refs;
