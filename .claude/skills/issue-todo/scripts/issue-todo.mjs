@@ -25,13 +25,13 @@
  *
  * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
-import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync, renameSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
-import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, validateGraphV2 } from './issue-graph-v2.mjs';
+import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1 } from './issue-graph-v2.mjs';
 
 export const GRAPH_VERSION = V2_GRAPH_VERSION;
 export const GRAPH_FILE = GRAPH_FILE_NAME;
@@ -76,7 +76,9 @@ export function saveGraph(root, graph, { now } = {}) {
   const out = { ...graph, version: GRAPH_VERSION, updatedAt: now ?? graph.updatedAt, nodes, edges };
   const file = graphPath(root);
   mkdirSync(path.dirname(file), { recursive: true });
-  writeFileSync(file, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  const temporary = `${file}.tmp-${process.pid}`;
+  writeFileSync(temporary, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  renameSync(temporary, file);
   return file;
 }
 
@@ -212,11 +214,13 @@ function cmdSync(root, tracker, opts) {
   graph.version = GRAPH_VERSION;
   graph.provider = tracker.provider;
   graph.repository = opts.repo ?? graph.repository ?? null;
+  graph.nodes = {};
 
+  const now = opts.now ?? new Date().toISOString();
   // 노드 갱신 (제목·상태·라벨·url 은 트래커가 정본).
   for (const it of list) {
     const labels = (it.labels ?? []).map((l) => l.name);
-    const source = { url: it.url, updatedAt: it.updatedAt ?? null };
+    const source = { url: it.url, revision: it.updatedAt ?? 'unknown', observedAt: now };
     graph.nodes[String(it.number)] = {
       id: `github:${graph.repository ?? 'unknown'}#${it.number}`,
       number: it.number,
@@ -224,10 +228,8 @@ function cmdSync(root, tracker, opts) {
       status: deriveStatus(it.labels ?? [], it.state),
       labels: typeLabels(labels),
       url: it.url,
-      context: { problem: unknownField('GitHub 본문에 구조화된 problem 필드가 없음', source), scope: unknownField('GitHub 본문에 구조화된 scope 필드가 없음', source), acceptance: unknownField('GitHub 본문에 구조화된 acceptance 필드가 없음', source) },
+      context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, unknownField(`GitHub 본문에 구조화된 ${field} 필드가 없음`, source)])),
       provenance: source,
-      ...(graph.nodes[String(it.number)]?.priority !== undefined
-        ? { priority: graph.nodes[String(it.number)].priority } : {}),
     };
   }
 
@@ -235,7 +237,6 @@ function cmdSync(root, tracker, opts) {
   const auto = [];
   const decisions = [];
   const seen = new Set();
-  const now = opts.now ?? new Date().toISOString();
   for (const it of list) {
     for (const ref of parseDependencies(it.body ?? '')) {
       const from = ref.reverse ? ref.from : it.number;
@@ -254,8 +255,8 @@ function cmdSync(root, tracker, opts) {
     const item = tracker.issueView(number);
     if (!item) { unresolved.push(number); continue; }
     const labels = (item.labels ?? []).map((label) => label.name);
-    const source = { url: item.url, updatedAt: item.updatedAt ?? null, kind: 'referenced' };
-    graph.nodes[String(number)] = { id: `github:${graph.repository ?? 'unknown'}#${number}`, number, title: item.title, status: deriveStatus(item.labels ?? [], item.state), labels: typeLabels(labels), url: item.url, context: { problem: unknownField('참조된 GitHub 항목의 구조화된 problem 필드가 없음', source), scope: unknownField('참조된 GitHub 항목의 구조화된 scope 필드가 없음', source), acceptance: unknownField('참조된 GitHub 항목의 구조화된 acceptance 필드가 없음', source) }, provenance: source };
+    const source = { url: item.url, revision: item.updatedAt ?? 'unknown', observedAt: now, kind: 'referenced' };
+    graph.nodes[String(number)] = { id: `github:${graph.repository ?? 'unknown'}#${number}`, number, title: item.title, status: deriveStatus(item.labels ?? [], item.state), labels: typeLabels(labels), url: item.url, context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, unknownField(`참조된 GitHub 항목의 구조화된 ${field} 필드가 없음`, source)])), provenance: source };
   }
   const approved = resolveDecisions(decisions).map(decisionEdge).filter(Boolean).filter((edge) => { const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true; });
   graph.edges = [...auto, ...approved];
@@ -308,7 +309,7 @@ function label(graph, num) {
 
 function cmdPlan(root, tracker, opts) {
   const graph = loadGraph(root, tracker.provider);
-  const problems = validateGraphV2(graph);
+  const problems = auditGraph(graph);
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
   if (problems.length) { console.error(`✗ 안전하지 않은 그래프라 plan을 만들지 않는다: ${problems.join(' / ')}`); console.log('READY_NUMBERS='); process.exit(2); }
@@ -352,7 +353,7 @@ function cmdPlan(root, tracker, opts) {
 
 function cmdNext(root, tracker) {
   const graph = loadGraph(root, tracker.provider);
-  const problems = validateGraphV2(graph);
+  const problems = auditGraph(graph);
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
   if (problems.length) { console.error(`✗ 안전하지 않은 그래프라 next를 추천하지 않는다: ${problems.join(' / ')}`); console.log('NEXT_ISSUE='); process.exit(2); }
@@ -373,7 +374,7 @@ function cmdNext(root, tracker) {
 
 function cmdValidate(root, tracker) {
   const graph = loadGraph(root, tracker.provider);
-  const problems = validateGraphV2(graph);
+  const problems = auditGraph(graph);
 
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
@@ -409,6 +410,23 @@ function cmdValidate(root, tracker) {
   process.exit(cycle ? 2 : 1);
 }
 
+function cmdMigrate(root, tracker, opts) {
+  const graph = loadGraph(root, tracker.provider);
+  if (graph.version === GRAPH_VERSION) { console.log('MIGRATED=0'); console.log('MIGRATION_STATUS=already-v2'); return; }
+  if (graph.version !== 1) { console.error(`✗ 지원하지 않는 마이그레이션 원본: V${graph.version}`); console.log('MIGRATED=0'); process.exit(2); }
+  const migrated = migrateGraphV1(graph, { now: opts.now });
+  const file = saveGraph(root, migrated, { now: migrated.updatedAt });
+  console.log(`✓ V1 → V2 마이그레이션 완료: ${path.relative(root, file)}`);
+  console.log('  이 캐시는 migrating 상태다. GitHub sync 전에는 plan/next를 실행하지 않는다.');
+  console.log('MIGRATED=1'); console.log('MIGRATION_STATUS=migrating');
+}
+
+function cmdAudit(root, tracker) {
+  const problems = auditGraph(loadGraph(root, tracker.provider));
+  if (problems.length) { console.log('AUDIT=0'); console.log(`PROBLEMS=${problems.length}`); for (const problem of problems) console.log(`  - ${problem}`); process.exit(2); }
+  console.log('AUDIT=1'); console.log('PROBLEMS=0');
+}
+
 /* ------------------------------------------------------------------- usage */
 
 function usage(exitCode = 1) {
@@ -419,9 +437,11 @@ function usage(exitCode = 1) {
   node issue-todo.mjs plan [--json]        (별칭: todo)
   node issue-todo.mjs next
   node issue-todo.mjs validate
+  node issue-todo.mjs audit
+  node issue-todo.mjs migrate
 
 엣지 방향: from --depends-on--> to = "from 은 to 가 close 전엔 착수 불가".
-그래프: ${WORKSPACE_DIR}/${GRAPH_FILE} (base 브랜치에 커밋 — .gitignore 예외).
+그래프: ${WORKSPACE_DIR}/${GRAPH_FILE} (GitHub 정본에서 재생성하는 로컬 캐시).
 이슈 백엔드는 ~/.issue/settings.json 의 provider.type 이 정한다 (github 기본 | jira).
 `);
   process.exit(exitCode);
@@ -435,7 +455,7 @@ function main() {
 
   let mode = argv[0];
   if (mode === 'todo') mode = 'plan';
-  const MODES = ['sync', 'link', 'unlink', 'plan', 'next', 'validate'];
+  const MODES = ['sync', 'link', 'unlink', 'plan', 'next', 'validate', 'audit', 'migrate'];
   if (!MODES.includes(mode)) { console.error(`✗ 알 수 없는 모드: ${argv[0]}`); usage(); }
 
   const opts = {};
@@ -461,6 +481,8 @@ function main() {
   else if (mode === 'plan') cmdPlan(root, tracker, opts);
   else if (mode === 'next') cmdNext(root, tracker);
   else if (mode === 'validate') cmdValidate(root, tracker);
+  else if (mode === 'audit') cmdAudit(root, tracker);
+  else if (mode === 'migrate') cmdMigrate(root, tracker, opts);
 }
 
 /** 심볼릭 링크로 설치돼도 진입점 판별이 어긋나지 않게 realpath 로 비교한다. */

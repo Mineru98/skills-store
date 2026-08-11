@@ -32,7 +32,7 @@ description: 열린·닫힌 이슈를 DAG(방향성 비순환 그래프)로 묶�
 
   <hard-rules>
     <rule>코드를 수정하지 않는다. graph.json 과 그 질의만 다룬다.</rule>
-    <rule>graph.json 은 base 브랜치에 커밋되는 정본이다. 워크트리마다 다른 그래프를 만들지 않는다.</rule>
+    <rule>GitHub 이슈와 구조화된 결정 코멘트가 정본이다. graph.json은 로컬 재생성 캐시이며 커밋하지 않는다.</rule>
     <rule>V2 관계는 depends-on, parent-of, duplicate-of, relates-to, supersedes다. 실행 순서는 depends-on만 사용한다.</rule>
     <rule>관계·중복·override는 GitHub 구조화 승인 코멘트가 정본이다. link/unlink는 로컬 캐시를 바꾸지 않는다.</rule>
     <rule>불완전·실패·미검증 snapshot, 순환 의존, 지원하지 않는 스키마에서는 plan/next를 fail-closed 한다.</rule>

@@ -119,9 +119,9 @@ printf '## 배경\n\n세번째\n' > "$TMP/draft-3.md"
 
 GITIGNORE_BEFORE=$(cat .gitignore 2>/dev/null || printf '')
 
-D1=$(node "$CREATE" create --dry-run --title "대시보드 기간 필터 추가" --body-file "$TMP/draft-1.md" --label enhancement)
-D2=$(node "$CREATE" create --dry-run --title "주문 목록 빈 렌더링 수정" --body-file "$TMP/draft-2.md" --label bug)
-D3=$(node "$CREATE" create --dry-run --title "레거시 export 스크립트 제거" --body-file "$TMP/draft-3.md" --label chore)
+D1=$(node "$CREATE" create --dry-run --skip-duplicate-review --title "대시보드 기간 필터 추가" --body-file "$TMP/draft-1.md" --label enhancement)
+D2=$(node "$CREATE" create --dry-run --skip-duplicate-review --title "주문 목록 빈 렌더링 수정" --body-file "$TMP/draft-2.md" --label bug)
+D3=$(node "$CREATE" create --dry-run --skip-duplicate-review --title "레거시 export 스크립트 제거" --body-file "$TMP/draft-3.md" --label chore)
 
 check "dry-run 1: 제목·라벨이 명령에 반영" "$(echo "$D1" | grep -q '대시보드 기간 필터 추가' && echo "$D1" | grep -q -- '--label enhancement' && echo 0 || echo 1)"
 check "dry-run 2: 제목·라벨이 명령에 반영" "$(echo "$D2" | grep -q '주문 목록 빈 렌더링 수정' && echo "$D2" | grep -q -- '--label bug' && echo 0 || echo 1)"
@@ -132,6 +132,20 @@ check "dry-run: 세 호출이 서로 다른 명령을 냄" "$([ "$UNIQ" = "3" ] 
 # 부작용이 없어야 한다 — dry-run 은 아무것도 만들지 않는다.
 check "dry-run: .issue 를 만들지 않음" "$([ ! -d .issue ] && echo 0 || echo 1)"
 check "dry-run: .gitignore 를 건드리지 않음" "$([ "$(cat .gitignore 2>/dev/null || printf '')" = "$GITIGNORE_BEFORE" ] && echo 0 || echo 1)"
+
+# =====================================================================
+# create — 중복 검토 게이트
+# 완전 일치 후보는 결정 id 없이는 생성하지 않고, id가 있으면 dry-run까지 진행한다.
+# =====================================================================
+printf '%s\n' '{"candidate":{"subject":"graph","outcome":"sync","scope":"todo","acceptance":"audit"},"targets":[{"number":42,"status":"open","subject":"graph","outcome":"sync","scope":"todo","acceptance":"audit"}]}' > "$TMP/duplicate-review.json"
+set +e
+OUT=$(node "$CREATE" create --dry-run --title "중복" --body-file "$TMP/draft-1.md" --label bug --duplicate-review-file "$TMP/duplicate-review.json" 2>&1)
+CODE=$?
+set -e
+check "create: 완전 일치 후보는 결정 id 없으면 exit 2" "$([ "$CODE" -eq 2 ] && echo 0 || echo 1)"
+check "create: 완전 일치 후보 번호를 출력" "$(echo "$OUT" | grep -q '#42' && echo 0 || echo 1)"
+OUT=$(node "$CREATE" create --dry-run --title "중복" --body-file "$TMP/draft-1.md" --label bug --duplicate-review-file "$TMP/duplicate-review.json" --duplicate-decision-id duplicate-42)
+check "create: 구조화 결정 id가 있으면 dry-run 진행" "$(echo "$OUT" | grep -q 'gh issue create' && echo 0 || echo 1)"
 
 # =====================================================================
 # create — 본문 파일이 없을 때

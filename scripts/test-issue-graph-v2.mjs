@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import process from 'node:process';
+import { tmpdir } from 'node:os';
 import {
   EDGE_TYPES, digest, normalizeEdge, parseDecisionComments, decisionEdge,
-  validateGraphV2, duplicateScore, duplicateVerdict, evaluateDuplicate, measureFieldQuality, resolveDecisions,
+  CONTEXT_FIELDS, auditGraph, migrateGraphV1, validateGraphV2, duplicateScore, duplicateVerdict, evaluateDuplicate, measureFieldQuality, resolveDecisions,
 } from '../.codex/skills/issue-todo/scripts/issue-graph-v2.mjs';
 import { deriveStatus, classify } from '../.codex/skills/issue-todo/scripts/issue-todo.mjs';
 
@@ -22,13 +27,27 @@ assert.deepEqual(resolveDecisions([{ ...decision, decision: 'approved' }, { ...d
 const graph = {
   version: 2,
   snapshot: { status: 'complete' },
-  nodes: { '4': { number: 4 }, '9': { number: 9 } },
+  nodes: Object.fromEntries([4, 9].map((number) => [String(number), {
+    number, title: `issue ${number}`, status: 'open', labels: [], url: `https://example.test/issues/${number}`,
+    context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, { value: 'unknown', reason: 'fixture', source: 'fixture' }])),
+    provenance: { url: `https://example.test/issues/${number}`, revision: 'fixture' },
+  }])),
   edges: [edge],
 };
 assert.deepEqual(validateGraphV2(graph), []);
+assert.deepEqual(auditGraph(graph), []);
+assert.match(auditGraph({ ...graph, nodes: { ...graph.nodes, '4': { ...graph.nodes['4'], context: {} } } }).join('\n'), /맥락 필드 없음/);
 assert.match(validateGraphV2({ ...graph, snapshot: { status: 'partial' } })[0], /snapshot/);
 assert.match(validateGraphV2({ ...graph, edges: [{ ...edge, decisionId: undefined }] })[0], /duplicate-of/);
 assert.match(validateGraphV2({ ...graph, edges: [{ from: 4, to: 9, type: 'parent-of', provenance: {} }, { from: 9, to: 4, type: 'parent-of', provenance: {} }] }).join('\n'), /parent-of 순환/);
+
+const migrated = migrateGraphV1({
+  version: 1, updatedAt: '2026-08-01T00:00:00Z', nodes: { '4': { number: 4, url: 'https://example.test/issues/4' }, '9': { number: 9, url: 'https://example.test/issues/9' } },
+  edges: [{ from: 4, to: 9, type: 'blocks' }],
+}, { now: '2026-08-12T00:00:00Z' });
+assert.equal(migrated.snapshot.status, 'migrating');
+assert.deepEqual(migrated.edges.map((item) => [item.from, item.to, item.type]), [[9, 4, 'depends-on']]);
+assert.match(auditGraph(migrated).join('\n'), /source snapshot/);
 
 const score = duplicateScore(
   { title: 'cache sync fails on partial GitHub page', scope: 'issue graph snapshot', mechanism: 'pagination', acceptance: 'reject partial cache' },
@@ -75,5 +94,17 @@ const quality = measureFieldQuality([
 ], ['problem', 'scope']);
 assert.deepEqual(quality.problem, { accuracy: 1, recall: 1, unknownRate: 0, samples: 2 });
 assert.equal(quality.scope.unknownRate, 0.5);
+
+const temporaryRepo = mkdtempSync(path.join(tmpdir(), 'issue-graph-v2-'));
+try {
+  assert.equal(spawnSync('git', ['init', '-q'], { cwd: temporaryRepo }).status, 0);
+  mkdirSync(path.join(temporaryRepo, '.issue'));
+  writeFileSync(path.join(temporaryRepo, '.issue', 'graph.json'), JSON.stringify({ version: 2, snapshot: { status: 'partial' }, nodes: {}, edges: [] }));
+  const blocked = spawnSync(process.execPath, [path.resolve('.codex/skills/issue-todo/scripts/issue-todo.mjs'), 'plan'], { cwd: temporaryRepo, encoding: 'utf8' });
+  assert.equal(blocked.status, 2);
+  assert.match(blocked.stderr, /안전하지 않은 그래프/);
+} finally {
+  rmSync(temporaryRepo, { recursive: true, force: true });
+}
 
 console.log('test-issue-graph-v2: 통과');

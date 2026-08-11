@@ -4,6 +4,7 @@ export const GRAPH_VERSION = 2;
 export const EDGE_TYPES = ['depends-on', 'parent-of', 'duplicate-of', 'relates-to', 'supersedes'];
 export const ORDERING_TYPES = new Set(['depends-on']);
 export const DECISION_MARKER = 'issue-graph-v2-decision';
+export const CONTEXT_FIELDS = ['problem', 'outcome', 'scope', 'acceptance', 'result', 'components', 'decisions', 'evidence'];
 
 export function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -71,7 +72,7 @@ export function decisionEdge(decision) {
     rationale: decision.rationale ?? '',
     createdBy: 'decision',
     decisionId: decision.id,
-    provenance: decision.source,
+    provenance: { ...decision.source, graphRevision: decision.graphRevision, evidence: decision.evidence },
   });
 }
 
@@ -123,6 +124,50 @@ export function validateGraphV2(graph) {
   };
   for (const child of parentOf.keys()) visitParent(child);
   return problems;
+}
+
+export function auditGraph(graph) {
+  const problems = validateGraphV2(graph);
+  for (const [key, node] of Object.entries(graph.nodes ?? {})) {
+    for (const field of ['number', 'title', 'status', 'labels', 'url']) if (node[field] == null) problems.push(`#${key} 필수 노드 필드 없음: ${field}`);
+    for (const field of CONTEXT_FIELDS) {
+      const value = node.context?.[field];
+      if (value == null) problems.push(`#${key} 맥락 필드 없음: ${field}`);
+      if (value?.value === 'unknown' && (!value.reason || !value.source)) problems.push(`#${key} unknown 근거 없음: ${field}`);
+    }
+    if (!node.provenance?.url || !node.provenance?.revision) problems.push(`#${key} provenance url/revision 없음`);
+  }
+  for (const edge of graph.edges ?? []) {
+    if (!edge.provenance?.url || !edge.provenance?.digest) problems.push(`엣지 provenance url/digest 없음: ${edgeKey(edge)}`);
+    if (edge.createdBy === 'decision' && (!edge.decisionId || !edge.provenance?.graphRevision || !edge.provenance?.evidence?.length)) problems.push(`불완전한 결정 근거: ${edgeKey(edge)}`);
+  }
+  return problems;
+}
+
+/** V1은 정본이 아니므로 V2로 올린 뒤 반드시 sync를 다시 해야 한다. */
+export function migrateGraphV1(graph, { now = new Date().toISOString() } = {}) {
+  if (graph.version !== 1) throw new Error(`V1만 마이그레이션할 수 있음: ${graph.version}`);
+  const nodes = Object.fromEntries(Object.entries(graph.nodes ?? {}).map(([key, node]) => [key, {
+    ...node,
+    id: `github:unknown#${node.number ?? key}`,
+    context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, unknown('V1 캐시에 필드가 없음', { legacyNode: key })])),
+    provenance: { url: node.url ?? null, revision: 'v1-cache', observedAt: graph.updatedAt ?? now },
+  }]));
+  const edges = (graph.edges ?? []).flatMap((edge) => {
+    const normalized = edge.type === 'blocks'
+      ? { ...edge, from: edge.to, to: edge.from, type: 'depends-on' } : edge;
+    if (!EDGE_TYPES.includes(normalized.type)) return [];
+    return [{ ...normalizeEdge(normalized), provenance: { url: null, digest: digest(edge), legacy: true } }];
+  });
+  return {
+    version: GRAPH_VERSION,
+    provider: graph.provider ?? 'github',
+    repository: graph.repository ?? null,
+    updatedAt: now,
+    snapshot: { status: 'migrating', fetchedAt: now, digest: digest(graph), reason: 'V1 마이그레이션 완료 후 GitHub sync 필요' },
+    nodes,
+    edges,
+  };
 }
 
 export function duplicateScore(candidate, target) {
