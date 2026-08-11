@@ -61,6 +61,8 @@ if (Test-Cmd 'gh') {
   $attachList = (gh extension list 2>$null) -join "`n"
   if ($attachList -match 'sudosubin/gh-attach') { $GhAttachInstalled = 1 }
 }
+# 존재 여부만 본다. 값은 절대 출력·저장하지 않는다 — 헤드리스 서버용 대안 인증 경로다.
+$GhAttachSessionTokenSet = if ($env:GH_ATTACH_SESSION_TOKEN) { 1 } else { 0 }
 
 function Move-LegacySettings {
   if ((-not (Test-Path $SettingsPath)) -and (Test-Path $LegacySettingsPath)) {
@@ -138,6 +140,7 @@ switch ($Mode) {
     Write-Output "  gh        : $(if ($GhInstalled -eq 1) { "설치됨 ($GhVersion)" } else { '없음' })"
     Write-Output "  로그인     : $(if ($GhAuthenticated -eq 1) { '됨' } else { '안 됨' })"
     Write-Output "  gh-attach  : $(if ($GhAttachInstalled -eq 1) { '설치됨' } else { '없음 (private 저장소 이미지 자동 업로드용)' })"
+    Write-Output "  세션 토큰  : $(if ($GhAttachSessionTokenSet -eq 1) { 'GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)' } else { '없음 (브라우저 쿠키로 대체 시도)' })"
     Write-Output ''
     Write-Settings
     Write-Output ''
@@ -171,4 +174,5 @@ Write-Output "DOWNLOADER=$Downloader"
 Write-Output "GH_INSTALLED=$GhInstalled"
 Write-Output "GH_AUTHENTICATED=$GhAuthenticated"
 Write-Output "GH_ATTACH_INSTALLED=$GhAttachInstalled"
+Write-Output "GH_ATTACH_SESSION_TOKEN_SET=$GhAttachSessionTokenSet"
 Write-Output "SETTINGS_PATH=$SettingsPath"

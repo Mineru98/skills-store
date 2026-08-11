@@ -103,6 +103,8 @@ else
   GH_AUTHENTICATED=0
   GH_ATTACH_INSTALLED=0
 fi
+# 존재 여부만 본다. 값은 절대 출력·저장하지 않는다 — 헤드리스 서버용 대안 인증 경로다.
+if [ -n "${GH_ATTACH_SESSION_TOKEN:-}" ]; then GH_ATTACH_SESSION_TOKEN_SET=1; else GH_ATTACH_SESSION_TOKEN_SET=0; fi
 
 migrate_settings() {
   if [ ! -f "$SETTINGS_PATH" ] && [ -f "$LEGACY_SETTINGS_PATH" ]; then
@@ -193,6 +195,7 @@ case "$MODE" in
     echo "  gh        : $([ "$GH_INSTALLED" = 1 ] && echo "설치됨 ($GH_VERSION)" || echo 없음)"
     echo "  로그인     : $([ "$GH_AUTHENTICATED" = 1 ] && echo 됨 || echo "안 됨")"
     echo "  gh-attach  : $([ "$GH_ATTACH_INSTALLED" = 1 ] && echo 설치됨 || echo "없음 (private 저장소 이미지 자동 업로드용)")"
+    echo "  세션 토큰  : $([ "$GH_ATTACH_SESSION_TOKEN_SET" = 1 ] && echo "GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)" || echo "없음 (브라우저 쿠키로 대체 시도)")"
     echo ""
     write_settings
     echo ""
@@ -226,4 +229,5 @@ echo "DOWNLOADER=$DOWNLOADER"
 echo "GH_INSTALLED=$GH_INSTALLED"
 echo "GH_AUTHENTICATED=$GH_AUTHENTICATED"
 echo "GH_ATTACH_INSTALLED=$GH_ATTACH_INSTALLED"
+echo "GH_ATTACH_SESSION_TOKEN_SET=$GH_ATTACH_SESSION_TOKEN_SET"
 echo "SETTINGS_PATH=$SETTINGS_PATH"

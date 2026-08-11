@@ -107,3 +107,32 @@ gh extension install sudosubin/gh-attach   # [auto] gh 만 있으면 OS 무관
 
 `status` 출력의 `gh-attach` 줄과 `GH_ATTACH_INSTALLED` 로 설치 여부를 확인한다. `login` 단계에는
 포함되지 않는다(확장 설치에 로그인 자체가 필요하지 않다).
+
+## Ubuntu server 등 헤드리스 환경 대안 — `GH_ATTACH_SESSION_TOKEN`
+
+브라우저 자체가 없는 서버(CI 러너, 헤드리스 Ubuntu server 등)에서는 쿠키 탐색이 원천적으로
+안 된다. 이때는 GitHub API 토큰(`gh auth token`, PAT)이 **아니라** 브라우저의 `user_session`
+쿠키 값을 `GH_ATTACH_SESSION_TOKEN` 환경변수로 넘기는 방법을 쓴다. `gh-attach` 가 이 환경변수를
+`--session-token` 플래그 없이 자동으로 읽으므로, `gitHost.uploadAttachment()` 쪽 코드 변경은
+필요 없다 — 서버 환경변수만 채우면 지금 코드가 그대로 동작한다.
+
+```bash
+GH_ATTACH_SESSION_TOKEN=<user_session 쿠키 값> gh attach upload ./evidence.webp -R owner/repo --json href
+```
+
+값을 구하는 법: 이미 github.com 에 로그인된 아무 브라우저에서 개발자도구 → Application(또는
+Storage) → Cookies → `github.com` → `user_session` 값을 복사한다. API 로 발급하는 값이 아니다.
+
+**보통의 API 토큰과 다른 점 — 다루는 방식도 달라야 한다.**
+
+| | PAT / `gh auth token` | `GH_ATTACH_SESSION_TOKEN` |
+| --- | --- | --- |
+| 발급 | GitHub 설정 화면에서 스코프를 골라 발급 | 로그인된 브라우저 쿠키를 수동으로 복사 |
+| 권한 범위 | 스코프로 제한 가능 | 계정 전체 — 웹으로 로그인한 것과 동일 |
+| 만료 | 직접 설정(길게 가능) | 브라우저 세션 수명을 따름. 비밀번호 변경·전체 로그아웃·GitHub 의
+  주기적 세션 로테이션에 걸리면 무효화되어 재발급(재복사) 필요 |
+| 저장 | 시크릿 매니저 또는 CI 시크릿 | 반드시 환경변수로만. 파일·리포지토리·로그에 남기지 않는다 |
+
+`gh-setup` 은 이 값을 **읽거나 저장하지 않는다.** `status` 는 `GH_ATTACH_SESSION_TOKEN` 이
+설정돼 있는지 boolean 으로만 확인하고(`GH_ATTACH_SESSION_TOKEN_SET`), 값 자체는 절대 출력하지
+않는다. 값을 발급·회전·서버에 배치하는 것은 사용자의 몫이다.

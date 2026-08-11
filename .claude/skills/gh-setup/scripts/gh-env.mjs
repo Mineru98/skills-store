@@ -263,12 +263,21 @@ function ensureAttachExtension({ dryRun = false } = {}) {
   return true;
 }
 
+/**
+ * GH_ATTACH_SESSION_TOKEN 존재 여부만 본다. 값은 절대 읽어서 출력하거나 저장하지 않는다 —
+ * 브라우저 로그인이 불가능한 헤드리스 서버(Ubuntu server 등)용 대안 인증 경로다.
+ */
+function attachSessionTokenSet() {
+  return Boolean(process.env.GH_ATTACH_SESSION_TOKEN);
+}
+
 function cmdStatus() {
   const settings = readSettings() ?? loadOrDetect();
   settings.gh = ghState();
   settings.gh.attachExtension = settings.gh.installed ? attachExtensionInstalled() : false;
   writeSettings(settings);
 
+  const sessionTokenSet = attachSessionTokenSet();
   console.log(`  gh        : ${settings.gh.installed ? `설치됨 (${settings.gh.version})` : '없음'}`);
   console.log(
     `  로그인     : ${settings.gh.authenticated ? `됨 (${settings.gh.account ?? 'unknown'})` : '안 됨'}`,
@@ -276,8 +285,11 @@ function cmdStatus() {
   console.log(
     `  gh-attach  : ${settings.gh.attachExtension ? '설치됨' : '없음 (private 저장소 이미지 자동 업로드용, install 단계에서 자동 설치)'}`,
   );
+  console.log(
+    `  세션 토큰  : ${sessionTokenSet ? 'GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)' : '없음 (브라우저 쿠키로 대체 시도)'}`,
+  );
   console.log('');
-  emit(settings);
+  emit(settings, { GH_ATTACH_SESSION_TOKEN_SET: sessionTokenSet ? 1 : 0 });
 }
 
 function loadOrDetect() {

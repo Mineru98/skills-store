@@ -183,6 +183,11 @@ renderMode: "manual-upload"  비공개 저장소. 일부·전부가 자동 업�
 브라우저를 직접 열어 클릭·드래그를 자동화하려고 시도하지 마라 — 그건 사람만 할 수 있는
 단계로 남겨 두고, `uploadUrl` 을 사용자에게 보여주고 AskUserQuestion 으로 완료를 확인받는다.
 
+브라우저 자체가 없는 서버(Ubuntu server 등)라면 `GH_ATTACH_SESSION_TOKEN` 환경변수로 헤드리스
+업로드가 가능하다. 이건 API 토큰이 아니라 브라우저 세션 쿠키라 다루는 방식이 다르다 — 값을
+직접 발급·배치하는 건 사용자의 몫이니 여기서 대신 설정하려 하지 않는다. 세부는
+`gh-setup/references/install-matrix.md` 의 "Ubuntu server 등 헤드리스 환경 대안".
+
 **비공개 저장소에서 raw URL 이 되는지 시험하지 마라. 안 된다.**
 GitHub 은 `raw.githubusercontent.com` 과 `github.com/<owner>/<repo>/raw/...` 응답을 `Sec-Fetch-Site` 로 가른다.
 주소창으로 열면 서명 토큰이 붙어 이미지가 보이지만, 코멘트의 `<img>` 요청에는 붙지 않아 항상 깨진다.

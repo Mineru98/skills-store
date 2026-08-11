@@ -297,17 +297,25 @@ def load_or_detect():
     return read_settings()
 
 
+def attach_session_token_set():
+    """GH_ATTACH_SESSION_TOKEN 존재 여부만 본다. 값은 절대 읽어서 출력하거나 저장하지 않는다 —
+    브라우저 로그인이 불가능한 헤드리스 서버(Ubuntu server 등)용 대안 인증 경로다."""
+    return bool(os.environ.get("GH_ATTACH_SESSION_TOKEN"))
+
+
 def cmd_status():
     settings = read_settings() or load_or_detect()
     settings["gh"] = gh_state()
     settings["gh"]["attachExtension"] = attach_extension_installed() if settings["gh"]["installed"] else False
     write_settings(settings)
     gh = settings["gh"]
+    session_token_set = attach_session_token_set()
     print("  gh        : %s" % ("설치됨 (%s)" % gh["version"] if gh["installed"] else "없음"))
     print("  로그인     : %s" % ("됨 (%s)" % (gh["account"] or "unknown") if gh["authenticated"] else "안 됨"))
     print("  gh-attach  : %s" % ("설치됨" if gh["attachExtension"] else "없음 (private 저장소 이미지 자동 업로드용, install 단계에서 자동 설치)"))
+    print("  세션 토큰  : %s" % ("GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)" if session_token_set else "없음 (브라우저 쿠키로 대체 시도)"))
     print("")
-    emit(settings)
+    emit(settings, {"GH_ATTACH_SESSION_TOKEN_SET": 1 if session_token_set else 0})
 
 
 # ---------------------------------------------------------------------- plan
