@@ -1,0 +1,17 @@
+Command:
+node --input-type=module -e "import { validateEvidenceReport } from './tools/issue-media.mjs'; const result = validateEvidenceReport('https://raw.githubusercontent.com/acme/private/main/after.webp', { isPrivate: true }); console.log(JSON.stringify({ ok: result.ok, errors: result.errors, needsManualUpload: result.needsManualUpload, pendingUploads: result.pendingUploads }, null, 2));"
+
+Output:
+{
+  "ok": false,
+  "errors": [
+    "이미지 URL이 bare URL로 작성되었습니다: https://raw.githubusercontent.com/acme/private/main/after.webp",
+    "private 저장소라 인라인 렌더링이 안 됩니다(주소창으로는 열려도 <img>로는 깨집니다): https://raw.githubusercontent.com/acme/private/main/after.webp"
+  ],
+  "needsManualUpload": true,
+  "pendingUploads": [
+    "https://raw.githubusercontent.com/acme/private/main/after.webp"
+  ]
+}
+
+Result: bare URL 문법 오류가 불필요하게 수동 업로드 필요로 분류된다.
