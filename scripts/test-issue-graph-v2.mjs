@@ -4,6 +4,7 @@ import {
   EDGE_TYPES, digest, normalizeEdge, parseDecisionComments, decisionEdge,
   validateGraphV2, duplicateScore, duplicateVerdict,
 } from '../.codex/skills/issue-todo/scripts/issue-graph-v2.mjs';
+import { deriveStatus } from '../.codex/skills/issue-todo/scripts/issue-todo.mjs';
 
 assert.deepEqual(EDGE_TYPES, ['depends-on', 'parent-of', 'duplicate-of', 'relates-to', 'supersedes']);
 assert.deepEqual(normalizeEdge({ from: 9, to: 4, type: 'relates-to' }), { from: 4, to: 9, type: 'relates-to' });
@@ -35,5 +36,6 @@ const score = duplicateScore(
 assert.equal(duplicateVerdict(score), 'review-required');
 assert.equal(duplicateVerdict(0.8), 'candidate');
 assert.equal(duplicateVerdict(0.2), 'distinct');
+assert.equal(deriveStatus([], 'MERGED'), 'close');
 
 console.log('test-issue-graph-v2: 통과');

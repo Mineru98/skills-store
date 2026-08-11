@@ -2,6 +2,8 @@
 
 GitHub 이슈와 구조화된 결정 코멘트가 정본이다. `.issue/graph.json`은 재생성 가능한 캐시이며,
 `snapshot.status`가 `complete`가 아니면 `plan`, `next`, 자동 코멘트와 상태 변경은 모두 거부한다.
+본문 참조가 issue list에 없는 GitHub PR/이슈를 가리키면 sync가 개별 조회해 provenance와 상태를 보존한다.
+그 조회가 실패하면 snapshot은 `partial`이며 일정 계산을 재개하지 않는다.
 
 관계는 `depends-on`, `parent-of`, `duplicate-of`, `relates-to`, `supersedes`만 허용한다.
 `depends-on`만 실행 순서에 쓰며, `relates-to`는 번호가 작은 쪽에서 큰 쪽으로 정규화한다.

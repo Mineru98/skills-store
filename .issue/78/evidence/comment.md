@@ -17,7 +17,7 @@ GitHub 정본 기반 이슈 그래프 V2를 구현했다. 캐시는 구조화된
 - `node scripts/test-issue-graph-v2.mjs`
 - `sh scripts/test-issue-create.sh`
 - `sh scripts/check-shared.sh`
-- 실 GitHub sync에서 #73 → #2의 기존 dangling 참조를 검출했고, plan/next가 안전하게 거부하는 것을 확인했다.
+- 실 GitHub sync에서 #73 → #2 참조를 merge된 PR로 해석해 provenance와 close 상태를 보존했고, graph 검증과 plan/next가 정상 재개됨을 확인했다.
 
 증거: `.issue/78/evidence/before/graph-cli-baseline.md`,
 `.issue/78/evidence/after/graph-v2-verification.md`.

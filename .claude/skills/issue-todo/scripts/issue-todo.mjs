@@ -86,7 +86,7 @@ export function saveGraph(root, graph, { now } = {}) {
 export function deriveStatus(labels = [], state) {
   const status = labels.map((l) => (typeof l === 'string' ? l : l.name)).find(isStatusLabel);
   if (status) return status.slice('status:'.length);
-  return String(state ?? '').toUpperCase() === 'CLOSED' ? 'close' : 'open';
+  return ['CLOSED', 'MERGED'].includes(String(state ?? '').toUpperCase()) ? 'close' : 'open';
 }
 
 /** 노드에서 우선순위 랭크를 뽑는다. P0=0 … 라벨 없으면 뒤로. */
@@ -248,10 +248,19 @@ function cmdSync(root, tracker, opts) {
     }
     decisions.push(...parseDecisionComments(it.comments ?? []));
   }
+  const referenced = [...new Set(auto.flatMap((edge) => [edge.from, edge.to]))].filter((number) => !graph.nodes[String(number)]);
+  const unresolved = [];
+  for (const number of referenced) {
+    const item = tracker.issueView(number);
+    if (!item) { unresolved.push(number); continue; }
+    const labels = (item.labels ?? []).map((label) => label.name);
+    const source = { url: item.url, updatedAt: item.updatedAt ?? null, kind: 'referenced' };
+    graph.nodes[String(number)] = { id: `github:${graph.repository ?? 'unknown'}#${number}`, number, title: item.title, status: deriveStatus(item.labels ?? [], item.state), labels: typeLabels(labels), url: item.url, context: { problem: unknownField('참조된 GitHub 항목의 구조화된 problem 필드가 없음', source), scope: unknownField('참조된 GitHub 항목의 구조화된 scope 필드가 없음', source), acceptance: unknownField('참조된 GitHub 항목의 구조화된 acceptance 필드가 없음', source) }, provenance: source };
+  }
   const approved = decisions.map(decisionEdge).filter(Boolean).filter((edge) => { const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true; });
   graph.edges = [...auto, ...approved];
-  const complete = state === 'all' && list.length < limit;
-  graph.snapshot = { status: complete ? 'complete' : 'partial', fetchedAt: now, digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))), reason: complete ? null : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음' };
+  const complete = state === 'all' && list.length < limit && unresolved.length === 0;
+  graph.snapshot = { status: complete ? 'complete' : 'partial', fetchedAt: now, digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))), reason: complete ? null : unresolved.length ? `참조 GitHub 항목을 조회할 수 없음: ${unresolved.map((number) => `#${number}`).join(', ')}` : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음' };
 
   const file = saveGraph(root, graph, { now });
   const cycle = findCycle(graph);
@@ -264,6 +273,8 @@ function cmdSync(root, tracker, opts) {
   console.log(`EDGES=${graph.edges.length}`);
   console.log(`AUTO_EDGES=${auto.length}`);
   console.log(`DECISION_EDGES=${approved.length}`);
+  console.log(`RESOLVED_REFERENCES=${referenced.length - unresolved.length}`);
+  console.log(`UNRESOLVED_REFERENCES=${unresolved.join(' ')}`);
   console.log(`SNAPSHOT_STATUS=${graph.snapshot.status}`);
   console.log(`CYCLE=${cycle ? cycle.join('>') : ''}`);
 }
