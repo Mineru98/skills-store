@@ -96,11 +96,15 @@ if have gh; then
   GH_INSTALLED=1
   GH_VERSION=$(gh --version 2>/dev/null | head -1 | awk '{print $3}')
   if gh auth status >/dev/null 2>&1; then GH_AUTHENTICATED=1; else GH_AUTHENTICATED=0; fi
+  if gh extension list 2>/dev/null | grep -qi 'sudosubin/gh-attach'; then GH_ATTACH_INSTALLED=1; else GH_ATTACH_INSTALLED=0; fi
 else
   GH_INSTALLED=0
   GH_VERSION=""
   GH_AUTHENTICATED=0
+  GH_ATTACH_INSTALLED=0
 fi
+# 존재 여부만 본다. 값은 절대 출력·저장하지 않는다 — 헤드리스 서버용 대안 인증 경로다.
+if [ -n "${GH_ATTACH_SESSION_TOKEN:-}" ]; then GH_ATTACH_SESSION_TOKEN_SET=1; else GH_ATTACH_SESSION_TOKEN_SET=0; fi
 
 migrate_settings() {
   if [ ! -f "$SETTINGS_PATH" ] && [ -f "$LEGACY_SETTINGS_PATH" ]; then
@@ -127,7 +131,8 @@ write_settings() {
     "installed": $([ "$GH_INSTALLED" = 1 ] && echo true || echo false),
     "version": $([ -n "$GH_VERSION" ] && echo "\"$GH_VERSION\"" || echo null),
     "authenticated": $([ "$GH_AUTHENTICATED" = 1 ] && echo true || echo false),
-    "account": null
+    "account": null,
+    "attachExtension": $([ "$GH_ATTACH_INSTALLED" = 1 ] && echo true || echo false)
   }
 }
 EOF
@@ -189,6 +194,8 @@ case "$MODE" in
   status)
     echo "  gh        : $([ "$GH_INSTALLED" = 1 ] && echo "설치됨 ($GH_VERSION)" || echo 없음)"
     echo "  로그인     : $([ "$GH_AUTHENTICATED" = 1 ] && echo 됨 || echo "안 됨")"
+    echo "  gh-attach  : $([ "$GH_ATTACH_INSTALLED" = 1 ] && echo 설치됨 || echo "없음 (private 저장소 이미지 자동 업로드용)")"
+    echo "  세션 토큰  : $([ "$GH_ATTACH_SESSION_TOKEN_SET" = 1 ] && echo "GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)" || echo "없음 (브라우저 쿠키로 대체 시도)")"
     echo ""
     write_settings
     echo ""
@@ -199,6 +206,10 @@ case "$MODE" in
     echo "폴백에서는 자동 설치를 하지 않는다. 아래 명령을 직접 실행하라."
     echo ""
     print_plan
+    if [ "$GH_INSTALLED" = 1 ] && [ "$GH_ATTACH_INSTALLED" != 1 ]; then
+      echo "  추가. [auto] gh extension install sudosubin/gh-attach   # private 저장소 이미지 자동 업로드용"
+      echo ""
+    fi
     ;;
   config)
     echo "폴백에서는 설정 편집을 지원하지 않는다. 파일을 직접 고쳐라: $SETTINGS_PATH"
@@ -217,4 +228,6 @@ echo "TERMINAL=$TERMINAL"
 echo "DOWNLOADER=$DOWNLOADER"
 echo "GH_INSTALLED=$GH_INSTALLED"
 echo "GH_AUTHENTICATED=$GH_AUTHENTICATED"
+echo "GH_ATTACH_INSTALLED=$GH_ATTACH_INSTALLED"
+echo "GH_ATTACH_SESSION_TOKEN_SET=$GH_ATTACH_SESSION_TOKEN_SET"
 echo "SETTINGS_PATH=$SETTINGS_PATH"

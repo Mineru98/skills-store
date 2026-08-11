@@ -209,7 +209,9 @@ function cmdDetect(opts) {
     terminals: mergePreference(prev.terminals, detectTerminals(osName)),
     downloaders: mergePreference(prev.downloaders, detectDownloaders()),
     packageManagers: mergePreference(prev.packageManagers, detectPackageManagers(osName)),
-    gh: prev.gh ?? { installed: false, version: null, authenticated: false, account: null },
+    gh: prev.gh ?? {
+      installed: false, version: null, authenticated: false, account: null, attachExtension: false,
+    },
   };
   writeSettings(settings);
 
@@ -238,17 +240,56 @@ function ghState() {
   };
 }
 
+/** gh-attach 확장(sudosubin/gh-attach) 설치 여부. private 저장소 증거 이미지 자동 업로드에 쓴다. */
+function attachExtensionInstalled() {
+  const r = run('gh', ['extension', 'list']);
+  return r.status === 0 && /\bsudosubin\/gh-attach\b/i.test(r.stdout);
+}
+
+/** 없으면 설치까지 시도한다. sudo 가 필요 없는 gh 자체 기능이라 install 단계에서 자동 실행 대상이다. */
+function ensureAttachExtension({ dryRun = false } = {}) {
+  if (attachExtensionInstalled()) return true;
+  if (dryRun) {
+    console.log('  (dry-run) gh extension install sudosubin/gh-attach 를 실행하지 않았다.');
+    return false;
+  }
+  console.log('$ gh extension install sudosubin/gh-attach');
+  const res = run('gh', ['extension', 'install', 'sudosubin/gh-attach']);
+  if (res.status !== 0) {
+    console.error(`✗ gh-attach 확장 설치 실패: ${((res.stderr || res.stdout) || '').trim().split('\n')[0] || 'unknown error'}`);
+    return false;
+  }
+  console.log('✓ gh-attach 확장 설치됨 (private 저장소 이미지 자동 업로드용)');
+  return true;
+}
+
+/**
+ * GH_ATTACH_SESSION_TOKEN 존재 여부만 본다. 값은 절대 읽어서 출력하거나 저장하지 않는다 —
+ * 브라우저 로그인이 불가능한 헤드리스 서버(Ubuntu server 등)용 대안 인증 경로다.
+ */
+function attachSessionTokenSet() {
+  return Boolean(process.env.GH_ATTACH_SESSION_TOKEN);
+}
+
 function cmdStatus() {
   const settings = readSettings() ?? loadOrDetect();
   settings.gh = ghState();
+  settings.gh.attachExtension = settings.gh.installed ? attachExtensionInstalled() : false;
   writeSettings(settings);
 
+  const sessionTokenSet = attachSessionTokenSet();
   console.log(`  gh        : ${settings.gh.installed ? `설치됨 (${settings.gh.version})` : '없음'}`);
   console.log(
     `  로그인     : ${settings.gh.authenticated ? `됨 (${settings.gh.account ?? 'unknown'})` : '안 됨'}`,
   );
+  console.log(
+    `  gh-attach  : ${settings.gh.attachExtension ? '설치됨' : '없음 (private 저장소 이미지 자동 업로드용, install 단계에서 자동 설치)'}`,
+  );
+  console.log(
+    `  세션 토큰  : ${sessionTokenSet ? 'GH_ATTACH_SESSION_TOKEN 설정됨 (헤드리스 업로드용)' : '없음 (브라우저 쿠키로 대체 시도)'}`,
+  );
   console.log('');
-  emit(settings);
+  emit(settings, { GH_ATTACH_SESSION_TOKEN_SET: sessionTokenSet ? 1 : 0 });
 }
 
 function loadOrDetect() {
@@ -380,6 +421,7 @@ function cmdInstall(opts) {
   const current = ghState();
   if (current.installed) {
     console.log(`✓ gh 가 이미 설치되어 있다 (${current.version})`);
+    current.attachExtension = ensureAttachExtension({ dryRun: opts.dryRun });
     settings.gh = current;
     writeSettings(settings);
     emit(settings);
@@ -418,6 +460,7 @@ function cmdInstall(opts) {
   }
 
   settings.gh = ghState();
+  if (settings.gh.installed) settings.gh.attachExtension = ensureAttachExtension();
   writeSettings(settings);
   console.log('');
   console.log(`INSTALLED=${settings.gh.installed ? 1 : 0}`);
@@ -429,7 +472,8 @@ function cmdInstall(opts) {
 
 function cmdLogin() {
   const settings = loadOrDetect();
-  settings.gh = ghState();
+  const attachExtension = settings.gh?.attachExtension ?? false;
+  settings.gh = { ...ghState(), attachExtension };
   writeSettings(settings);
 
   if (!settings.gh.installed) {
@@ -507,6 +551,7 @@ function emit(settings, extra = {}) {
     DOWNLOADER: settings.downloaders?.[0] ?? '',
     GH_INSTALLED: settings.gh?.installed ? 1 : 0,
     GH_AUTHENTICATED: settings.gh?.authenticated ? 1 : 0,
+    GH_ATTACH_INSTALLED: settings.gh?.attachExtension ? 1 : 0,
     SETTINGS_PATH,
     ...extra,
   };

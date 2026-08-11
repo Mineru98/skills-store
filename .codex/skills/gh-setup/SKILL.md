@@ -1,6 +1,6 @@
 ---
 name: gh-setup
-description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Windows·WSL·Linux·macOS 를 판별해 설치 경로를 정하고, 권한이 필요 없는 명령은 자동 실행하고 관리자 권한이 필요한 명령은 그대로 복사해 쓸 수 있게 안내한 뒤 `gh auth login` 까지 끌고 갑니다. 설정은 `~/.issue/settings.json` 에서 관리합니다. `/gh-setup`, "gh 설치", "gh 로그인", "GitHub CLI 설정" 요청과 gh 가 필요한 다른 스킬의 전제 확인 실패 시 사용합니다.
+description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Windows·WSL·Linux·macOS 를 판별해 설치 경로를 정하고, 권한이 필요 없는 명령은 자동 실행하고 관리자 권한이 필요한 명령은 그대로 복사해 쓸 수 있게 안내한 뒤 `gh auth login` 까지 끌고 갑니다. gh 설치·인증이 끝나면 이어서 `gh-attach` 확장(private 저장소 증거 이미지 자동 업로드용)도 자동 설치합니다. 설정은 `~/.issue/settings.json` 에서 관리합니다. `/gh-setup`, "gh 설치", "gh 로그인", "GitHub CLI 설정", "gh attach 없다" 요청과 gh 또는 gh-attach 가 필요한 다른 스킬의 전제 확인 실패 시 사용합니다.
 ---
 
 <skill>
@@ -8,7 +8,7 @@ description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Win
     `gh` 를 쓰는 모든 흐름의 진입 장벽을 없앤다.
     OS·터미널·다운로드 도구·패키지 매니저를 감지해 설정 파일에 남기고,
     그 조합에 맞는 설치 명령을 만들어 자동 실행하거나 정확히 안내한다.
-    마지막으로 로그인까지 확인한다.
+    로그인을 확인한 뒤, private 저장소 증거 이미지 업로드에 쓰는 `gh-attach` 확장까지 자동 설치한다.
   </purpose>
 
   <inputs>
@@ -27,9 +27,9 @@ description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Win
 
   <hard-rules>
     <rule>sudo 나 관리자 권한이 필요한 명령을 대신 실행하지 않는다. 비밀번호 프롬프트에서 멈춘다.</rule>
-    <rule>권한이 필요 없는 패키지 매니저 설치만 자동 실행한다.</rule>
+    <rule>권한이 필요 없는 패키지 매니저 설치만 자동 실행한다. `gh extension install sudosubin/gh-attach` 도 sudo 가 필요 없으므로 gh 설치·인증 확인 뒤 자동 실행 대상이다.</rule>
     <rule>`gh auth login` 은 대화형이므로 사용자가 직접 실행하게 한다.</rule>
-    <rule>토큰 값을 출력하거나 파일로 저장하지 않는다.</rule>
+    <rule>토큰 값을 출력하거나 파일로 저장하지 않는다. gh-attach 의 세션 쿠키·`GH_ATTACH_SESSION_TOKEN` 도 마찬가지로 다루지 않는다 — 이 스킬은 확장 설치까지만 하고 쿠키를 직접 만지지 않는다.</rule>
     <rule>사용자가 설정 파일에 넣어 둔 선호 순서를 재감지로 덮어쓰지 않는다.</rule>
   </hard-rules>
 
@@ -44,25 +44,25 @@ description: GitHub CLI(`gh`)가 없거나 로그인되어 있지 않을 때 Win
 flowchart TD
     A[/"gh 필요 · /gh-setup"/] --> B[detect: OS·터미널·다운로더·패키지매니저]
     B --> C[settings.json 생성 또는 갱신]
-    C --> D[status: gh 설치·인증 확인]
+    C --> D[status: gh 설치·인증·gh-attach 확인]
 
-    D -->|설치됨 + 로그인됨| Z[준비 완료 · 원래 작업으로 복귀]
-    D -->|설치 안 됨| E[plan: OS별 설치 명령 생성]
+    D -->|gh 설치 안 됨| E[plan: OS별 설치 명령 생성]
+    D -->|gh 설치됨| J{로그인됨?}
 
     E --> F{권한 필요?}
-    F -- 불필요 --> G[install: 자동 실행]
+    F -- 불필요 --> G["install: gh 자동 설치 + gh-attach 확장 자동 설치"]
     F -- 필요 --> H[사용자가 실행할 명령 제시]
     H --> H1[사용자 실행 대기]
 
     G --> I[status 재확인]
     H1 --> I
     I -->|실패| E
+    I -->|설치 확인| J
 
-    I -->|설치 확인| J{로그인됨?}
-    D -->|설치됨 + 로그인 안 됨| J
-    J -- 예 --> Z
+    J -- 예 --> G2["install: gh-attach 확장만 확인·자동 설치(멱등)"]
     J -- 아니오 --> K[환경별 login 명령 안내]
-    K --> K1[사용자 실행 대기] --> L[gh auth status 확인] --> Z
+    K --> K1[사용자 실행 대기] --> L[gh auth status 확인] --> G2
+    G2 --> Z[준비 완료 · 원래 작업으로 복귀]
 ```
 
 # 스크립트 경로
@@ -92,9 +92,9 @@ powershell -ExecutionPolicy Bypass -File <skill>/scripts/gh-env.ps1 <서브커�
 
 ```text
 detect              감지 후 ~/.issue/settings.json 생성·갱신
-status              gh 설치·인증 확인 후 settings.gh 갱신
+status              gh 설치·인증·gh-attach 확장 확인 후 settings.gh 갱신
 plan                OS별 설치 명령 목록 ([auto] / [user] / [guide] 표시)
-install [--dry-run] [auto] 표시된 명령만 실행
+install [--dry-run] [auto] 표시된 명령만 실행. gh 확인 뒤 gh-attach 확장도 자동 설치(멱등)
 login               환경에 맞는 로그인 방법 안내
 config get [key]    설정 읽기
 config set <k> <v>  terminals / downloaders 순서 변경 (쉼표 구분)
@@ -109,7 +109,9 @@ sh <skill>/scripts/gh-env.sh detect
 sh <skill>/scripts/gh-env.sh status
 ```
 
-`GH_INSTALLED=1` 이고 `GH_AUTHENTICATED=1` 이면 여기서 끝이다. 바로 원래 작업으로 돌아간다.
+`GH_INSTALLED=1` 이고 `GH_AUTHENTICATED=1` 이어도 `GH_ATTACH_INSTALLED=1` 이 아니면 2단계로 간다.
+`install` 은 gh 가 이미 있으면 그 부분은 건드리지 않고 gh-attach 확장만 확인·설치하므로 매번 호출해도
+안전하다. 셋 다 1이면 여기서 끝이다. 바로 원래 작업으로 돌아간다.
 
 ## 2단계 — 설치
 
@@ -118,7 +120,8 @@ sh <skill>/scripts/gh-env.sh plan
 sh <skill>/scripts/gh-env.sh install
 ```
 
-`install` 은 `[auto]` 단계만 실행한다. `[user]` 로 남은 명령은 사용자에게 이렇게 전달한다.
+`install` 은 `[auto]` 단계만 실행한다(gh 자체의 자동 설치 명령 + gh 확인 후 이어지는
+`gh extension install sudosubin/gh-attach`). `[user]` 로 남은 명령은 사용자에게 이렇게 전달한다.
 
 ```text
 아래 명령을 프롬프트에 그대로 붙여 실행해 주세요 (`!` 로 시작하면 이 세션에서 바로 돌아갑니다).
@@ -142,14 +145,18 @@ sh <skill>/scripts/gh-env.sh login
 sh <skill>/scripts/gh-env.sh status
 ```
 
-`GH_INSTALLED=1`, `GH_AUTHENTICATED=1` 을 확인한 뒤 원래 작업을 이어간다.
+`GH_INSTALLED=1`, `GH_AUTHENTICATED=1` 을 확인한 뒤 원래 작업을 이어간다. `GH_ATTACH_INSTALLED=0`
+이 남아 있어도(로그인 없이도 설치는 되어야 정상이라 드문 경우다) 막지 않는다 — private 저장소
+이미지 자동 업로드가 안 될 뿐 `gh` 자체 흐름과는 무관하니 원래 작업으로 돌아가고, 필요해지는
+시점(issue-start/issue-end 의 이미지 업로드 단계)에 그 스킬이 알아서 수동 업로드로 폴백한다.
 
 ## 마무리 보고
 
 ```text
-플랫폼    <os> / <arch> (<family>)
-터미널    <선호 0번>
-gh       <버전> · 로그인 <계정>
-설정      ~/.issue/settings.json
-다음      <원래 하려던 작업>
+플랫폼     <os> / <arch> (<family>)
+터미널     <선호 0번>
+gh        <버전> · 로그인 <계정>
+gh-attach <설치됨 | 없음>
+설정       ~/.issue/settings.json
+다음       <원래 하려던 작업>
 ```
