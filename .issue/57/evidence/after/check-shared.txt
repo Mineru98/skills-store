@@ -1,0 +1,17 @@
+=== sh scripts/check-shared.sh ===
+sync-shared: 정본과 모든 사본이 동일하다
+
+capability bundle: 최신
+
+check-shared: 통과
+
+=== node --test scripts/test-capability-bundle-check.mjs ===
+✔ [active-required] --check rejects a stale capability bundle and accepts a regenerated one (588.823166ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 618.844167
