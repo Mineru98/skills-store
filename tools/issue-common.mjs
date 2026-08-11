@@ -391,6 +391,50 @@ export function typeLabels(labels = []) {
   return labels.filter((l) => !isStatusLabel(l));
 }
 
+/**
+ * issue-todo 의 DAG(.issue/graph.json)에 노드를 upsert 한다.
+ *
+ * 파이프라인의 상태 전환(setTrackerStatus)이 이 함수를 불러 그래프를 자동으로 최신화한다.
+ * graph.json 이 없으면(= issue-todo 를 아직 안 씀) 조용히 no-op 한다. 그래프 갱신 실패가
+ * 상태 전환·이슈 작업을 절대 막지 않도록 어떤 예외도 삼킨다.
+ *
+ * node: { number, title?, status?, labels?, url? } — labels 는 status:* 를 걸러 저장한다.
+ */
+export function patchGraphNode(root, node) {
+  try {
+    if (!root || !node || node.number == null) return false;
+    const file = path.join(root, WORKSPACE_DIR, GRAPH_FILE_NAME);
+    if (!existsSync(file)) return false;
+    const g = JSON.parse(readFileSync(file, 'utf8'));
+    if (!g || typeof g !== 'object') return false;
+    g.nodes = g.nodes || {};
+    const key = String(node.number);
+    const prev = g.nodes[key] || {};
+    g.nodes[key] = {
+      number: Number(node.number),
+      title: node.title ?? prev.title ?? '',
+      status: node.status ?? prev.status ?? 'open',
+      labels: node.labels ? typeLabels(node.labels.map((l) => (typeof l === 'string' ? l : l.name))) : (prev.labels ?? []),
+      url: node.url ?? prev.url ?? '',
+      ...(prev.priority !== undefined ? { priority: prev.priority } : {}),
+    };
+    // issue-todo saveGraph 와 같은 정렬 규율을 지킨다 — 노드는 번호순, 엣지는 (from,to,type)순.
+    // 안 지키면 공유 커밋 파일(base 브랜치)에 노이즈 diff 와 머지 충돌이 생긴다.
+    const sortedNodes = {};
+    for (const k of Object.keys(g.nodes).sort((a, b) => Number(a) - Number(b))) sortedNodes[k] = g.nodes[k];
+    g.nodes = sortedNodes;
+    if (Array.isArray(g.edges)) {
+      g.edges = [...g.edges].sort((a, b) =>
+        a.from - b.from || a.to - b.to || String(a.type).localeCompare(String(b.type)));
+    }
+    g.updatedAt = new Date().toISOString();
+    writeFileSync(file, `${JSON.stringify(g, null, 2)}\n`, 'utf8');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** "plan", "status:plan", "STATUS:PLAN" 을 모두 정규 이름으로 바꾼다. 모르면 null. */
 export function resolveStatus(raw) {
   const s = String(raw ?? '').trim().toLowerCase();

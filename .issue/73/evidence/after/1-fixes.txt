@@ -1,0 +1,19 @@
+# 리뷰 후속 수정 검증 (#73)
+
+## HIGH-1 issue-viz </script> 이스케이프
+  GRAPH 데이터 원문 </script>: 0 (0=안전)
+  이스케이프 u003c/script: 1 (1=적용)
+
+## HIGH-2 hook: repoRoot(process.exit) 제거 → mainCheckout + try/catch
+  tools/issue-tracker.mjs 훅 코드 repoRoot 호출: 1 (0=제거됨)
+  mainCheckout 사용: 1
+
+## MED-3/4/6 단위 테스트
+  MED-6 needs 무시: [{"type":"depends-on","to":5}] PASS
+  MED-4 미지선행 ready: [10] PASS
+  MED-3 정렬: ["5","12","20"] PASS
+
+## 회귀
+test-common: 통과
+test-tracker: 통과
+sync-shared: 정본과 모든 사본이 동일하다
