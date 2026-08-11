@@ -354,7 +354,7 @@ function cmdNext(root, tracker) {
   console.log(`다음 착수 추천: ${label(graph, n)}`);
   console.log('');
   console.log(`NEXT_ISSUE=${n}`);
-  console.log(`NEXT=/issue-start #${n}`);
+  console.log(`NEXT=$issue-start #${n}`);
 }
 
 function cmdValidate(root, tracker) {
