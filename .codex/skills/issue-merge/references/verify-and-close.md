@@ -141,8 +141,8 @@ oha -n 200 -c 10 http://localhost:8180/api/orders | tee .issue/merge/16-21-53-64
 질문 — issue-merge 6단계(merge · 통합 테스트)
 #21 이 통합 후 깨졌습니다. 어떻게 할까요?
 
-1. revert 하고 다시 작업 (권장)   merge 커밋을 되돌리고 /issue-start 로 재착수합니다
-2. 이대로 두고 후속 이슈 등록      /issue-create 로 회귀 이슈를 만듭니다
+1. revert 하고 다시 작업 (권장)   merge 커밋을 되돌리고 $issue-start 로 재착수합니다
+2. 이대로 두고 후속 이슈 등록      $issue-create 로 회귀 이슈를 만듭니다
 3. 무시하고 진행                   권장하지 않습니다. 기록만 남기고 넘어갑니다
 
 번호로 답해 주세요.
@@ -238,5 +238,5 @@ node <skill>/scripts/issue-merge.mjs base-tree --remove
 보류된 이슈가 있으면 무엇을 해야 다음 회차에 포함되는지 구체적으로 적는다.
 
 ```text
-#64  before 증거 없음 → 해당 워크트리에서 /issue-end 실행해 pure-tree 로 before 캡처
+#64  before 증거 없음 → 해당 워크트리에서 $issue-end 실행해 pure-tree 로 before 캡처
 ```

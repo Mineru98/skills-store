@@ -4,7 +4,7 @@ issue-todo 를 끝낼 때 AskUserQuestion 으로 아래를 제시한다. ready-f
 "다음 착수" 를 첫 번째(권장)에 둔다.
 
 ```text
-1. 다음 착수 (권장)   ready-frontier 첫 이슈로 /issue-start #N 을 잇는다.
+1. 다음 착수 (권장)   ready-frontier 첫 이슈로 $issue-start #N 을 잇는다.
 2. 그래프 시각화       /issue-viz 로 graph.json 을 인터랙티브 그래프로 본다.
 3. 의존 보강           빠진 의존을 link 로 걸고 다시 plan 을 낸다.
 4. 종료               graph.json 만 갱신하고 마친다.

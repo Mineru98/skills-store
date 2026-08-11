@@ -196,8 +196,9 @@ $issue-create 탭 활성 상태가 새로고침 후 초기화되는 문제
 ```
 
 `issue-first`가 기본값이며 기존처럼 이슈부터 만듭니다. `direct`는 암묵적으로 발동한
-`issue-create`가 조용히 빠지고 원래 변경 요청을 계속하게 합니다. `$issue-create`,
-`/issue-create`, "이슈 만들어줘"처럼 명시적으로 호출하면 `direct`에서도 이슈를 만듭니다.
+`issue-create`가 조용히 빠지고 원래 변경 요청을 계속하게 합니다. Codex에서
+`$issue-create`, Claude Code에서 `/issue-create`, 또는 "이슈 만들어줘"처럼 명시적으로
+호출하면 `direct`에서도 이슈를 만듭니다.
 알 수 없는 값은 경고 후 `issue-first`로 돌아갑니다.
 
 ### 라벨 체계
@@ -350,7 +351,7 @@ $issue-start #59
 **이슈 번호 대신 작업 설명을 넣어도 됩니다.** 그러면 plan 모드로 전환한 뒤 이슈로 먼저 등록할지 묻고, `issue-create`가 설치돼 있지 않으면 자동으로 설치합니다.
 
 ```text
-/issue-start 로그인 후 리디렉트가 안 되는 문제
+$issue-start 로그인 후 리디렉트가 안 되는 문제
 ```
 
 ### 동작
@@ -502,9 +503,9 @@ $issue-end
 여러 워크트리를 동시에 굴리는 것이 이 스킬군의 전제라, 하나를 먼저 merge하면 나머지의 기준선이 흔들립니다. 마지막 단계에서 다음 행동을 묻고, merge를 고르면 `issue-merge`로 넘깁니다.
 
 ```text
-1. 다른 이슈 착수 (권장)   → /issue-start
-2. 워크트리 전부 merge      → /issue-merge
-3. 새 이슈 등록            → /issue-create
+1. 다른 이슈 착수 (권장)   → $issue-start
+2. 워크트리 전부 merge      → $issue-merge
+3. 새 이슈 등록            → $issue-create
 4. 종료
 ```
 
