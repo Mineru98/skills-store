@@ -7,6 +7,22 @@ set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 fail=0
+NORMALIZED=$(mktemp -d)
+trap 'rm -rf "$NORMALIZED"' EXIT
+
+normalize_runtime_calls() {
+  source_dir=$1
+  target_dir=$2
+  mkdir -p "$target_dir"
+  find "$source_dir" -type f ! -path "$source_dir/agents/*" ! -name '.DS_Store' -print0 |
+    while IFS= read -r -d '' source_file; do
+      relative_path=${source_file#"$source_dir"/}
+      target_file="$target_dir/$relative_path"
+      mkdir -p "$(dirname "$target_file")"
+      perl -0pe 's/\$issue-([a-z-]+)/\/issue-$1/g; 1 while s/(`\/issue-[a-z-]+`), \1/$1/g' \
+        "$source_file" > "$target_file"
+    done
+}
 
 sh "$ROOT/scripts/sync-shared.sh" --check || fail=1
 
@@ -24,7 +40,11 @@ for skill in issue-create issue-start issue-end issue-merge convention tmux-orch
     continue
   fi
   # agents/ 는 런타임별 정의라 다른 것이 정상이다.
-  if ! diff -r -x agents -x '.DS_Store' "$a" "$b" >/dev/null 2>&1; then
+  normalized_a="$NORMALIZED/$skill/claude"
+  normalized_b="$NORMALIZED/$skill/codex"
+  normalize_runtime_calls "$a" "$normalized_a"
+  normalize_runtime_calls "$b" "$normalized_b"
+  if ! diff -r "$normalized_a" "$normalized_b" >/dev/null 2>&1; then
     echo "DRIFT    .claude/skills/$skill <-> .codex/skills/$skill"
     diff -r -q -x agents -x '.DS_Store' "$a" "$b" 2>&1 | sed 's/^/         /'
     fail=1

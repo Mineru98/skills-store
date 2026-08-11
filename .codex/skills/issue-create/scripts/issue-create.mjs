@@ -387,7 +387,7 @@ function cmdCreate(root, opts, tracker) {
   console.log('');
   console.log(`ISSUE_NUMBER=${number}`);
   console.log(`ISSUE_URL=${url}`);
-  console.log(`NEXT=/issue-start #${number}`);
+  console.log(`NEXT=$issue-start #${number}`);
 }
 
 /* ------------------------------------------------------------------- main */
