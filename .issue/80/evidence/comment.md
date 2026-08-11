@@ -6,6 +6,12 @@
 
 변경 전에는 단일 force-directed 그래프만 제공했습니다. 변경 후에는 카드 기반 분석 작업대에서 상태·라벨·관계를 교차 필터링하고, 선택한 이슈의 context와 provenance를 확인할 수 있습니다.
 
+| 전 | 후 |
+| --- | --- |
+| ![V1 단일 그래프](https://raw.githubusercontent.com/Mineru98/skills-store/main/.issue/80/evidence/before/v1-graph.webp) | ![V2 작업 맥락 화면](https://raw.githubusercontent.com/Mineru98/skills-store/main/.issue/80/evidence/after/v2-context.webp) |
+
+![V2 모바일 작업 맥락 화면](https://raw.githubusercontent.com/Mineru98/skills-store/main/.issue/80/evidence/after/v2-mobile.webp)
+
 ## 변경 파일
 
 - `.claude/skills/issue-viz/scripts/issue-viz.mjs`
