@@ -677,7 +677,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -895,7 +896,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -1104,7 +1106,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -1322,7 +1325,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -1540,7 +1544,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -1754,7 +1759,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -1938,7 +1944,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -2122,7 +2129,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -2306,7 +2314,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -2490,7 +2499,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -2633,7 +2643,7 @@
   },
   {
     "id": "split-305",
-    "query": "에너지 분야의 제주 1분기 웹 운영에서 개선이 필요합니다. 발전 설비 API 응답에 계량기 상태 필드를 추가한다. 또한 발전 설비 목록에 새 계량기 상태 값을 표시한다. 또한 시간대별 발전 보고서 조회가 12초 넘게 걸리는 문제를 수정한다. 또한 출력 급감 발생 시 관제 담당자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "에너지 분야의 제주 1분기 웹 운영에서 개선이 필요합니다. 발전 설비 API 응답에 계량기 상태 필드를 추가한다. 또한 발전 설비 목록에 새 계량기 상태 값을 표시한다. 또한 시간대별 발전 보고서 조회가 12초 넘게 걸리는 문제를 수정한다. 또한 출력 급감 발생 시 관제 담당자에게 알림을 보내는 기능을 추가한다.",
     "industry": "energy",
     "style": "narrative",
     "ambiguity": "medium",
@@ -2690,7 +2700,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -2881,7 +2892,7 @@
   },
   {
     "id": "split-325",
-    "query": "금융 분야의 제주 연말 웹 운영에서 개선이 필요합니다. 법인 계좌 API 응답에 거래 목적 필드를 추가한다. 또한 법인 계좌 목록에 새 거래 목적 값을 표시한다. 또한 일별 잔액 보고서 조회가 14초 넘게 걸리는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "금융 분야의 제주 연말 웹 운영에서 개선이 필요합니다. 법인 계좌 API 응답에 거래 목적 필드를 추가한다. 또한 법인 계좌 목록에 새 거래 목적 값을 표시한다. 또한 일별 잔액 보고서 조회가 14초 넘게 걸리는 문제를 수정한다.",
     "industry": "finance",
     "style": "narrative",
     "ambiguity": "low",
@@ -2929,7 +2940,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -3120,7 +3132,7 @@
   },
   {
     "id": "split-345",
-    "query": "숙박 분야의 제주 4분기 모바일 운영에서 개선이 필요합니다. 객실 현황 API 응답에 투숙 인원 필드를 추가한다. 또한 객실 현황 목록에 새 투숙 인원 값을 표시한다. 또한 점유율 보고서 조회가 16초 넘게 걸리는 문제를 수정한다. 또한 노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다. 또한 객실 현황 현황 화면에 사용자 지정 기간 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "숙박 분야의 제주 4분기 모바일 운영에서 개선이 필요합니다. 객실 현황 API 응답에 투숙 인원 필드를 추가한다. 또한 객실 현황 목록에 새 투숙 인원 값을 표시한다. 또한 점유율 보고서 조회가 16초 넘게 걸리는 문제를 수정한다. 또한 노쇼 발생 발생 시 프런트 관리자에게 알림을 보내는 기능을 추가한다. 또한 객실 현황 현황 화면에 사용자 지정 기간 필터를 추가한다.",
     "industry": "hospitality",
     "style": "narrative",
     "ambiguity": "high",
@@ -3186,7 +3198,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -3377,7 +3390,7 @@
   },
   {
     "id": "split-365",
-    "query": "공공 분야의 제주 3분기 야간 배치에서 개선이 필요합니다. 민원 접수 API 응답에 신청인 유형 필드를 추가한다. 또한 민원 접수 목록에 새 신청인 유형 값을 표시한다. 또한 민원 처리 보고서 조회가 9초 넘게 걸리는 문제를 수정한다. 또한 처리 기한 임박 발생 시 민원 담당자에게 알림을 보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "공공 분야의 제주 3분기 야간 배치에서 개선이 필요합니다. 민원 접수 API 응답에 신청인 유형 필드를 추가한다. 또한 민원 접수 목록에 새 신청인 유형 값을 표시한다. 또한 민원 처리 보고서 조회가 9초 넘게 걸리는 문제를 수정한다. 또한 처리 기한 임박 발생 시 민원 담당자에게 알림을 보내는 기능을 추가한다.",
     "industry": "public",
     "style": "narrative",
     "ambiguity": "medium",
@@ -3434,7 +3447,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -3625,7 +3639,7 @@
   },
   {
     "id": "split-385",
-    "query": "전자상거래 분야의 제주 2분기 현장 단말에서 개선이 필요합니다. 판매 상품 API 응답에 배송 옵션 필드를 추가한다. 또한 판매 상품 목록에 새 배송 옵션 값을 표시한다. 또한 전환율 보고서 조회가 11초 넘게 걸리는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "전자상거래 분야의 제주 2분기 현장 단말에서 개선이 필요합니다. 판매 상품 API 응답에 배송 옵션 필드를 추가한다. 또한 판매 상품 목록에 새 배송 옵션 값을 표시한다. 또한 전환율 보고서 조회가 11초 넘게 걸리는 문제를 수정한다.",
     "industry": "ecommerce",
     "style": "narrative",
     "ambiguity": "low",
@@ -3673,7 +3687,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -3947,7 +3962,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -4290,7 +4306,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -4651,7 +4668,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -5003,7 +5021,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -5346,7 +5365,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {

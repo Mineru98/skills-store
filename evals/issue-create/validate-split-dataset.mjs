@@ -81,6 +81,11 @@ for (const c of all) {
   seenIds.set(c.id, c._set);
   seenQueries.set(normalized, c.id);
 }
+const implicitCompositeCases = all.filter((c) => c.tags.includes('implicit-composite'));
+if (implicitCompositeCases.length !== 100) fail('암묵 복합 표본', `100건이어야 하나 ${implicitCompositeCases.length}건이다.`);
+for (const c of implicitCompositeCases) {
+  if (c.requirements.length < 2) fail(c.id, '암묵 복합 표본에는 원자 요구사항이 둘 이상 필요하다.');
+}
 if (all.length !== 500) fail('전체', `500건이어야 하나 ${all.length}건이다.`);
 
 const industry = histogram(all, 'industry');
