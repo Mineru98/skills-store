@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { deriveExecution, renderHtml } from '../.claude/skills/issue-viz/scripts/issue-viz.mjs';
+import { deriveExecution, renderHtml, outputPath } from '../.claude/skills/issue-viz/scripts/issue-viz.mjs';
 
 const node = (number, status = 'open', extra = {}) => ({ number, status, title: `Issue ${number}`, labels: [], ...extra });
 const graph = {
@@ -22,4 +22,9 @@ assert.equal(deriveExecution({ ...graph, snapshot: {} }).reason, 'SNAPSHOT_REASO
 const html = renderHtml({ ...graph, nodes: { 1: node(1, 'open', { title: '</script><img src=x onerror=alert(1)>', context: { scope: { value: 'unknown', reason: 'missing', source: 'fixture' } } }) } });
 assert.ok(!html.includes('</script><img'));
 assert.ok(html.includes('작업 맥락'));
+const hostile = renderHtml({ ...graph, nodes: { 1: node(1, 'open', { url: 'https://github.com/\" onfocus=\"alert(1)' }) } });
+assert.match(hostile, /function safeUrl\(v\)\{try\{var url=new URL/);
+assert.match(hostile, /href="'\+esc\(safeUrl\(n.url\)\)\+'"/);
+assert.throws(() => outputPath('/repo', '../escape.html'), /저장소 안/);
+assert.equal(outputPath('/repo', '.issue/viz/graph.html'), '/repo/.issue/viz/graph.html');
 console.log('issue-viz V2 tests passed');

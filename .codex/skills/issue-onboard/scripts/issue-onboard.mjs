@@ -530,7 +530,7 @@ function usage(exitCode = 1) {
   node issue-onboard.mjs sync [--state open|closed|all] [--limit <n>]  (plan/next에는 전체·완전 snapshot 필요)
   node issue-onboard.mjs link <from> <to> [--type ${EDGE_TYPES.join('|')}] [--why "<근거>"]
   node issue-onboard.mjs unlink <from> <to> [--type <type>]
-  node issue-onboard.mjs plan [--json]     (별칭: todo)
+  node issue-onboard.mjs plan [--json]
   node issue-onboard.mjs next
   node issue-onboard.mjs validate
   node issue-onboard.mjs audit
@@ -551,7 +551,6 @@ function main() {
 
   const optionFirst = argv[0]?.startsWith('-');
   let mode = optionFirst ? 'onboard' : argv[0] ?? 'onboard';
-  if (mode === 'todo') mode = 'plan';
   const MODES = ['onboard', 'sync', 'link', 'unlink', 'plan', 'next', 'validate', 'audit', 'migrate'];
   if (!MODES.includes(mode)) { console.error(`✗ 알 수 없는 모드: ${argv[0]}`); usage(); }
 

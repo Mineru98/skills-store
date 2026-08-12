@@ -10,7 +10,7 @@ node <skill>/scripts/issue-onboard.mjs sync [--state open|closed|all] [--limit <
 - 각 이슈 본문에서 아래 패턴을 엣지로 자동 감지한다.
 
 ```text
-"depends on #N" / "depends-on #N" / "blocked by #N" / "needs #N"   → depends-on
+"depends on #N" / "depends-on #N" / "blocked by #N" / "needs #N" → depends-on
 "blocks #N"                                                        → blocks
 ```
 

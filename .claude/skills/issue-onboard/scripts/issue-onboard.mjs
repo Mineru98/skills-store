@@ -186,10 +186,10 @@ export function parseDependencies(body = '') {
     let m;
     while ((m = re.exec(text)) !== null) refs.push({ type, to: Number(m[1]) });
   };
-  // "depends on #N", "depends-on #N", "blocked by #N" → depends-on
-  // "needs #N" 은 "needs #2 more tests" 처럼 수량을 가리키는 경우가 많아 의존으로 보지 않는다.
+  // "depends on #N", "depends-on #N", "blocked by #N", "needs #N" → depends-on
   grab(/\bdepends[\s-]?on\s+#(\d{1,6})/gi, 'depends-on');
   grab(/\bblocked[\s-]?by\s+#(\d{1,6})/gi, 'depends-on');
+  grab(/\bneeds\s+#(\d{1,6})/gi, 'depends-on');
   let m;
   const blocks = /\bblocks\s+#(\d{1,6})/gi;
   while ((m = blocks.exec(text)) !== null) refs.push({ type: 'depends-on', from: Number(m[1]), reverse: true });
@@ -486,7 +486,7 @@ function usage(exitCode = 1) {
   node issue-onboard.mjs sync [--state open|closed|all] [--limit <n>]  (plan/next에는 전체·완전 snapshot 필요)
   node issue-onboard.mjs link <from> <to> [--type ${EDGE_TYPES.join('|')}] [--why "<근거>"]
   node issue-onboard.mjs unlink <from> <to> [--type <type>]
-  node issue-onboard.mjs plan [--json]     (별칭: todo)
+  node issue-onboard.mjs plan [--json]
   node issue-onboard.mjs next
   node issue-onboard.mjs validate
   node issue-onboard.mjs audit
@@ -507,7 +507,6 @@ function main() {
 
   const optionFirst = argv[0]?.startsWith('-');
   let mode = optionFirst ? 'onboard' : argv[0] ?? 'onboard';
-  if (mode === 'todo') mode = 'plan';
   const MODES = ['onboard', 'sync', 'link', 'unlink', 'plan', 'next', 'validate', 'audit', 'migrate'];
   if (!MODES.includes(mode)) { console.error(`✗ 알 수 없는 모드: ${argv[0]}`); usage(); }
 
