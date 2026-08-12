@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<title>Before — issue-todo 계획 출력</title>
+<style>
+  body { margin: 0; padding: 56px; background: #101820; color: #dce8f2; font: 22px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  h1 { color: #f1c96a; font: 700 30px/1.2 system-ui, sans-serif; }
+  p { color: #9fb3c8; font: 18px/1.5 system-ui, sans-serif; }
+  pre { padding: 28px; border: 1px solid #38506a; border-radius: 14px; background: #172533; white-space: pre-wrap; }
+  .ready { color: #74d4a8; }
+  .progress { color: #8dc3ff; }
+</style>
+<h1>Before — legacy issue-todo plan</h1>
+<p>기준 커밋 c974fb2에서 실제 실행한 기존 명령 출력입니다.</p>
+<pre># 이슈 DAG todo
+
+<span class="ready">## ▶ 착수 가능 (ready) — 2개</span>
+  - #3 feat(codex): 누락된 스킬 UI 메타데이터 추가
+  - #85 issue-create의 암묵적 원자 분해 지침 강화
+
+<span class="progress">## ⏳ 진행 중 (in-progress) — 1개</span>
+  - #84 issue-todo를 issue-onboard로 재구성 (in-process)
+
+READY_NUMBERS=3 85
+IN_PROGRESS_NUMBERS=84</pre>
