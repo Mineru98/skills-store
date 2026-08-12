@@ -15,6 +15,10 @@ fan-out/fan-in의 판정 근거와 이슈 범위 기록 형식을 초안·원본
 - `node evals/issue-create/test-split-eval.mjs` 통과
 - holdout 암묵 복합 2건: 원자 F1, 그룹 완전일치, 이슈 수, 결정 정확도 모두 100%
 
+## 확인 제한
+
+- `node scripts/test-capability-bundle-check.mjs`는 작업 전부터 stale인 `.codex/skills/issue-end/SKILL.md` closure hash 때문에 실패했습니다. 이번 변경 파일은 bundle 대상이 아니며, 이 이슈에서 재생성하지 않았습니다.
+
 ## 캡처 생략
 
 문서·평가 데이터 변경이라 화면 또는 성능 캡처가 의미 없습니다. 대신 재현 가능한 평가 원본을 `.issue/85/evidence/after/`에 남겼습니다.
