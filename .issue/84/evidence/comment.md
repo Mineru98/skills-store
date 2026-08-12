@@ -13,7 +13,9 @@
 ## 증거
 
 - 변경 전: `before/issue-onboard-baseline.md`
-- 변경 후: `after/issue-onboard.html`, `after/issue-onboard.webp`
+- 변경 후 HTML: `after/issue-onboard.html`
+
+![issue-onboard 그래프 온보딩 결과](https://raw.githubusercontent.com/Mineru98/skills-store/main/.issue/84/evidence/after/issue-onboard.webp)
 
 ## 남은 이슈
 
