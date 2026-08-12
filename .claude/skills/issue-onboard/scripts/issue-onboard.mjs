@@ -473,7 +473,8 @@ function cmdOnboard(root, tracker, opts) {
   console.log(`ONBOARD_COUNT=${visible.length}`);
   for (const number of visible) console.log(`PRIORITY=#${number}\t${graph.nodes[String(number)].title}`);
   console.log(`HTML_PATH=${reportPath(root, path.resolve(root, html))}`);
-  console.log(`IMAGE_PATH=${reportPath(root, path.resolve(root, image))}`);
+  const imageOut = rendered.stdout.match(/^IMAGE_OUT=(.+)$/m)?.[1];
+  if (imageOut) console.log(`IMAGE_PATH=${reportPath(root, imageOut)}`);
   console.log(`MORE_AVAILABLE=${ordered.length > visible.length ? 1 : 0}`);
   console.log('NEXT_ACTIONS=issue-start,issue-merge,issue-create');
 }

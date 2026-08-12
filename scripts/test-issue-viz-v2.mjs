@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { deriveExecution, renderHtml, outputPath } from '../.claude/skills/issue-viz/scripts/issue-viz.mjs';
 
 const node = (number, status = 'open', extra = {}) => ({ number, status, title: `Issue ${number}`, labels: [], ...extra });
@@ -25,6 +28,13 @@ assert.ok(html.includes('작업 맥락'));
 const hostile = renderHtml({ ...graph, nodes: { 1: node(1, 'open', { url: 'https://github.com/\" onfocus=\"alert(1)' }) } });
 assert.match(hostile, /function safeUrl\(v\)\{try\{var url=new URL/);
 assert.match(hostile, /href="'\+esc\(safeUrl\(n.url\)\)\+'"/);
-assert.throws(() => outputPath('/repo', '../escape.html'), /저장소 안/);
-assert.equal(outputPath('/repo', '.issue/viz/graph.html'), '/repo/.issue/viz/graph.html');
+assert.match(hostile, /'<li>#'\+esc\(id\)/);
+const temporaryRepo = mkdtempSync(path.join(os.tmpdir(), 'issue-viz-output-'));
+const outside = mkdtempSync(path.join(os.tmpdir(), 'issue-viz-outside-'));
+assert.throws(() => outputPath(temporaryRepo, '../escape.html'), /저장소 안/);
+assert.match(outputPath(temporaryRepo, '.issue/viz/graph.html'), /\.issue\/viz\/graph\.html$/);
+symlinkSync(outside, path.join(temporaryRepo, 'linked'));
+assert.throws(() => outputPath(temporaryRepo, 'linked/escape.html'), /저장소 안/);
+rmSync(temporaryRepo, { recursive: true, force: true });
+rmSync(outside, { recursive: true, force: true });
 console.log('issue-viz V2 tests passed');
