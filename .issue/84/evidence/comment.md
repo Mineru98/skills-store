@@ -10,6 +10,7 @@
 - 열린 이슈 2개를 ready → in-progress → blocked 우선순위 규칙으로 출력 확인
 - 레거시 `todo` 명령 거부, Codex·Claude의 `needs #N` 의존성 해석 일치 확인
 - GitHub URL 속성 이스케이프 및 저장소 밖 렌더 출력 거부 확인
+- 심볼릭 링크를 통한 출력 경계 우회와 macOS phase probe 경로 정규화 회귀를 차단하고 호환성 9/9 통과
 - `node scripts/test-issue-graph-v2.mjs`, `node scripts/test-issue-viz-v2.mjs`, skill quick validation 통과
 
 ## 증거
