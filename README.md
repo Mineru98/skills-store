@@ -4,11 +4,11 @@
 
 Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
 
-자주 쓰는 순서는 `issue-create` → `issue-start` → `issue-end` → `issue-merge`, `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, E2E 계열 스킬, `loop`/`schedule`, 문서/프롬프트/agent 순입니다.
+자주 쓰는 순서는 `issue-onboard` → `issue-create` → `issue-start` → `issue-end` → `issue-merge`이며, `issue-sync`는 그래프 캐시를 갱신합니다. 그 밖에 `visual-companion`, `kill-process`, `install-skill`, `migrate-skill-agent`, `irasutoya-search`, E2E 계열 스킬, `loop`/`schedule`, 문서/프롬프트/agent를 제공합니다.
 
 ## 빠른 사용 순서
 
-1. 이슈 기반 작업은 `issue-create`로 등록하고, `issue-start`로 분석·구현·커밋·증거를 남기고, `issue-end`로 증거를 재확인해 PR을 만든 뒤, `issue-merge`로 여러 워크트리를 통합·재검증합니다. `gh`가 준비되지 않았으면 `gh-setup`이 먼저 끼어듭니다.
+1. 이슈 기반 작업은 `issue-onboard`로 현재 그래프와 우선순위를 확인하고, `issue-create`로 등록한 뒤 `issue-start`로 분석·구현·커밋·증거를 남깁니다. `issue-end`로 증거를 재확인해 PR을 만들고, `issue-merge`로 여러 워크트리를 통합·재검증합니다. 그래프 캐시만 갱신할 때는 `issue-sync`를 씁니다. `gh`가 준비되지 않았으면 `gh-setup`이 먼저 끼어듭니다.
 2. 시각적 선택지나 와이어프레임이 필요하면 `visual-companion`을 씁니다.
 3. 로컬 개발 서버 포트가 막히면 `kill-process`로 포트를 비웁니다.
 4. 외부 GitHub 스킬을 가져와야 하면 `install-skill`을 씁니다.
@@ -58,7 +58,7 @@ Codex와 Claude Code에서 같이 쓰는 스킬, agent, 명령, 프로젝트 룰
 설치 대상:
 
 ```text
-skills   issue-create, issue-start, issue-end, issue-merge
+skills   issue-onboard, issue-sync, issue-create, issue-start, issue-end, issue-merge
 agents   issue-verifier, issue-merge-analyst, issue-merge-critic
 ```
 
@@ -79,6 +79,8 @@ https://github.com/Mineru98/skills-store
 
 설치할 Codex 스킬:
 - .codex/skills/issue-create
+- .codex/skills/issue-onboard
+- .codex/skills/issue-sync
 - .codex/skills/issue-start
 - .codex/skills/issue-end
 - .codex/skills/issue-merge
@@ -106,6 +108,8 @@ https://github.com/Mineru98/skills-store
 
 설치할 Claude Code 스킬:
 - .claude/skills/issue-create
+- .claude/skills/issue-onboard
+- .claude/skills/issue-sync
 - .claude/skills/issue-start
 - .claude/skills/issue-end
 - .claude/skills/issue-merge
