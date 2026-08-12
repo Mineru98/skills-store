@@ -25,11 +25,11 @@ gh issue list --state open --limit 10 --json number,title,url,labels
 git worktree list
 ```
 
-`.issue/graph.json` 이 있으면(issue-todo 사용 중) close 로 새로 풀린 이슈를 함께 보여준다.
+`.issue/graph.json` 이 있으면(issue-onboard 사용 중) close 로 새로 풀린 이슈를 함께 보여준다.
 close 는 `setTrackerStatus` 를 지나며 그래프 노드를 자동으로 `close` 로 바꾸므로, 아래는 최신 상태를 낸다.
 
 ```bash
-node <issue-todo>/scripts/issue-todo.mjs plan     # 방금 close 로 BLOCKED → READY 로 풀린 이슈가 드러난다
+node <issue-onboard>/scripts/issue-onboard.mjs plan     # 방금 close 로 BLOCKED → READY 로 풀린 이슈가 드러난다
 ```
 
 새로 ready 가 된 이슈가 있으면 1번(다른 이슈 착수)의 권장 대상으로 그 번호를 제시한다.

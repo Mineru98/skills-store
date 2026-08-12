@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-/** issue-todo 그래프를 V2 이슈 탐색 HTML로 렌더한다. */
-import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync } from 'node:fs';
+/** issue-onboard 그래프를 V2 이슈 탐색 HTML·webp로 렌더한다. */
+import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
@@ -10,7 +10,7 @@ import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME } from './issue-common.mjs';
 export const DEFAULT_OUT = `${WORKSPACE_DIR}/viz/graph.html`;
 export function loadGraph(root) {
   const file = path.join(root, WORKSPACE_DIR, GRAPH_FILE_NAME);
-  if (!existsSync(file)) throw new Error(`${WORKSPACE_DIR}/${GRAPH_FILE_NAME} 이 없다. 먼저 issue-todo sync 를 실행하라.`);
+  if (!existsSync(file)) throw new Error(`${WORKSPACE_DIR}/${GRAPH_FILE_NAME} 이 없다. 먼저 issue-sync 를 실행하라.`);
   const graph = JSON.parse(readFileSync(file, 'utf8'));
   return { nodes: graph.nodes ?? {}, edges: graph.edges ?? [], provider: graph.provider ?? 'github', snapshot: graph.snapshot ?? {}, updatedAt: graph.updatedAt };
 }
@@ -83,7 +83,54 @@ export function renderHtml(graph) {
 *{box-sizing:border-box}body{margin:0;background:#eef3f8;color:#182433;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}#v2{min-height:100dvh;background:linear-gradient(135deg,#eef3f8,#f8fafc 44%,#e9f1f4)}#v2 header{display:grid;grid-template-columns:auto minmax(240px,1fr) auto;gap:12px;padding:18px 24px 14px;background:#172433;border-bottom:3px solid #42b6ad;box-shadow:0 10px 30px #17243329}#v2 input{padding:10px 13px;color:#edf5f7;border:1px solid #526475;border-radius:9px;background:#233448;outline:none}#v2 input:focus{border-color:#65d1c8;box-shadow:0 0 0 3px #65d1c833}#v2 header strong{color:#dcebf0;align-self:center;font-size:13px}button{font:inherit;cursor:pointer}#v2 button{transition:.16s}#v2 button:hover{transform:translateY(-1px)}#v2 button.active,#v2 .chip.on{background:#42b6ad;border-color:#42b6ad;color:#102128;font-weight:800}#v2 header [role=group]{display:flex;padding:3px;gap:3px;background:#0f1b29;border:1px solid #405267;border-radius:10px}#v2 header [role=group] button{color:#c9d8de;background:transparent;border-color:transparent;padding:7px 10px}.filters{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:13px;padding-top:3px}fieldset{display:flex;gap:5px;align-items:center;border:0;padding:0;margin:0}legend{color:#8fa8b1;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:0 4px 0 0}.chip{color:#c9d8de;border:1px solid #526475;border-radius:7px;background:#233448;font-size:11px;padding:4px 8px}.diag{grid-column:1/-1;margin:0;padding:8px 10px;color:#ffd5ce;background:#5a2026;border-radius:7px;font-weight:700}#workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);min-height:calc(100dvh - 154px)}#workspace.no-drawer{grid-template-columns:minmax(0,1fr)}#workspace main{min-width:0}#list{padding:20px 24px 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(246px,100%),1fr));gap:11px;align-content:start}.node{min-height:112px;padding:13px 14px;min-width:0;text-align:left;border:1px solid #d9e3eb;border-left:5px solid #7e90a0;border-radius:10px;background:#fffffff2;box-shadow:0 4px 14px #1f304310}.node:hover,.node.related{border-color:#8ec9c4;box-shadow:0 9px 22px #1f30431f}.node.ready{border-left-color:#16a394}.node.blocked{border-left-color:#df9b42}.node.in-progress{border-left-color:#4e92d7}.node.done{opacity:.68}.node.selected{outline:3px solid #42b6ad;outline-offset:2px}.node b{color:#0d716b;font-size:12px}.node span,.node small{display:block;word-break:keep-all;overflow-wrap:break-word}.node span{margin-top:6px;font-weight:740;line-height:1.35}.node small{color:#627687;margin-top:8px;font-size:11px}#drawer{padding:25px 22px;border-left:1px solid #d9e3eb;background:#fbfdfe;overflow:auto;word-break:keep-all;overflow-wrap:break-word;box-shadow:-12px 0 30px #1f30430a}#drawer h2{margin:0 28px 8px 0;font-size:19px;line-height:1.35}#drawer h3{margin:22px 0 7px;color:#597080;font-size:11px;letter-spacing:.07em;text-transform:uppercase}#drawer a{color:#087d77;font-weight:700}#drawer li small{display:block;color:#627687;margin:4px 0 8px}#drawer pre{white-space:pre-wrap;font-size:11px;background:#edf3f6;border:1px solid #dce6ec;border-radius:8px;padding:10px}#close{float:right;color:#5c7180;border:0;background:transparent;font-size:24px}.run-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:20px 24px 0}.run-summary div,.paths{padding:14px;border:1px solid #d9e3eb;border-radius:10px;background:#fffffff2}.run-summary b{display:block;color:#627687;font-size:12px}.run-summary strong{font-size:28px}.paths{margin:12px 24px}.paths h2{margin:0 0 8px;font-size:15px}.paths ol{margin:8px 0;padding-left:24px}.blocked-execution{margin:24px;padding:20px;border:1px solid #e6b2aa;border-radius:10px;background:#fff6f4}.blocked-execution h2{margin-top:0}@media(max-width:760px){#v2 header{grid-template-columns:1fr;padding:14px}.filters{gap:8px}#workspace,#workspace.no-drawer{grid-template-columns:1fr}#list{padding:14px;grid-template-columns:1fr}#drawer{border-left:0;border-top:1px solid #d9e1ec;max-height:48dvh}.run-summary{padding:14px;gap:8px}.paths{margin:0 14px 14px}}
 </style></head><body><script>var GRAPH=${data};</script><script>${CLIENT_JS}</script></body></html>`;
 }
-function cmdRender(root, opts) { const graph = loadGraph(root); const out = path.resolve(root, opts.out ?? DEFAULT_OUT); mkdirSync(path.dirname(out), { recursive: true }); writeFileSync(out, renderHtml(graph), 'utf8'); console.log(`✓ 렌더 완료 — 노드 ${Object.keys(graph.nodes).length}개, 엣지 ${graph.edges.length}개\nOUT=${out}`); if (opts.open) spawnSync(process.platform === 'darwin' ? 'open' : 'xdg-open', [out], { stdio: 'ignore' }); }
-function main() { const args = process.argv.slice(2); if (args.includes('-h') || args.includes('--help')) { console.log('Usage: node issue-viz.mjs render [--out <path>] [--open]'); return; } const opts = {}; for (let i = 0; i < args.length; i += 1) { if (args[i] === 'render') continue; if (args[i] === '--out') opts.out = args[++i]; else if (args[i] === '--open') opts.open = true; else throw new Error(`알 수 없는 옵션: ${args[i]}`); } cmdRender(repoRoot(), opts); }
+function browserBinary() {
+  const candidates = process.platform === 'darwin'
+    ? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', 'Google Chrome']
+    : ['google-chrome', 'chromium', 'chromium-browser'];
+  return candidates.find((candidate) => candidate.includes('/') ? existsSync(candidate) : spawnSync('which', [candidate], { stdio: 'ignore' }).status === 0) ?? null;
+}
+
+function captureWebp(html, image) {
+  const browser = browserBinary();
+  if (!browser) return { ok: false, reason: 'browser-unavailable' };
+  const png = `${image}.png`;
+  mkdirSync(path.dirname(image), { recursive: true });
+  const screenshot = spawnSync(browser, ['--headless=new', '--disable-gpu', '--window-size=1440,900', '--virtual-time-budget=1200', `--screenshot=${png}`, `file://${html}`], { encoding: 'utf8' });
+  if (screenshot.status !== 0 || !existsSync(png)) return { ok: false, reason: 'screenshot-failed' };
+  const converted = spawnSync('cwebp', ['-q', '82', png, '-o', image], { encoding: 'utf8' });
+  rmSync(png, { force: true });
+  if (converted.status !== 0 || !existsSync(image)) return { ok: false, reason: 'webp-conversion-failed' };
+  return { ok: true };
+}
+
+function cmdRender(root, opts) {
+  const graph = loadGraph(root);
+  const out = path.resolve(root, opts.out ?? DEFAULT_OUT);
+  mkdirSync(path.dirname(out), { recursive: true });
+  writeFileSync(out, renderHtml(graph), 'utf8');
+  console.log(`✓ 렌더 완료 — 노드 ${Object.keys(graph.nodes).length}개, 엣지 ${graph.edges.length}개\nOUT=${out}`);
+  if (opts.imageOut) {
+    const image = path.resolve(root, opts.imageOut);
+    const result = captureWebp(out, image);
+    console.log(`IMAGE_STATUS=${result.ok ? 'ok' : 'unavailable'}`);
+    console.log(`IMAGE_OUT=${result.ok ? image : ''}`);
+    if (!result.ok) console.log(`IMAGE_REASON=${result.reason}`);
+  }
+  if (opts.open) spawnSync(process.platform === 'darwin' ? 'open' : 'xdg-open', [out], { stdio: 'ignore' });
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  if (args.includes('-h') || args.includes('--help')) { console.log('Usage: node issue-viz.mjs render [--out <path>] [--image-out <path.webp>] [--open]'); return; }
+  const opts = {};
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === 'render') continue;
+    if (args[i] === '--out') opts.out = args[++i];
+    else if (args[i] === '--image-out') opts.imageOut = args[++i];
+    else if (args[i] === '--open') opts.open = true;
+    else throw new Error(`알 수 없는 옵션: ${args[i]}`);
+  }
+  cmdRender(repoRoot(), opts);
+}
 function isMain(metaUrl) { const entry = process.argv[1]; if (!entry) return false; const here = fileURLToPath(metaUrl); try { return realpathSync(here) === realpathSync(path.resolve(entry)); } catch { return false; } }
 if (isMain(import.meta.url)) { try { main(); } catch (error) { console.error(`✗ ${error.message}`); process.exit(1); } }

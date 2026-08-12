@@ -1,9 +1,9 @@
-# DAG 연산 — sync · link · plan · next · validate
+# Onboard 그래프 연산 — sync · link · plan · next · validate
 
 ## sync — 그래프 갱신
 
 ```bash
-node <skill>/scripts/issue-todo.mjs sync [--state open|closed|all] [--limit <n>]
+node <skill>/scripts/issue-onboard.mjs sync [--state open|closed|all] [--limit <n>]
 ```
 
 - 트래커에서 이슈를 끌어와 노드를 갱신한다(기본 `--state all`, `--limit 200`).
@@ -20,8 +20,8 @@ node <skill>/scripts/issue-todo.mjs sync [--state open|closed|all] [--limit <n>]
 ## link / unlink — 의존 손보기
 
 ```bash
-node <skill>/scripts/issue-todo.mjs link <from> <to> [--type depends-on|blocks|relates-to|parent-of|duplicate-of] [--why "<근거>"]
-node <skill>/scripts/issue-todo.mjs unlink <from> <to> [--type <type>]
+node <skill>/scripts/issue-onboard.mjs link <from> <to> [--type depends-on|blocks|relates-to|parent-of|duplicate-of] [--why "<근거>"]
+node <skill>/scripts/issue-onboard.mjs unlink <from> <to> [--type <type>]
 ```
 
 - `--type` 기본값은 `depends-on`. `--why` 로 근거를 남긴다(provenance).
@@ -32,7 +32,7 @@ node <skill>/scripts/issue-todo.mjs unlink <from> <to> [--type <type>]
 ## plan (todo) — 분류 산출
 
 ```bash
-node <skill>/scripts/issue-todo.mjs plan [--json]
+node <skill>/scripts/issue-onboard.mjs plan [--json]
 ```
 
 각 노드를 네 부류로 나눈다. 판정 규칙:
@@ -47,12 +47,12 @@ ready        선행이 전부 close 이고 status == open
 - `ready` 와 `in-progress` 는 우선순위(priorityRank) → 번호 순으로 정렬한다.
 - `blocked` 은 각 항목에 "대기 중인 선행 번호"를 함께 낸다.
 - 기계 출력: `READY_NUMBERS` / `BLOCKED_NUMBERS` / `IN_PROGRESS_NUMBERS` / `DONE_NUMBERS`.
-- 인자 없이 `issue-todo` 만 부르면 plan 을 낸다.
+- 인자 없이 `issue-onboard` 만 부르면 온보딩을 시작한다.
 
 ## next — 다음 착수 추천
 
 ```bash
-node <skill>/scripts/issue-todo.mjs next
+node <skill>/scripts/issue-onboard.mjs next
 ```
 
 ready-frontier 의 첫 이슈(우선순위·번호 순)를 골라 `NEXT=/issue-start #N` 을 제안한다.
@@ -61,7 +61,7 @@ ready 가 비면 진행 중 목록을 안내한다.
 ## validate — 점검
 
 ```bash
-node <skill>/scripts/issue-todo.mjs validate
+node <skill>/scripts/issue-onboard.mjs validate
 ```
 
 - **사이클**: 순서 엣지에서 순환을 찾으면 경로를 내고 exit 2.
