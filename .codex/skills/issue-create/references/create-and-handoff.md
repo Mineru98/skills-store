@@ -122,15 +122,15 @@ cp /tmp/issue-draft.md .issue/<번호>/request.md
 동시에 굴리면 어느 워크트리에서 편집 중인지 잃는다. 병렬로 굴리고 싶으면 세션을 나눠
 `issue-start` 를 각각 부르고, 마지막에 `issue-merge` 로 한 번에 통합한다.
 
-## DAG 배선 (issue-onboard 사용 시)
+## DAG 배선 (issue-todo 사용 시)
 
 등록과 `status:open` 전환이 모두 성공했으면 `$issue-graph-sync #<번호> open`을 호출한다.
-그래프 파일이 없으면 이 호출은 새 캐시를 만들지 않고 건너뛴다. 그래프가 있으면 `issue-onboard`가
+그래프 파일이 없으면 이 호출은 새 캐시를 만들지 않고 건너뛴다. 그래프가 있으면 `issue-todo` V2가
 GitHub를 다시 읽어 캐시를 갱신한다. **분할 때 확정한 의존은 그때만 알 수 있으므로** 버리지 말고
 엣지로 남긴다. 본문에 `depends on #N` 을 적으면 sync가 자동 감지하고, 즉시 걸려면 아래로 근거와 함께 남긴다.
 
 ```bash
-node <issue-onboard>/scripts/issue-onboard.mjs link <새 이슈> <선행 이슈> --why "<왜 막히는지>"
+node <issue-todo>/scripts/issue-todo.mjs link <새 이슈> <선행 이슈> --why "<왜 막히는지>"
 ```
 
 예: API 이슈 #71 이 UI 이슈 #72 의 선행이면 `link 72 71 --why "72 는 71 의 API 계약이 필요"`.

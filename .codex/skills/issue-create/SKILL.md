@@ -30,7 +30,7 @@ description: 이미 굴러가는 저장소에서 코드를 바꾸는 요청이�
     <always>references/issue-draft.md — 초안 작성과 라벨 선택</always>
     <always>references/label-audit.md — 라벨 부착과 기존 이슈 라벨 점검</always>
     <always>references/create-and-handoff.md — 등록과 issue-start 인계</always>
-    <branch name="graph status sync" when="등록 뒤 status:open 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
+    <branch name="graph status sync" when="등록 뒤 status:open 전환이 성공함">../issue-graph-sync/SKILL.md — issue-todo V2 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>

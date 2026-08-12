@@ -431,7 +431,7 @@ const invokeRequest = (root, mirror, skill, request, directory) => {
 };
 
 const invokeInstalledMirror = (root, mirror, phases) => {
-  const directory = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'issue-phase-probe-')));
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'issue-phase-probe-'));
   const outcomes = new Map();
   try {
     let startState = {

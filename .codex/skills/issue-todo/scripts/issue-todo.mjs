@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * issue-onboard.mjs — 이슈 그래프 기반 온보딩을 위한 보조 스크립트.
+ * issue-todo.mjs — 이슈를 DAG(방향성 비순환 그래프)로 관리하는 보조 스크립트.
  *
  * 기존 파이프라인(issue-create → issue-start → issue-end → issue-merge)은 이슈를
  * 독립 단위로만 다루고 이슈 사이의 의존/순서를 저장하지 않는다. 이 스크립트는
@@ -26,25 +26,31 @@
  * 요구사항: git, Node 18+, (github 면 gh 로그인 / jira 면 baseUrl·projectKey·토큰)
  */
 import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync, renameSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
-import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1 } from './issue-graph-v2.mjs';
+import {
+  GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES,
+  CONTEXT_FIELDS, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions,
+  auditGraph, migrateGraphV1,
+} from './issue-graph-v2.mjs';
 
 export const GRAPH_VERSION = V2_GRAPH_VERSION;
 export const GRAPH_FILE = GRAPH_FILE_NAME;
 
-/** 저장 가능한 엣지 타입. 앞 둘만 순서 제약이다. */
+/** V2의 관계는 다섯 가지이며 순서 제약은 depends-on뿐이다. */
 export const EDGE_TYPES = V2_EDGE_TYPES;
 export const ORDERING_TYPES = V2_ORDERING_TYPES;
 
 /** 진행 상태를 세 부류로. done 만 "끝난 것"으로 본다. */
 const DONE = 'close';
 const IN_PROGRESS = new Set(['plan', 'in-process', 'review']);
-function unknownField(reason, source) { return { value: 'unknown', reason, source }; }
+
+function unknownField(reason, source) {
+  return { value: 'unknown', reason, source };
+}
 
 /* --------------------------------------------------------------- graph I/O */
 
@@ -107,7 +113,6 @@ export function priorityRank(node) {
 /**
  * 순서 제약 엣지를 "prereq(선행) 맵" 으로 정규화한다.
  * depends-on {from,to} → from 의 선행에 to.
- * blocks     {from,to} → to 의 선행에 from.
  * 반환: Map<number, Set<number>> — 노드 → 선행 노드 집합.
  */
 export function prereqMap(graph) {
@@ -161,9 +166,7 @@ export function classify(graph) {
   for (const num of Object.keys(graph.nodes).map(Number)) {
     const st = statusOf(num);
     if (st === DONE) { out.done.push(num); continue; }
-    // 그래프에 없는 선행(다른 저장소 참조·오타·fetch 창 밖)은 blocker 로 치지 않는다.
-    // 안 그러면 그 이슈가 영원히 blocked 로 남아 ready/next 에서 사라진다. dangling 은 validate 가 계속 경고한다.
-    const blockers = [...(prereq.get(num) ?? [])].filter((d) => graph.nodes[String(d)] && statusOf(d) !== DONE);
+    const blockers = [...(prereq.get(num) ?? [])].filter((d) => statusOf(d) !== DONE);
     if (blockers.length) { out.blocked.push({ num, blockers }); continue; }
     if (IN_PROGRESS.has(st)) { out.inProgress.push(num); continue; }
     out.ready.push(num);
@@ -190,6 +193,7 @@ export function parseDependencies(body = '') {
   grab(/\bdepends[\s-]?on\s+#(\d{1,6})/gi, 'depends-on');
   grab(/\bblocked[\s-]?by\s+#(\d{1,6})/gi, 'depends-on');
   grab(/\bneeds\s+#(\d{1,6})/gi, 'depends-on');
+  // "A blocks B" 는 V2에서 B --depends-on--> A로 정규화한다.
   let m;
   const blocks = /\bblocks\s+#(\d{1,6})/gi;
   while ((m = blocks.exec(text)) !== null) refs.push({ type: 'depends-on', from: Number(m[1]), reverse: true });
@@ -250,19 +254,40 @@ function cmdSync(root, tracker, opts) {
     }
     decisions.push(...parseDecisionComments(it.comments ?? []));
   }
-  const referenced = [...new Set(auto.flatMap((edge) => [edge.from, edge.to]))].filter((number) => !graph.nodes[String(number)]);
+  // issue list는 pull request를 제외한다. 본문이 #번호로 참조한 GitHub PR/issue는 개별 조회해
+  // close 상태와 provenance를 보존한다. 조회 실패한 끝점은 complete snapshot으로 승격하지 않는다.
+  const referenced = [...new Set(auto.flatMap((edge) => [edge.from, edge.to]))]
+    .filter((number) => !graph.nodes[String(number)]);
   const unresolved = [];
   for (const number of referenced) {
     const item = tracker.issueView(number);
     if (!item) { unresolved.push(number); continue; }
     const labels = (item.labels ?? []).map((label) => label.name);
     const source = { url: item.url, revision: item.updatedAt ?? 'unknown', observedAt: now, kind: 'referenced' };
-    graph.nodes[String(number)] = { id: `github:${graph.repository ?? 'unknown'}#${number}`, number, title: item.title, status: deriveStatus(item.labels ?? [], item.state), labels: typeLabels(labels), url: item.url, context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, unknownField(`참조된 GitHub 항목의 구조화된 ${field} 필드가 없음`, source)])), provenance: source };
+    graph.nodes[String(number)] = {
+      id: `github:${graph.repository ?? 'unknown'}#${number}`,
+      number,
+      title: item.title,
+      status: deriveStatus(item.labels ?? [], item.state),
+      labels: typeLabels(labels),
+      url: item.url,
+      context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, unknownField(`참조된 GitHub 항목의 구조화된 ${field} 필드가 없음`, source)])),
+      provenance: source,
+    };
   }
-  const approved = resolveDecisions(decisions).map(decisionEdge).filter(Boolean).filter((edge) => { const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true; });
+  const approved = resolveDecisions(decisions).map(decisionEdge).filter(Boolean).filter((edge) => {
+    const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true;
+  });
   graph.edges = [...auto, ...approved];
   const complete = state === 'all' && list.length < limit && unresolved.length === 0;
-  graph.snapshot = { status: complete ? 'complete' : 'partial', fetchedAt: now, digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))), reason: complete ? null : unresolved.length ? `참조 GitHub 항목을 조회할 수 없음: ${unresolved.map((number) => `#${number}`).join(', ')}` : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음' };
+  graph.snapshot = {
+    status: complete ? 'complete' : 'partial',
+    fetchedAt: now,
+    digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))),
+    reason: complete ? null : unresolved.length
+      ? `참조 GitHub 항목을 조회할 수 없음: ${unresolved.map((number) => `#${number}`).join(', ')}`
+      : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음',
+  };
 
   const file = saveGraph(root, graph, { now });
   const cycle = findCycle(graph);
@@ -313,7 +338,11 @@ function cmdPlan(root, tracker, opts) {
   const problems = auditGraph(graph);
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
-  if (problems.length) { console.error(`✗ 안전하지 않은 그래프라 plan을 만들지 않는다: ${problems.join(' / ')}`); console.log('READY_NUMBERS='); process.exit(2); }
+  if (problems.length) {
+    console.error(`✗ 안전하지 않은 그래프라 plan을 만들지 않는다: ${problems.join(' / ')}`);
+    console.log('READY_NUMBERS=');
+    process.exit(2);
+  }
   if (!Object.keys(graph.nodes).length) {
     console.log('그래프가 비어 있다. 먼저 `sync` 를 실행하라.');
     console.log('READY_NUMBERS=');
@@ -357,7 +386,11 @@ function cmdNext(root, tracker) {
   const problems = auditGraph(graph);
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
-  if (problems.length) { console.error(`✗ 안전하지 않은 그래프라 next를 추천하지 않는다: ${problems.join(' / ')}`); console.log('NEXT_ISSUE='); process.exit(2); }
+  if (problems.length) {
+    console.error(`✗ 안전하지 않은 그래프라 next를 추천하지 않는다: ${problems.join(' / ')}`);
+    console.log('NEXT_ISSUE=');
+    process.exit(2);
+  }
   const c = classify(graph);
   if (!c.ready.length) {
     console.log(c.inProgress.length
@@ -370,7 +403,7 @@ function cmdNext(root, tracker) {
   console.log(`다음 착수 추천: ${label(graph, n)}`);
   console.log('');
   console.log(`NEXT_ISSUE=${n}`);
-  console.log(`NEXT=/issue-start #${n}`);
+  console.log(`NEXT=$issue-start #${n}`);
 }
 
 function cmdValidate(root, tracker) {
@@ -379,12 +412,6 @@ function cmdValidate(root, tracker) {
 
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
-
-  for (const e of graph.edges) {
-    if (!graph.nodes[String(e.from)]) problems.push(`dangling 엣지: from #${e.from} 노드 없음 (${e.from}→${e.to})`);
-    if (!graph.nodes[String(e.to)]) problems.push(`dangling 엣지: to #${e.to} 노드 없음 (${e.from}→${e.to})`);
-    if (!EDGE_TYPES.includes(e.type)) problems.push(`알 수 없는 엣지 타입: ${e.type} (${e.from}→${e.to})`);
-  }
 
   // close 불일치: done 인 노드가 아직 done 이 아닌 선행에 의존.
   const prereq = prereqMap(graph);
@@ -413,85 +440,49 @@ function cmdValidate(root, tracker) {
 
 function cmdMigrate(root, tracker, opts) {
   const graph = loadGraph(root, tracker.provider);
-  if (graph.version === GRAPH_VERSION) { console.log('MIGRATED=0'); console.log('MIGRATION_STATUS=already-v2'); return; }
-  if (graph.version !== 1) { console.error(`✗ 지원하지 않는 마이그레이션 원본: V${graph.version}`); console.log('MIGRATED=0'); process.exit(2); }
+  if (graph.version === GRAPH_VERSION) {
+    console.log('MIGRATED=0');
+    console.log('MIGRATION_STATUS=already-v2');
+    return;
+  }
+  if (graph.version !== 1) {
+    console.error(`✗ 지원하지 않는 마이그레이션 원본: V${graph.version}`);
+    console.log('MIGRATED=0');
+    process.exit(2);
+  }
   const migrated = migrateGraphV1(graph, { now: opts.now });
   const file = saveGraph(root, migrated, { now: migrated.updatedAt });
   console.log(`✓ V1 → V2 마이그레이션 완료: ${path.relative(root, file)}`);
   console.log('  이 캐시는 migrating 상태다. GitHub sync 전에는 plan/next를 실행하지 않는다.');
-  console.log('MIGRATED=1'); console.log('MIGRATION_STATUS=migrating');
+  console.log('MIGRATED=1');
+  console.log('MIGRATION_STATUS=migrating');
 }
 
 function cmdAudit(root, tracker) {
-  const problems = auditGraph(loadGraph(root, tracker.provider));
-  if (problems.length) { console.log('AUDIT=0'); console.log(`PROBLEMS=${problems.length}`); for (const problem of problems) console.log(`  - ${problem}`); process.exit(2); }
-  console.log('AUDIT=1'); console.log('PROBLEMS=0');
-}
-
-function projectSkill(root, skill, script) {
-  return [path.join(root, '.codex', 'skills', skill, 'scripts', script), path.join(root, '.claude', 'skills', skill, 'scripts', script)]
-    .find((file) => existsSync(file)) ?? null;
-}
-
-function reportPath(root, file) {
-  const worktrees = spawnSync('git', ['worktree', 'list', '--porcelain'], { cwd: root, encoding: 'utf8' }).stdout
-    .split('\n').find((line) => line.startsWith('worktree '));
-  return worktrees?.slice('worktree '.length) === root ? path.relative(root, file) : file;
-}
-
-function cmdOnboard(root, tracker, opts) {
-  if (!existsSync(graphPath(root))) {
-    const sync = projectSkill(root, 'issue-sync', 'issue-sync.mjs');
-    if (!sync) throw new Error('issue-sync 스킬을 찾지 못했다.');
-    const result = spawnSync(process.execPath, [sync], { cwd: root, encoding: 'utf8' });
-    process.stdout.write(result.stdout);
-    process.stderr.write(result.stderr);
-    if (result.status !== 0) process.exit(result.status ?? 1);
-    console.log('GRAPH_BOOTSTRAP=issue-sync');
-  }
   const graph = loadGraph(root, tracker.provider);
-  const openIssues = tracker.issueList({ state: 'open', limit: 200, fields: 'number,title,labels,url,state,updatedAt' });
-  if (openIssues === null) throw new Error('GitHub 열린 이슈를 조회하지 못했다.');
   const problems = auditGraph(graph);
-  const cycle = findCycle(graph);
-  if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
-  if (problems.length) throw new Error(`안전하지 않은 그래프: ${problems.join(' / ')}`);
-  const groups = classify(graph);
-  const openNumbers = new Set(openIssues.map((issue) => issue.number));
-  const ordered = [...groups.ready, ...groups.inProgress, ...groups.blocked.map((item) => item.num)]
-    .filter((number) => openNumbers.has(number));
-  const visible = opts.all ? ordered : ordered.slice(0, 6);
-  const html = opts.out ?? '.issue/onboard/graph.html';
-  const image = opts.imageOut ?? '.issue/onboard/graph.webp';
-  const viz = projectSkill(root, 'issue-viz', 'issue-viz.mjs');
-  if (!viz) throw new Error('issue-viz 스킬을 찾지 못했다.');
-  const rendered = spawnSync(process.execPath, [viz, 'render', '--out', html, '--image-out', image], { cwd: root, encoding: 'utf8' });
-  process.stdout.write(rendered.stdout);
-  process.stderr.write(rendered.stderr);
-  if (rendered.status !== 0) process.exit(rendered.status ?? 1);
-  console.log(`OPEN_ISSUES=${openIssues.length}`);
-  console.log(`ONBOARD_COUNT=${visible.length}`);
-  for (const number of visible) console.log(`PRIORITY=#${number}\t${graph.nodes[String(number)].title}`);
-  console.log(`HTML_PATH=${reportPath(root, path.resolve(root, html))}`);
-  const imageOut = rendered.stdout.match(/^IMAGE_OUT=(.+)$/m)?.[1];
-  if (imageOut) console.log(`IMAGE_PATH=${reportPath(root, imageOut)}`);
-  console.log(`MORE_AVAILABLE=${ordered.length > visible.length ? 1 : 0}`);
-  console.log('NEXT_ACTIONS=issue-start,issue-merge,issue-create');
+  if (problems.length) {
+    console.log('AUDIT=0');
+    console.log(`PROBLEMS=${problems.length}`);
+    for (const problem of problems) console.log(`  - ${problem}`);
+    process.exit(2);
+  }
+  console.log('AUDIT=1');
+  console.log('PROBLEMS=0');
 }
 
 /* ------------------------------------------------------------------- usage */
 
 function usage(exitCode = 1) {
   console.error(`Usage:
-  node issue-onboard.mjs [--all] [--out <path>] [--image-out <path.webp>]
-  node issue-onboard.mjs sync [--state open|closed|all] [--limit <n>]  (plan/next에는 전체·완전 snapshot 필요)
-  node issue-onboard.mjs link <from> <to> [--type ${EDGE_TYPES.join('|')}] [--why "<근거>"]
-  node issue-onboard.mjs unlink <from> <to> [--type <type>]
-  node issue-onboard.mjs plan [--json]
-  node issue-onboard.mjs next
-  node issue-onboard.mjs validate
-  node issue-onboard.mjs audit
-  node issue-onboard.mjs migrate
+  node issue-todo.mjs sync [--state open|closed|all] [--limit <n>]  (plan/next에는 전체·완전 snapshot 필요)
+  node issue-todo.mjs link <from> <to> [--type ${EDGE_TYPES.join('|')}] [--why "<근거>"]
+  node issue-todo.mjs unlink <from> <to> [--type <type>]
+  node issue-todo.mjs plan [--json]        (별칭: todo)
+  node issue-todo.mjs next
+  node issue-todo.mjs validate
+  node issue-todo.mjs audit
+  node issue-todo.mjs migrate
 
 엣지 방향: from --depends-on--> to = "from 은 to 가 close 전엔 착수 불가".
 그래프: ${WORKSPACE_DIR}/${GRAPH_FILE} (GitHub 정본에서 재생성하는 로컬 캐시).
@@ -504,16 +495,16 @@ function usage(exitCode = 1) {
 
 function main() {
   const argv = process.argv.slice(2);
-  if (argv.includes('-h') || argv.includes('--help')) usage(0);
+  if (!argv.length || argv.includes('-h') || argv.includes('--help')) usage(argv.length ? 0 : 1);
 
-  const optionFirst = argv[0]?.startsWith('-');
-  let mode = optionFirst ? 'onboard' : argv[0] ?? 'onboard';
-  const MODES = ['onboard', 'sync', 'link', 'unlink', 'plan', 'next', 'validate', 'audit', 'migrate'];
+  let mode = argv[0];
+  if (mode === 'todo') mode = 'plan';
+  const MODES = ['sync', 'link', 'unlink', 'plan', 'next', 'validate', 'audit', 'migrate'];
   if (!MODES.includes(mode)) { console.error(`✗ 알 수 없는 모드: ${argv[0]}`); usage(); }
 
   const opts = {};
   const positionals = [];
-  for (let i = optionFirst ? 0 : 1; i < argv.length; i += 1) {
+  for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--json') opts.json = true;
     else if (arg === '--type') opts.type = argv[++i];
@@ -521,9 +512,6 @@ function main() {
     else if (arg === '--state') opts.state = argv[++i];
     else if (arg === '--limit') opts.limit = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
-    else if (arg === '--all') opts.all = true;
-    else if (arg === '--out') opts.out = argv[++i];
-    else if (arg === '--image-out') opts.imageOut = argv[++i];
     else if (arg.startsWith('-')) { console.error(`✗ 알 수 없는 옵션: ${arg}`); usage(); }
     else positionals.push(arg);
   }
@@ -531,8 +519,7 @@ function main() {
   const root = repoRoot();
   const tracker = createTracker(root, { repo: opts.repo });
 
-  if (mode === 'onboard') cmdOnboard(root, tracker, opts);
-  else if (mode === 'sync') cmdSync(root, tracker, opts);
+  if (mode === 'sync') cmdSync(root, tracker, opts);
   else if (mode === 'link') cmdLink(root, tracker, parseIssueNumber(positionals[0]), parseIssueNumber(positionals[1]), opts);
   else if (mode === 'unlink') cmdUnlink(root, tracker, parseIssueNumber(positionals[0]), parseIssueNumber(positionals[1]), opts);
   else if (mode === 'plan') cmdPlan(root, tracker, opts);

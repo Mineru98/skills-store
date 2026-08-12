@@ -1,4 +1,3 @@
-// issue-onboard graph schema
 import { createHash } from 'node:crypto';
 
 export const GRAPH_VERSION = 2;

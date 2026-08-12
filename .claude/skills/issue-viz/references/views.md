@@ -33,7 +33,7 @@ ego                  입력한 이슈 번호 + N홉 이웃만 (semantica ego-mod
 ```
 
 - ego 뷰: 상단 `#번호` 입력 후 Enter 또는 ego 버튼.
-- 분류 규칙은 issue-onboard 의 plan 과 같다(선행이 전부 close 여야 ready).
+- 분류 규칙은 issue-todo 의 plan 과 같다(선행이 전부 close 여야 ready).
 
 ## 상호작용
 

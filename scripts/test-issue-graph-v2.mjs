@@ -8,8 +8,8 @@ import { tmpdir } from 'node:os';
 import {
   EDGE_TYPES, digest, normalizeEdge, parseDecisionComments, decisionEdge,
   CONTEXT_FIELDS, auditGraph, migrateGraphV1, validateGraphV2, duplicateScore, duplicateVerdict, evaluateDuplicate, measureFieldQuality, resolveDecisions,
-} from '../.codex/skills/issue-onboard/scripts/issue-graph-v2.mjs';
-import { deriveStatus, classify } from '../.codex/skills/issue-onboard/scripts/issue-onboard.mjs';
+} from '../.codex/skills/issue-todo/scripts/issue-graph-v2.mjs';
+import { deriveStatus, classify } from '../.codex/skills/issue-todo/scripts/issue-todo.mjs';
 
 assert.deepEqual(EDGE_TYPES, ['depends-on', 'parent-of', 'duplicate-of', 'relates-to', 'supersedes']);
 assert.deepEqual(normalizeEdge({ from: 9, to: 4, type: 'relates-to' }), { from: 4, to: 9, type: 'relates-to' });
@@ -69,7 +69,7 @@ const scheduling = classify({
 });
 assert.deepEqual(scheduling.ready, [2, 3], 'depends-on 외 관계는 일정을 바꾸지 않음');
 
-const base = { number: 100, status: 'open', subject: 'graph cache', outcome: 'reject partial sync', scope: 'issue-onboard', acceptance: 'plan is blocked' };
+const base = { number: 100, status: 'open', subject: 'graph cache', outcome: 'reject partial sync', scope: 'issue-todo', acceptance: 'plan is blocked' };
 const cases = [
   ['표현만 다름', { ...base, number: 101 }, 'duplicate-review-required'],
   ['같은 컴포넌트 다른 결과', { ...base, number: 102, outcome: 'render HTML graph' }, 'distinct'],
@@ -100,7 +100,7 @@ try {
   assert.equal(spawnSync('git', ['init', '-q'], { cwd: temporaryRepo }).status, 0);
   mkdirSync(path.join(temporaryRepo, '.issue'));
   writeFileSync(path.join(temporaryRepo, '.issue', 'graph.json'), JSON.stringify({ version: 2, snapshot: { status: 'partial' }, nodes: {}, edges: [] }));
-  const blocked = spawnSync(process.execPath, [path.resolve('.codex/skills/issue-onboard/scripts/issue-onboard.mjs'), 'plan'], { cwd: temporaryRepo, encoding: 'utf8' });
+  const blocked = spawnSync(process.execPath, [path.resolve('.codex/skills/issue-todo/scripts/issue-todo.mjs'), 'plan'], { cwd: temporaryRepo, encoding: 'utf8' });
   assert.equal(blocked.status, 2);
   assert.match(blocked.stderr, /안전하지 않은 그래프/);
 } finally {
