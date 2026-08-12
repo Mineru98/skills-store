@@ -26,7 +26,7 @@ description: issue-start 가 증거와 리포트를 게시하고 사람이 승�
     <always>references/evidence-recheck.md — 증거 완결성 검사와 pure-tree 재캡처</always>
     <always>references/report-and-pr.md — 게시 상태 확인·조건부 보강·PR</always>
     <always>references/next-actions.md — 다음 행동 4지선다와 issue-merge 위임</always>
-    <branch name="graph status sync" when="PR 생성 뒤 status:review 전환이 성공함">../issue-graph-sync/SKILL.md — issue-todo V2 그래프 캐시 동기화</branch>
+    <branch name="graph status sync" when="PR 생성 뒤 status:review 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>

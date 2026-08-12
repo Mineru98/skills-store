@@ -25,7 +25,7 @@ node <skill>/scripts/issue-viz.mjs render [옵션]
 ## graph.json 이 없을 때
 
 ```bash
-node <issue-todo>/scripts/issue-todo.mjs sync   # 그래프 먼저 생성
+node <issue-sync>/scripts/issue-sync.mjs        # 그래프 먼저 생성
 node <skill>/scripts/issue-viz.mjs render        # 다시 렌더
 ```
 
@@ -34,7 +34,7 @@ render 는 graph.json 이 없으면 exit 1 로 멈추고 sync 를 먼저 하라�
 ## 데이터 흐름
 
 ```text
-트래커 → issue-todo sync → .issue/graph.json → issue-viz render → graph.html (브라우저)
+트래커 → issue-sync → .issue/graph.json → issue-viz render → graph.html + graph.webp
 ```
 
 issue-viz 는 graph.json 을 읽기만 한다. 노드 분류(ready/blocked/…)와 critical-path 계산은

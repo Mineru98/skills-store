@@ -1,4 +1,4 @@
-# 이슈 그래프 V2 계약
+# issue-onboard 이슈 그래프 V2 계약
 
 GitHub 이슈와 구조화된 결정 코멘트가 정본이다. `.issue/graph.json`은 재생성 가능한 캐시이며,
 `snapshot.status`가 `complete`가 아니면 `plan`, `next`, 자동 코멘트와 상태 변경은 모두 거부한다.

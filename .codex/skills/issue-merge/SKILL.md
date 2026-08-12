@@ -27,7 +27,7 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <always>references/merge-plan.md — 서브에이전트 팬아웃과 계획 수립·검토</always>
     <always>references/verify-and-close.md — merge · 통합 테스트 · 이슈 close</always>
     <always>references/next-actions.md — 통합 뒤 다음 행동 4지선다</always>
-    <branch name="graph status sync" when="이슈 close 뒤 status:close 전환이 성공함">../issue-graph-sync/SKILL.md — issue-todo V2 그래프 캐시 동기화</branch>
+    <branch name="graph status sync" when="이슈 close 뒤 status:close 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>

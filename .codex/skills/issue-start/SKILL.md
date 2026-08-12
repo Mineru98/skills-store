@@ -36,7 +36,7 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     <always>references/implementation.md — 구현과 무확인 커밋 규칙</always>
     <always>references/evidence-capture.md — 전후 캡처·바운딩 박스·미러 커밋·이슈 코멘트</always>
     <always>references/next-actions.md — 마무리 뒤 다음 행동 4지선다</always>
-    <branch name="graph status sync" when="status:plan 또는 status:in-process 전환이 성공함">../issue-graph-sync/SKILL.md — issue-todo V2 그래프 캐시 동기화</branch>
+    <branch name="graph status sync" when="status:plan 또는 status:in-process 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>
