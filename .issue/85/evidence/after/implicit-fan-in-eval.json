@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "set": "holdout",
+  "tag": "implicit-composite",
+  "model": "sonnet",
+  "generated_at": "2026-08-12T16:05:55.063Z",
+  "metrics": {
+    "cases": 1,
+    "parsed": 1,
+    "parse_rate": 1,
+    "atom_precision": 1,
+    "atom_recall": 1,
+    "atom_f1": 1,
+    "issue_count_accuracy": 1,
+    "grouping_exact_accuracy": 1,
+    "pairwise_precision": 1,
+    "pairwise_recall": 1,
+    "pairwise_f1": 1,
+    "label_accuracy": 1,
+    "decision_accuracy": 1,
+    "under_split_rate": 0,
+    "over_split_rate": 0,
+    "over_limit_accuracy": 1
+  },
+  "runs": [
+    {
+      "case_id": "split-405",
+      "repeat": 0,
+      "text": "```json\n{\"decision\":\"over_limit\",\"requirements\":[{\"id\":\"r1\",\"quote\":\"보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다\"},{\"id\":\"r2\",\"quote\":\"보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다\"},{\"id\":\"r3\",\"quote\":\"사용하지 않는 old-policy-export 스크립트를 제거한다\"},{\"id\":\"r4\",\"quote\":\"손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다\"},{\"id\":\"r5\",\"quote\":\"지급 소요 보고서 조회가 12초 넘게 걸리는 문제를 수정한다\"},{\"id\":\"r6\",\"quote\":\"지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다\"},{\"id\":\"r7\",\"quote\":\"면책 사유 값이 비어도 저장되는 검증 오류를 수정한다\"}],\"groups\":[{\"requirement_ids\":[\"r1\"],\"label\":\"enhancement\",\"title\":\"보험 계약 현황 기간 필터 추가\"},{\"requirement_ids\":[\"r2\"],\"label\":\"bug\",\"title\":\"보험금 청구 중복 저장 수정\"},{\"requirement_ids\":[\"r3\"],\"label\":\"chore\",\"title\":\"old-policy-export 스크립트 제거\"},{\"requirement_ids\":[\"r4\"],\"label\":\"documentation\",\"title\":\"손해 사정 승인 절차 문서 갱신\"},{\"requirement_ids\":[\"r5\"],\"label\":\"bug\",\"title\":\"지급 소요 보고서 조회 지연 수정\"},{\"requirement_ids\":[\"r6\"],\"label\":\"enhancement\",\"title\":\"지급 소요 보고서 CSV 내보내기 추가\"},{\"requirement_ids\":[\"r7\"],\"label\":\"bug\",\"title\":\"면책 사유 빈 값 저장 검증 오류 수정\"}],\"rationale\":[\"r1은 화면 필터 추가로 계약/배포/되돌리기가 r2~r7과 독립적이다\",\"r2는 청구 처리 중복 저장이라는 단일 근본 원인의 버그 수정으로 다른 항목과 결합 신호 없음\",\"r3은 미사용 스크립트 제거로 chore이며 다른 기능 변경과 완료 기준이 무관함\",\"r4는 문서 갱신으로 코드 동작 변경이 아니어서 documentation으로 분리됨\",\"r5와 r6은 같은 지급 소요 보고서를 다루지만 조회 지연 수정과 CSV 내보내기 추가는 완료 기준·배포·되돌리기가 달라 예시 규칙에 따라 별도 이슈로 유지함\",\"r7은 면책 사유 검증 로직의 독립된 버그로 별도 완료 기준을 가짐\",\"7개 그룹 모두 별도 PR로 머지·배포 가능하고 개별 취소·되돌리기가 가능해 fan-out 관계이며 5개 상한을 초과하여 over_limit으로 판정함\"]}\n```",
+      "response": {
+        "decision": "over_limit",
+        "requirements": [
+          {
+            "id": "r1",
+            "quote": "보험 계약 현황 화면에 사용자 지정 기간 필터를 추가한다"
+          },
+          {
+            "id": "r2",
+            "quote": "보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다"
+          },
+          {
+            "id": "r3",
+            "quote": "사용하지 않는 old-policy-export 스크립트를 제거한다"
+          },
+          {
+            "id": "r4",
+            "quote": "손해 사정 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다"
+          },
+          {
+            "id": "r5",
+            "quote": "지급 소요 보고서 조회가 12초 넘게 걸리는 문제를 수정한다"
+          },
+          {
+            "id": "r6",
+            "quote": "지급 소요 보고서 결과를 CSV로 내보내는 기능을 추가한다"
+          },
+          {
+            "id": "r7",
+            "quote": "면책 사유 값이 비어도 저장되는 검증 오류를 수정한다"
+          }
+        ],
+        "groups": [
+          {
+            "requirement_ids": [
+              "r1"
+            ],
+            "label": "enhancement",
+            "title": "보험 계약 현황 기간 필터 추가"
+          },
+          {
+            "requirement_ids": [
+              "r2"
+            ],
+            "label": "bug",
+            "title": "보험금 청구 중복 저장 수정"
+          },
+          {
+            "requirement_ids": [
+              "r3"
+            ],
+            "label": "chore",
+            "title": "old-policy-export 스크립트 제거"
+          },
+          {
+            "requirement_ids": [
+              "r4"
+            ],
+            "label": "documentation",
+            "title": "손해 사정 승인 절차 문서 갱신"
+          },
+          {
+            "requirement_ids": [
+              "r5"
+            ],
+            "label": "bug",
+            "title": "지급 소요 보고서 조회 지연 수정"
+          },
+          {
+            "requirement_ids": [
+              "r6"
+            ],
+            "label": "enhancement",
+            "title": "지급 소요 보고서 CSV 내보내기 추가"
+          },
+          {
+            "requirement_ids": [
+              "r7"
+            ],
+            "label": "bug",
+            "title": "면책 사유 빈 값 저장 검증 오류 수정"
+          }
+        ],
+        "rationale": [
+          "r1은 화면 필터 추가로 계약/배포/되돌리기가 r2~r7과 독립적이다",
+          "r2는 청구 처리 중복 저장이라는 단일 근본 원인의 버그 수정으로 다른 항목과 결합 신호 없음",
+          "r3은 미사용 스크립트 제거로 chore이며 다른 기능 변경과 완료 기준이 무관함",
+          "r4는 문서 갱신으로 코드 동작 변경이 아니어서 documentation으로 분리됨",
+          "r5와 r6은 같은 지급 소요 보고서를 다루지만 조회 지연 수정과 CSV 내보내기 추가는 완료 기준·배포·되돌리기가 달라 예시 규칙에 따라 별도 이슈로 유지함",
+          "r7은 면책 사유 검증 로직의 독립된 버그로 별도 완료 기준을 가짐",
+          "7개 그룹 모두 별도 PR로 머지·배포 가능하고 개별 취소·되돌리기가 가능해 fan-out 관계이며 5개 상한을 초과하여 over_limit으로 판정함"
+        ]
+      },
+      "score": {
+        "atom_tp": 7,
+        "atom_fp": 0,
+        "atom_fn": 0,
+        "issue_count_correct": 1,
+        "grouping_exact": 1,
+        "pair_tp": 0,
+        "pair_fp": 0,
+        "pair_fn": 0,
+        "label_correct": 7,
+        "label_total": 7,
+        "decision_correct": 1,
+        "under_split": 0,
+        "over_split": 0,
+        "over_limit_correct": 1,
+        "predicted_issue_count": 7
+      },
+      "error": null
+    }
+  ]
+}
