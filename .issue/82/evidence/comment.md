@@ -11,12 +11,14 @@
 - `.codex/skills/issue-start/SKILL.md` — `plan`, `in-process` 단계 호출
 - `.codex/skills/issue-end/SKILL.md` — `review` 단계 호출
 - `.codex/skills/issue-merge/SKILL.md` — `close` 단계 호출
+- `.codex/skills/issue-end/scripts/issue-end.mjs` — 문서에 있던 `sync-base` CLI 경로 복원
 
 ## 검증
 
 - `python3 /Users/mineru/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/issue-graph-sync` 통과
 - 네 issue-* 스킬에서 `$issue-graph-sync` 호출과 모든 상태 전이를 검색해 확인
 - `node .codex/skills/issue-todo/scripts/issue-todo.mjs --help`로 `sync --state all` 경로 확인
+- `node .codex/skills/issue-end/scripts/issue-end.mjs sync-base`가 기본 체크아웃 갱신 JSON을 반환하는지 확인
 - `git diff --check` 통과
 
 ## 증거
