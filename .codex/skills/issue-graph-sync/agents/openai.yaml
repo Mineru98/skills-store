@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Graph Sync"
+  short_description: "Synchronize issue workflow graph status"
+  default_prompt: "Use $issue-graph-sync after an issue workflow status transition."

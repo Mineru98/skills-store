@@ -27,6 +27,7 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <always>references/merge-plan.md — 서브에이전트 팬아웃과 계획 수립·검토</always>
     <always>references/verify-and-close.md — merge · 통합 테스트 · 이슈 close</always>
     <always>references/next-actions.md — 통합 뒤 다음 행동 4지선다</always>
+    <branch name="graph status sync" when="이슈 close 뒤 status:close 전환이 성공함">../issue-graph-sync/SKILL.md — issue-todo V2 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>
@@ -51,6 +52,7 @@ description: 동시에 굴리던 여러 워크트리를 한 번에 통합합니�
     <rule>해소 서브에이전트가 `escalate` 한 파일은 자동으로 합치지 않는다. 그 PR 을 보류한다.</rule>
     <rule>같은 PR 에 대한 해소 재시도는 최대 2회. 그 뒤에는 보류로 넘긴다.</rule>
     <rule>이슈 close 는 통합 테스트 뒤에 한다. 순서를 바꾸지 않는다.</rule>
+    <rule>이슈 close 뒤 `status:close` 전환이 성공하면 `issue-graph-sync`를 호출한다. 그래프가 없거나 동기화에 실패해도 close·정리 흐름을 막지 않는다.</rule>
     <rule>merge 전에 PR 본문의 `Closes/Fixes/Resolves #N` 을 제거한다. 두면 merge 순간 자동 close 되어 위 순서가 깨진다. 제거 실패 시 merge 하지 않는다.</rule>
     <rule>CI 가 실패한 PR 은 merge 하지 않는다.</rule>
     <rule>`evidence/issue-*` 브랜치는 삭제하지 않는다. 증거 URL 이 의존한다.</rule>
@@ -223,7 +225,7 @@ node <skill>/scripts/issue-merge.mjs preflight --branch <브랜치> --onto <comm
 
 `references/verify-and-close.md` 를 따른다.
 
-`close` 는 이슈를 닫기 직전에 진행 상태 라벨을 `status:close` 로 교체한다(자동). 별도 호출이 필요 없다.
+`close` 는 이슈를 닫기 직전에 진행 상태 라벨을 `status:close` 로 교체한다(자동). close가 성공했으면 각 이슈마다 `$issue-graph-sync #<번호> close`를 호출한다. 그래프 미사용 또는 sync 실패는 경고와 마무리 보고에만 남긴다.
 
 ## 8단계
 
