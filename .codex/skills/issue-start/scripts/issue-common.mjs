@@ -25,7 +25,7 @@ import process from 'node:process';
 /** 작업 폴더. `.issue-start` / `.issue-evidence` 를 통합한 결과다. */
 export const WORKSPACE_DIR = '.issue';
 
-/** issue-todo 의 DAG 파일 이름. `.issue/graph.json`. IGNORE_BLOCK 예외와 issue-todo 가 공유한다. */
+/** issue-onboard 의 DAG 파일 이름. `.issue/graph.json`. IGNORE_BLOCK 예외와 issue-onboard 가 공유한다. */
 export const GRAPH_FILE_NAME = 'graph.json';
 
 /** 하위호환용 구 경로. 한 릴리스 동안만 읽기 폴백으로 인정한다. */
@@ -49,7 +49,7 @@ export const IGNORE_BLOCK = [
   `!${WORKSPACE_DIR}/*/`,
   `!${WORKSPACE_DIR}/*/evidence/`,
   `!${WORKSPACE_DIR}/*/evidence/**`,
-  // issue-todo 의 DAG. base 브랜치에 커밋해 모든 워크트리가 같은 그래프를 본다.
+  // issue-onboard 의 DAG. base 브랜치에 커밋해 모든 워크트리가 같은 그래프를 본다.
   `!${WORKSPACE_DIR}/${GRAPH_FILE_NAME}`,
   `${WORKSPACE_DIR}/**/.auth.json`,
   `${WORKSPACE_DIR}/**/storage-state.json`,
@@ -395,10 +395,10 @@ export function typeLabels(labels = []) {
 }
 
 /**
- * issue-todo 의 DAG(.issue/graph.json)에 노드를 upsert 한다.
+ * issue-onboard 의 DAG(.issue/graph.json)에 노드를 upsert 한다.
  *
  * 파이프라인의 상태 전환(setTrackerStatus)이 이 함수를 불러 그래프를 자동으로 최신화한다.
- * graph.json 이 없으면(= issue-todo 를 아직 안 씀) 조용히 no-op 한다. 그래프 갱신 실패가
+ * graph.json 이 없으면(= issue-onboard 를 아직 안 씀) 조용히 no-op 한다. 그래프 갱신 실패가
  * 상태 전환·이슈 작업을 절대 막지 않도록 어떤 예외도 삼킨다.
  *
  * node: { number, title?, status?, labels?, url? } — labels 는 status:* 를 걸러 저장한다.
@@ -421,7 +421,7 @@ export function patchGraphNode(root, node) {
       url: node.url ?? prev.url ?? '',
       ...(prev.priority !== undefined ? { priority: prev.priority } : {}),
     };
-    // issue-todo saveGraph 와 같은 정렬 규율을 지킨다 — 노드는 번호순, 엣지는 (from,to,type)순.
+    // issue-onboard saveGraph 와 같은 정렬 규율을 지킨다 — 노드는 번호순, 엣지는 (from,to,type)순.
     // 안 지키면 공유 커밋 파일(base 브랜치)에 노이즈 diff 와 머지 충돌이 생긴다.
     const sortedNodes = {};
     for (const k of Object.keys(g.nodes).sort((a, b) => Number(a) - Number(b))) sortedNodes[k] = g.nodes[k];
