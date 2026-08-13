@@ -15,7 +15,7 @@ const TIMEOUT_MS = 180_000;
 
 function die(message) { console.error(`✗ ${message}`); process.exit(2); }
 function parseArgs(argv) {
-  const out = { set: 'tuning', sample: null, repeat: 1, model: 'sonnet', concurrency: 3, seed: '33', rubric: DEFAULT_RUBRIC, out: null, responses: null, cache: null, baseline: null };
+  const out = { set: 'tuning', sample: null, repeat: 1, model: 'sonnet', concurrency: 3, seed: '33', rubric: DEFAULT_RUBRIC, out: null, responses: null, cache: null, baseline: null, tag: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]; const next = () => argv[++i];
     if (arg === '--set') out.set = next();
@@ -29,6 +29,7 @@ function parseArgs(argv) {
     else if (arg === '--responses') out.responses = next();
     else if (arg === '--cache') out.cache = next();
     else if (arg === '--baseline') out.baseline = next();
+    else if (arg === '--tag') out.tag = next();
     else if (arg === '-h' || arg === '--help') out.help = true;
     else die(`알 수 없는 인자: ${arg}`);
   }
@@ -132,12 +133,14 @@ function compareBaseline(metrics, file) {
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
-    console.log('node evals/issue-create/run-split-eval.mjs [--set tuning|holdout] [--sample N] [--repeat N] [--model sonnet] [--concurrency 3] [--seed 33] [--rubric @file] [--cache file.json] [--responses result.json] [--baseline result.json] [--out result.json]');
+    console.log('node evals/issue-create/run-split-eval.mjs [--set tuning|holdout] [--tag TAG] [--sample N] [--repeat N] [--model sonnet] [--concurrency 3] [--seed 33] [--rubric @file] [--cache file.json] [--responses result.json] [--baseline result.json] [--out result.json]');
     return;
   }
   const dataFile = FILES[opts.set];
   if (!dataFile) die('--set은 tuning 또는 holdout이어야 한다.');
-  const cases = JSON.parse(readFileSync(join(HERE, dataFile), 'utf8'));
+  const rawCases = JSON.parse(readFileSync(join(HERE, dataFile), 'utf8'));
+  const cases = opts.tag === null ? rawCases : rawCases.filter((testCase) => testCase.tags?.includes(opts.tag));
+  if (!cases.length) die(`--tag ${opts.tag}에 맞는 사례가 없다.`);
   const byId = new Map(cases.map((c) => [c.id, c]));
   let runs;
 
@@ -180,7 +183,7 @@ async function main() {
 
   const metrics = aggregateScores(runs);
   printMetrics(metrics);
-  const result = { version: 1, set: opts.set, model: opts.model, generated_at: new Date().toISOString(), metrics, runs };
+  const result = { version: 1, set: opts.set, tag: opts.tag, model: opts.model, generated_at: new Date().toISOString(), metrics, runs };
   if (opts.baseline) result.deltas = compareBaseline(metrics, opts.baseline);
   if (opts.out) { writeFileSync(resolve(opts.out), `${JSON.stringify(result, null, 2)}\n`); console.log(`\n결과 저장: ${resolve(opts.out)}`); }
   if (metrics.parse_rate < 1) process.exitCode = 1;

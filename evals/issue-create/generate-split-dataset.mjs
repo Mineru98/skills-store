@@ -101,12 +101,14 @@ function contextFor(s, n) {
   return `${s.name} 분야의 ${REGIONS[n % 5]} ${CYCLES[Math.floor(n / 5) % 5]} ${CHANNELS[Math.floor(n / 25) % 4]}`;
 }
 
-function renderQuery(context, requirements, style) {
+function renderQuery(context, requirements, style, implicitComposite) {
   const texts = requirements.map((r) => r.text);
   if (style === 'concise') return `${context} 변경 요청입니다. ${texts.join('. ')}.`;
   if (style === 'conversational') return `${context}을 운영 중인데 ${texts.join(' 그리고 ')}. 서로 묶어야 하는지까지 판단해 주세요.`;
   if (style === 'ticket') return `${context} 요청사항:\n- ${texts.join('\n- ')}`;
-  return `${context}에서 개선이 필요합니다. ${texts.join('. 또한 ')}. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.`;
+  return implicitComposite
+    ? `${context}에서 개선이 필요합니다. ${texts.join('. 또한 ')}.`
+    : `${context}에서 개선이 필요합니다. ${texts.join('. 또한 ')}. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.`;
 }
 
 function makeCase(typeIndex, n, serial) {
@@ -164,7 +166,8 @@ function makeCase(typeIndex, n, serial) {
 
   requirements = requirements.map((r, i) => ({ id: `r${i + 1}`, text: r.text, label: r.label }));
   const labels = groups.map((g) => requirements.find((r) => r.id === g[0]).label);
-  const query = renderQuery(contextFor(sector, n), requirements, style);
+  const implicitComposite = requirements.length > 1 && n % 4 === 0;
+  const query = renderQuery(contextFor(sector, n), requirements, style, implicitComposite);
   return {
     id: `split-${String(serial).padStart(3, '0')}`,
     query,
@@ -179,7 +182,7 @@ function makeCase(typeIndex, n, serial) {
     dependencies,
     rationale,
     exceptions,
-    tags: [decisionKind, requirements.every((r) => r.label === requirements[0].label) ? 'same-label' : 'mixed-label', `requirements-${requirements.length}`],
+    tags: [decisionKind, requirements.every((r) => r.label === requirements[0].label) ? 'same-label' : 'mixed-label', `requirements-${requirements.length}`, ...(implicitComposite ? ['implicit-composite'] : [])],
   };
 }
 

@@ -2597,7 +2597,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -2983,7 +2984,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -3151,7 +3153,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -3301,7 +3304,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -3451,7 +3455,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -3837,7 +3842,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -4005,7 +4011,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -4164,7 +4171,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -4314,7 +4322,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -4709,7 +4718,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -4868,7 +4878,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -5027,7 +5038,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -5177,7 +5189,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -5563,7 +5576,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -5731,7 +5745,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -5881,7 +5896,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -6031,7 +6047,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -6417,7 +6434,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -6585,7 +6603,8 @@
     "tags": [
       "split",
       "mixed-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -6744,7 +6763,8 @@
     "tags": [
       "split",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -6899,7 +6919,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -7221,7 +7242,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -7359,7 +7381,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -7497,7 +7520,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -7635,7 +7659,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -7957,7 +7982,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -8095,7 +8121,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -8233,7 +8260,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -8371,7 +8399,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -8693,7 +8722,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -8831,7 +8861,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -8969,7 +9000,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -9107,7 +9139,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -9429,7 +9462,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -9567,7 +9601,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -9705,7 +9740,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -9843,7 +9879,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -10165,7 +10202,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -10303,7 +10341,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -10441,7 +10480,8 @@
     "tags": [
       "coupled",
       "same-label",
-      "requirements-2"
+      "requirements-2",
+      "implicit-composite"
     ]
   },
   {
@@ -10538,7 +10578,7 @@
   },
   {
     "id": "split-301",
-    "query": "게임 분야의 서울 1분기 웹 운영에서 개선이 필요합니다. 길드 활동 API 응답에 서버 지역 필드를 추가한다. 또한 길드 활동 목록에 새 서버 지역 값을 표시한다. 또한 길드 활동 현황 화면에 오늘 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "게임 분야의 서울 1분기 웹 운영에서 개선이 필요합니다. 길드 활동 API 응답에 서버 지역 필드를 추가한다. 또한 길드 활동 목록에 새 서버 지역 값을 표시한다. 또한 길드 활동 현황 화면에 오늘 필터를 추가한다.",
     "industry": "gaming",
     "style": "narrative",
     "ambiguity": "low",
@@ -10586,7 +10626,8 @@
     "tags": [
       "partial",
       "same-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -10963,7 +11004,7 @@
   },
   {
     "id": "split-309",
-    "query": "보험 분야의 광주 2분기 웹 운영에서 개선이 필요합니다. 보험 계약 API 응답에 면책 사유 필드를 추가한다. 또한 보험 계약 목록에 새 면책 사유 값을 표시한다. 또한 보험 계약 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 지급 소요 보고서 조회가 16초 넘게 걸리는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "보험 분야의 광주 2분기 웹 운영에서 개선이 필요합니다. 보험 계약 API 응답에 면책 사유 필드를 추가한다. 또한 보험 계약 목록에 새 면책 사유 값을 표시한다. 또한 보험 계약 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 보험금 청구 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 지급 소요 보고서 조회가 16초 넘게 걸리는 문제를 수정한다.",
     "industry": "insurance",
     "style": "narrative",
     "ambiguity": "high",
@@ -11029,7 +11070,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -11167,7 +11209,7 @@
   },
   {
     "id": "split-313",
-    "query": "인사 분야의 대전 3분기 웹 운영에서 개선이 필요합니다. 채용 공고 API 응답에 고용 형태 필드를 추가한다. 또한 채용 공고 목록에 새 고용 형태 값을 표시한다. 또한 사용하지 않는 legacy-payroll-csv 스크립트를 제거한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "인사 분야의 대전 3분기 웹 운영에서 개선이 필요합니다. 채용 공고 API 응답에 고용 형태 필드를 추가한다. 또한 채용 공고 목록에 새 고용 형태 값을 표시한다. 또한 사용하지 않는 legacy-payroll-csv 스크립트를 제거한다.",
     "industry": "hr",
     "style": "narrative",
     "ambiguity": "low",
@@ -11215,7 +11257,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -11335,7 +11378,7 @@
   },
   {
     "id": "split-317",
-    "query": "제약 분야의 부산 4분기 웹 운영에서 개선이 필요합니다. 임상 시험 API 응답에 시험군 코드 필드를 추가한다. 또한 임상 시험 목록에 새 시험군 코드 값을 표시한다. 또한 시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다. 또한 검체 등록 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "제약 분야의 부산 4분기 웹 운영에서 개선이 필요합니다. 임상 시험 API 응답에 시험군 코드 필드를 추가한다. 또한 임상 시험 목록에 새 시험군 코드 값을 표시한다. 또한 시험군 코드 값이 비어도 저장되는 검증 오류를 수정한다. 또한 검체 등록 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다.",
     "industry": "pharmaceutical",
     "style": "narrative",
     "ambiguity": "medium",
@@ -11392,7 +11435,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -11521,7 +11565,7 @@
   },
   {
     "id": "split-321",
-    "query": "연구 분야의 서울 연말 웹 운영에서 개선이 필요합니다. 연구 과제 API 응답에 표본 식별자 필드를 추가한다. 또한 연구 과제 목록에 새 표본 식별자 값을 표시한다. 또한 연구 과제 현황 화면에 오늘 필터를 추가한다. 또한 연구비 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 표본 식별자 값이 비어도 저장되는 검증 오류를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "연구 분야의 서울 연말 웹 운영에서 개선이 필요합니다. 연구 과제 API 응답에 표본 식별자 필드를 추가한다. 또한 연구 과제 목록에 새 표본 식별자 값을 표시한다. 또한 연구 과제 현황 화면에 오늘 필터를 추가한다. 또한 연구비 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 표본 식별자 값이 비어도 저장되는 검증 오류를 수정한다.",
     "industry": "research",
     "style": "narrative",
     "ambiguity": "high",
@@ -11587,7 +11631,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -11964,7 +12009,7 @@
   },
   {
     "id": "split-329",
-    "query": "물류 분야의 광주 1분기 모바일 운영에서 개선이 필요합니다. 배송 차량 API 응답에 도착 예정 시각 필드를 추가한다. 또한 배송 차량 목록에 새 도착 예정 시각 값을 표시한다. 또한 배송 차량 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "물류 분야의 광주 1분기 모바일 운영에서 개선이 필요합니다. 배송 차량 API 응답에 도착 예정 시각 필드를 추가한다. 또한 배송 차량 목록에 새 도착 예정 시각 값을 표시한다. 또한 배송 차량 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 배차 요청 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다.",
     "industry": "logistics",
     "style": "narrative",
     "ambiguity": "medium",
@@ -12021,7 +12066,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -12141,7 +12187,7 @@
   },
   {
     "id": "split-333",
-    "query": "미디어 분야의 대전 2분기 모바일 운영에서 개선이 필요합니다. 콘텐츠 편성 API 응답에 콘텐츠 등급 필드를 추가한다. 또한 콘텐츠 편성 목록에 새 콘텐츠 등급 값을 표시한다. 또한 사용하지 않는 legacy-feed-job 스크립트를 제거한다. 또한 채널 성과 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 콘텐츠 편성 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "미디어 분야의 대전 2분기 모바일 운영에서 개선이 필요합니다. 콘텐츠 편성 API 응답에 콘텐츠 등급 필드를 추가한다. 또한 콘텐츠 편성 목록에 새 콘텐츠 등급 값을 표시한다. 또한 사용하지 않는 legacy-feed-job 스크립트를 제거한다. 또한 채널 성과 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 콘텐츠 편성 카드의 정렬 순서를 사용자가 고정할 수 있게 한다.",
     "industry": "media",
     "style": "narrative",
     "ambiguity": "high",
@@ -12207,7 +12253,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -12336,7 +12383,7 @@
   },
   {
     "id": "split-337",
-    "query": "부동산 분야의 부산 3분기 모바일 운영에서 개선이 필요합니다. 임대 매물 API 응답에 보증금 유형 필드를 추가한다. 또한 임대 매물 목록에 새 보증금 유형 값을 표시한다. 또한 보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "부동산 분야의 부산 3분기 모바일 운영에서 개선이 필요합니다. 임대 매물 API 응답에 보증금 유형 필드를 추가한다. 또한 임대 매물 목록에 새 보증금 유형 값을 표시한다. 또한 보증금 유형 값이 비어도 저장되는 검증 오류를 수정한다.",
     "industry": "real-estate",
     "style": "narrative",
     "ambiguity": "low",
@@ -12384,7 +12431,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -12522,7 +12570,7 @@
   },
   {
     "id": "split-341",
-    "query": "농업 분야의 서울 4분기 모바일 운영에서 개선이 필요합니다. 재배 구역 API 응답에 토양 수분 필드를 추가한다. 또한 재배 구역 목록에 새 토양 수분 값을 표시한다. 또한 재배 구역 현황 화면에 오늘 필터를 추가한다. 또한 수확 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "농업 분야의 서울 4분기 모바일 운영에서 개선이 필요합니다. 재배 구역 API 응답에 토양 수분 필드를 추가한다. 또한 재배 구역 목록에 새 토양 수분 값을 표시한다. 또한 재배 구역 현황 화면에 오늘 필터를 추가한다. 또한 수확 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다.",
     "industry": "agriculture",
     "style": "narrative",
     "ambiguity": "medium",
@@ -12579,7 +12627,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -12956,7 +13005,7 @@
   },
   {
     "id": "split-349",
-    "query": "건설 분야의 광주 연말 모바일 운영에서 개선이 필요합니다. 공사 구역 API 응답에 작업 허가 번호 필드를 추가한다. 또한 공사 구역 목록에 새 작업 허가 번호 값을 표시한다. 또한 공사 구역 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "건설 분야의 광주 연말 모바일 운영에서 개선이 필요합니다. 공사 구역 API 응답에 작업 허가 번호 필드를 추가한다. 또한 공사 구역 목록에 새 작업 허가 번호 값을 표시한다. 또한 공사 구역 카드의 정렬 순서를 사용자가 고정할 수 있게 한다.",
     "industry": "construction",
     "style": "narrative",
     "ambiguity": "low",
@@ -13004,7 +13053,8 @@
     "tags": [
       "partial",
       "same-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -13133,7 +13183,7 @@
   },
   {
     "id": "split-353",
-    "query": "외식 분야의 대전 1분기 야간 배치에서 개선이 필요합니다. 매장 메뉴 API 응답에 알레르기 표시 필드를 추가한다. 또한 매장 메뉴 목록에 새 알레르기 표시 값을 표시한다. 또한 사용하지 않는 old-pos-export 스크립트를 제거한다. 또한 폐기율 보고서 결과를 CSV로 내보내는 기능을 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "외식 분야의 대전 1분기 야간 배치에서 개선이 필요합니다. 매장 메뉴 API 응답에 알레르기 표시 필드를 추가한다. 또한 매장 메뉴 목록에 새 알레르기 표시 값을 표시한다. 또한 사용하지 않는 old-pos-export 스크립트를 제거한다. 또한 폐기율 보고서 결과를 CSV로 내보내는 기능을 추가한다.",
     "industry": "food-service",
     "style": "narrative",
     "ambiguity": "medium",
@@ -13190,7 +13240,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -13328,7 +13379,7 @@
   },
   {
     "id": "split-357",
-    "query": "제조 분야의 부산 2분기 야간 배치에서 개선이 필요합니다. 생산 라인 API 응답에 설비 코드 필드를 추가한다. 또한 생산 라인 목록에 새 설비 코드 값을 표시한다. 또한 설비 코드 값이 비어도 저장되는 검증 오류를 수정한다. 또한 불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 또한 사용하지 않는 old-oee-batch 스크립트를 제거한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "제조 분야의 부산 2분기 야간 배치에서 개선이 필요합니다. 생산 라인 API 응답에 설비 코드 필드를 추가한다. 또한 생산 라인 목록에 새 설비 코드 값을 표시한다. 또한 설비 코드 값이 비어도 저장되는 검증 오류를 수정한다. 또한 불량 검사 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 또한 사용하지 않는 old-oee-batch 스크립트를 제거한다.",
     "industry": "manufacturing",
     "style": "narrative",
     "ambiguity": "high",
@@ -13394,7 +13445,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -13514,7 +13566,7 @@
   },
   {
     "id": "split-361",
-    "query": "유통 분야의 서울 3분기 야간 배치에서 개선이 필요합니다. 매장 재고 API 응답에 반품 사유 필드를 추가한다. 또한 매장 재고 목록에 새 반품 사유 값을 표시한다. 또한 매장 재고 현황 화면에 오늘 필터를 추가한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "유통 분야의 서울 3분기 야간 배치에서 개선이 필요합니다. 매장 재고 API 응답에 반품 사유 필드를 추가한다. 또한 매장 재고 목록에 새 반품 사유 값을 표시한다. 또한 매장 재고 현황 화면에 오늘 필터를 추가한다.",
     "industry": "retail",
     "style": "narrative",
     "ambiguity": "low",
@@ -13562,7 +13614,8 @@
     "tags": [
       "partial",
       "same-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -13939,7 +13992,7 @@
   },
   {
     "id": "split-369",
-    "query": "여행 분야의 광주 4분기 야간 배치에서 개선이 필요합니다. 여행 상품 API 응답에 여권 만료일 필드를 추가한다. 또한 여행 상품 목록에 새 여권 만료일 값을 표시한다. 또한 여행 상품 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 노선 판매 보고서 조회가 13초 넘게 걸리는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "여행 분야의 광주 4분기 야간 배치에서 개선이 필요합니다. 여행 상품 API 응답에 여권 만료일 필드를 추가한다. 또한 여행 상품 목록에 새 여권 만료일 값을 표시한다. 또한 여행 상품 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 예약 변경 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 또한 노선 판매 보고서 조회가 13초 넘게 걸리는 문제를 수정한다.",
     "industry": "travel",
     "style": "narrative",
     "ambiguity": "high",
@@ -14005,7 +14058,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -14143,7 +14197,7 @@
   },
   {
     "id": "split-373",
-    "query": "통신 분야의 대전 연말 야간 배치에서 개선이 필요합니다. 기지국 장애 API 응답에 회선 유형 필드를 추가한다. 또한 기지국 장애 목록에 새 회선 유형 값을 표시한다. 또한 사용하지 않는 old-cdr-export 스크립트를 제거한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "통신 분야의 대전 연말 야간 배치에서 개선이 필요합니다. 기지국 장애 API 응답에 회선 유형 필드를 추가한다. 또한 기지국 장애 목록에 새 회선 유형 값을 표시한다. 또한 사용하지 않는 old-cdr-export 스크립트를 제거한다.",
     "industry": "telecom",
     "style": "narrative",
     "ambiguity": "low",
@@ -14191,7 +14245,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -14311,7 +14366,7 @@
   },
   {
     "id": "split-377",
-    "query": "자동차 분야의 부산 1분기 현장 단말에서 개선이 필요합니다. 시험 차량 API 응답에 차대 번호 필드를 추가한다. 또한 시험 차량 목록에 새 차대 번호 값을 표시한다. 또한 차대 번호 값이 비어도 저장되는 검증 오류를 수정한다. 또한 정비 예약 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "자동차 분야의 부산 1분기 현장 단말에서 개선이 필요합니다. 시험 차량 API 응답에 차대 번호 필드를 추가한다. 또한 시험 차량 목록에 새 차대 번호 값을 표시한다. 또한 차대 번호 값이 비어도 저장되는 검증 오류를 수정한다. 또한 정비 예약 검색 결과에서 페이지를 이동하면 필터가 초기화되는 문제를 수정한다.",
     "industry": "automotive",
     "style": "narrative",
     "ambiguity": "medium",
@@ -14368,7 +14423,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -14497,7 +14553,7 @@
   },
   {
     "id": "split-381",
-    "query": "보안 분야의 서울 2분기 현장 단말에서 개선이 필요합니다. 보안 경보 API 응답에 위험 등급 필드를 추가한다. 또한 보안 경보 목록에 새 위험 등급 값을 표시한다. 또한 보안 경보 현황 화면에 오늘 필터를 추가한다. 또한 사고 대응 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 위험 등급 값이 비어도 저장되는 검증 오류를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "보안 분야의 서울 2분기 현장 단말에서 개선이 필요합니다. 보안 경보 API 응답에 위험 등급 필드를 추가한다. 또한 보안 경보 목록에 새 위험 등급 값을 표시한다. 또한 보안 경보 현황 화면에 오늘 필터를 추가한다. 또한 사고 대응 승인 운영 절차 문서를 최신 정책에 맞게 갱신한다. 또한 위험 등급 값이 비어도 저장되는 검증 오류를 수정한다.",
     "industry": "cybersecurity",
     "style": "narrative",
     "ambiguity": "high",
@@ -14563,7 +14619,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -14940,7 +14997,7 @@
   },
   {
     "id": "split-389",
-    "query": "SaaS 분야의 광주 3분기 현장 단말에서 개선이 필요합니다. 고객 계정 API 응답에 요금제 필드를 추가한다. 또한 고객 계정 목록에 새 요금제 값을 표시한다. 또한 고객 계정 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "SaaS 분야의 광주 3분기 현장 단말에서 개선이 필요합니다. 고객 계정 API 응답에 요금제 필드를 추가한다. 또한 고객 계정 목록에 새 요금제 값을 표시한다. 또한 고객 계정 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 또한 구독 결제 처리 중 같은 기록이 두 번 저장되는 문제를 수정한다.",
     "industry": "software",
     "style": "narrative",
     "ambiguity": "medium",
@@ -14997,7 +15054,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-4"
+      "requirements-4",
+      "implicit-composite"
     ]
   },
   {
@@ -15117,7 +15175,7 @@
   },
   {
     "id": "split-393",
-    "query": "의료 분야의 대전 4분기 현장 단말에서 개선이 필요합니다. 환자 예약 API 응답에 알레르기 정보 필드를 추가한다. 또한 환자 예약 목록에 새 알레르기 정보 값을 표시한다. 또한 사용하지 않는 old-claims-export 스크립트를 제거한다. 또한 대기 시간 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 환자 예약 카드의 정렬 순서를 사용자가 고정할 수 있게 한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "의료 분야의 대전 4분기 현장 단말에서 개선이 필요합니다. 환자 예약 API 응답에 알레르기 정보 필드를 추가한다. 또한 환자 예약 목록에 새 알레르기 정보 값을 표시한다. 또한 사용하지 않는 old-claims-export 스크립트를 제거한다. 또한 대기 시간 보고서 결과를 CSV로 내보내는 기능을 추가한다. 또한 환자 예약 카드의 정렬 순서를 사용자가 고정할 수 있게 한다.",
     "industry": "healthcare",
     "style": "narrative",
     "ambiguity": "high",
@@ -15183,7 +15241,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-5"
+      "requirements-5",
+      "implicit-composite"
     ]
   },
   {
@@ -15312,7 +15371,7 @@
   },
   {
     "id": "split-397",
-    "query": "교육 분야의 부산 연말 현장 단말에서 개선이 필요합니다. 수강 과정 API 응답에 학습 목표 필드를 추가한다. 또한 수강 과정 목록에 새 학습 목표 값을 표시한다. 또한 학습 목표 값이 비어도 저장되는 검증 오류를 수정한다. 각 변경의 의존성을 고려해 이슈를 나눠 주세요.",
+    "query": "교육 분야의 부산 연말 현장 단말에서 개선이 필요합니다. 수강 과정 API 응답에 학습 목표 필드를 추가한다. 또한 수강 과정 목록에 새 학습 목표 값을 표시한다. 또한 학습 목표 값이 비어도 저장되는 검증 오류를 수정한다.",
     "industry": "education",
     "style": "narrative",
     "ambiguity": "low",
@@ -15360,7 +15419,8 @@
     "tags": [
       "partial",
       "mixed-label",
-      "requirements-3"
+      "requirements-3",
+      "implicit-composite"
     ]
   },
   {
@@ -15572,7 +15632,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -16197,7 +16258,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -16461,7 +16523,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -16716,7 +16779,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -16989,7 +17053,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -17605,7 +17670,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -17869,7 +17935,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -18124,7 +18191,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -18397,7 +18465,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -19004,7 +19073,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -19268,7 +19338,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -19550,7 +19621,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -19796,7 +19868,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -20421,7 +20494,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -20685,7 +20759,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
@@ -20940,7 +21015,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -21213,7 +21289,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -21829,7 +21906,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-7"
+      "requirements-7",
+      "implicit-composite"
     ]
   },
   {
@@ -22093,7 +22171,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-8"
+      "requirements-8",
+      "implicit-composite"
     ]
   },
   {
@@ -22348,7 +22427,8 @@
     "tags": [
       "over_limit",
       "mixed-label",
-      "requirements-6"
+      "requirements-6",
+      "implicit-composite"
     ]
   },
   {
