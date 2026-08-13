@@ -1,4 +1,4 @@
-# after — 변경 후 원문 (구현 커밋 5688d07)
+# after — 변경 후 원문 (구현 커밋 34585f7)
 
 ## issue-start/references/next-actions.md
 ```text
@@ -26,7 +26,7 @@
 
 ## git diff 발췌
 ```diff
-5688d07 fix(issue-skills): 다른 이슈 착수 제안을 남은 열린 이슈가 있을 때만 하도록 통일
+34585f7 fix(issue-skills): 다른 이슈 착수 제안을 남은 열린 이슈가 있을 때만 하도록 통일
 
  .claude/skills/issue-end/references/next-actions.md   | 2 +-
  .claude/skills/issue-merge/references/next-actions.md | 2 +-
