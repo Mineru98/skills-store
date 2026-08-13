@@ -5,6 +5,8 @@
 .venv
 .superpowers
 .brainstorm
+.debug-*
+test-results/
 .ouroboros
 .openchrome
 evals
