@@ -8,10 +8,53 @@ import { tmpdir } from 'node:os';
 import {
   EDGE_TYPES, digest, normalizeEdge, parseDecisionComments, decisionEdge,
   CONTEXT_FIELDS, auditGraph, migrateGraphV1, validateGraphV2, duplicateScore, duplicateVerdict, evaluateDuplicate, measureFieldQuality, resolveDecisions,
+  EDGE_KINDS, EDGE_CONTEXT_VERSION, kindOfType, extractQuote, sharedConcepts, carryStaleEdges, edgeKey,
 } from '../.codex/skills/issue-onboard/scripts/issue-graph-v2.mjs';
-import { deriveStatus, classify } from '../.codex/skills/issue-onboard/scripts/issue-onboard.mjs';
+import { deriveStatus, classify, parseDependencies } from '../.codex/skills/issue-onboard/scripts/issue-onboard.mjs';
 
 assert.deepEqual(EDGE_TYPES, ['depends-on', 'parent-of', 'duplicate-of', 'relates-to', 'supersedes']);
+
+// --- #93 엣지 맥락 스키마 v3: 결정론 근거 추출과 수명주기 ---
+assert.equal(EDGE_CONTEXT_VERSION, 1);
+assert.deepEqual(EDGE_KINDS, ['blocked-by', 'composition', 'duplicate', 'temporal', 'relates']);
+assert.equal(kindOfType('depends-on'), 'blocked-by');
+assert.equal(kindOfType('parent-of'), 'composition');
+assert.equal(kindOfType('supersedes'), 'temporal');
+
+const koreanBody = '결정론 패스가 저장한 인용문 위에 요약을 보강한다.\n\ndepends on #93\n\nLLM 실패 시에도 그래프는 결정론 근거를 유지해야 한다.';
+const [koreanRef] = parseDependencies(koreanBody);
+assert.equal(koreanRef.to, 93);
+assert.equal(koreanRef.matched, 'depends on #93');
+const extracted = extractQuote(koreanBody, koreanRef.index, koreanRef.matched.length);
+assert.ok(extracted.quote.includes('depends on #93'), '발췌에 매치 원문 포함');
+assert.equal(koreanBody.normalize('NFC').indexOf(extracted.quote), extracted.start, 'NFC indexOf 재검증');
+assert.equal(extracted.end - extracted.start, extracted.quote.length);
+// NFD(자모 분리) 입력도 NFC 기준 offset 으로 정규화된다
+const nfdBody = '그래프 갱신.\ndepends on #7 뒤에 정리한다.'.normalize('NFD');
+const [nfdRef] = parseDependencies(nfdBody);
+const nfdExtracted = extractQuote(nfdBody, nfdRef.index, nfdRef.matched.length);
+assert.equal(nfdBody.normalize('NFC').indexOf(nfdExtracted.quote), nfdExtracted.start);
+// 범위 밖 index 는 null
+assert.equal(extractQuote('short', 99, 3), null);
+// 결정론: 같은 입력 2회 → 같은 출력
+assert.deepEqual(extractQuote(koreanBody, koreanRef.index, koreanRef.matched.length), extracted);
+
+const conceptsA = { title: '엣지 스키마', body: '`issue-graph-v2.mjs` 와 scripts/issue-onboard.mjs 를 고친다', labels: ['enhancement'] };
+const conceptsB = { title: '뷰 개선', body: '`issue-graph-v2.mjs` 렌더와 scripts/issue-onboard.mjs 참고', labels: ['enhancement', 'bug'] };
+const shared = sharedConcepts(conceptsA, conceptsB);
+assert.ok(shared.includes('enhancement'));
+assert.ok(shared.includes('issue-graph-v2.mjs'));
+assert.ok(shared.includes('scripts/issue-onboard.mjs'));
+assert.deepEqual(sharedConcepts(conceptsA, {}), []);
+
+const oldSyncEdge = { from: 61, to: 60, type: 'depends-on', createdBy: 'sync', rationale: 'r' };
+const oldDecisionEdge = { from: 9, to: 4, type: 'duplicate-of', createdBy: 'decision' };
+const carried = carryStaleEdges([oldSyncEdge, oldDecisionEdge], new Set(), '2026-08-14T00:00:00Z');
+assert.equal(carried.length, 1, '결정 엣지는 stale 로 이관하지 않음');
+assert.equal(carried[0].status, 'stale');
+assert.equal(carried[0].staleAt, '2026-08-14T00:00:00Z');
+assert.equal(carryStaleEdges([{ ...oldSyncEdge, status: 'stale', staleAt: '2026-08-01T00:00:00Z' }], new Set(), '2026-08-14T00:00:00Z')[0].staleAt, '2026-08-01T00:00:00Z', '기존 staleAt 보존');
+assert.deepEqual(carryStaleEdges([oldSyncEdge], new Set([edgeKey(oldSyncEdge)]), 'now'), [], '재감지된 엣지는 부활');
 assert.deepEqual(normalizeEdge({ from: 9, to: 4, type: 'relates-to' }), { from: 4, to: 9, type: 'relates-to' });
 assert.equal(digest({ b: 2, a: 1 }), digest({ a: 1, b: 2 }));
 

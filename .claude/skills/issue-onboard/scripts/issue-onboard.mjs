@@ -32,7 +32,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
-import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1 } from './issue-graph-v2.mjs';
+import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, EDGE_CONTEXT_VERSION, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1, kindOfType, extractQuote, sharedConcepts, carryStaleEdges } from './issue-graph-v2.mjs';
 
 export const GRAPH_VERSION = V2_GRAPH_VERSION;
 export const GRAPH_FILE = GRAPH_FILE_NAME;
@@ -178,13 +178,13 @@ export function classify(graph) {
 
 /* --------------------------------------------------------------- sync 파싱 */
 
-/** 본문에서 의존 참조를 뽑는다. 반환: [{ type, to }]. */
+/** 본문에서 의존 참조를 뽑는다. 반환: [{ type, to, index, matched }]. NFC 정규화된 본문 기준 offset. */
 export function parseDependencies(body = '') {
   const refs = [];
-  const text = String(body);
+  const text = String(body).normalize('NFC');
   const grab = (re, type) => {
     let m;
-    while ((m = re.exec(text)) !== null) refs.push({ type, to: Number(m[1]) });
+    while ((m = re.exec(text)) !== null) refs.push({ type, to: Number(m[1]), index: m.index, matched: m[0] });
   };
   // "depends on #N", "depends-on #N", "blocked by #N", "needs #N" → depends-on
   grab(/\bdepends[\s-]?on\s+#(\d{1,6})/gi, 'depends-on');
@@ -192,7 +192,7 @@ export function parseDependencies(body = '') {
   grab(/\bneeds\s+#(\d{1,6})/gi, 'depends-on');
   let m;
   const blocks = /\bblocks\s+#(\d{1,6})/gi;
-  while ((m = blocks.exec(text)) !== null) refs.push({ type: 'depends-on', from: Number(m[1]), reverse: true });
+  while ((m = blocks.exec(text)) !== null) refs.push({ type: 'depends-on', from: Number(m[1]), reverse: true, index: m.index, matched: m[0] });
   return refs;
 }
 
@@ -204,7 +204,7 @@ function cmdSync(root, tracker, opts) {
   const list = tracker.issueList({
     state,
     limit,
-    fields: 'number,title,labels,url,state,body,comments,updatedAt',
+    fields: 'number,title,labels,url,state,body,comments,updatedAt,author,createdAt',
   });
   if (list === null) {
     console.log('SYNCED=0');
@@ -235,9 +235,11 @@ function cmdSync(root, tracker, opts) {
   }
 
   // V2 캐시는 GitHub에서 다시 만들 수 있는 auto/decision 엣지만 보관한다.
-  const auto = [];
+  const previousEdges = [...(graph.edges ?? []), ...(graph.staleEdges ?? [])];
+  const candidates = [];
   const decisions = [];
   const seen = new Set();
+  const itemByNumber = new Map(list.map((it) => [it.number, it]));
   for (const it of list) {
     for (const ref of parseDependencies(it.body ?? '')) {
       const from = ref.reverse ? ref.from : it.number;
@@ -246,21 +248,46 @@ function cmdSync(root, tracker, opts) {
       const key = `${from}|${to}|${ref.type}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      auto.push({ from, to, type: ref.type, rationale: '본문 참조에서 자동 감지', createdBy: 'sync', createdAt: now, provenance: { url: it.url, digest: digest(it.body ?? '') } });
+      candidates.push({ from, to, type: ref.type, ref, it });
     }
     decisions.push(...parseDecisionComments(it.comments ?? []));
   }
-  const referenced = [...new Set(auto.flatMap((edge) => [edge.from, edge.to]))].filter((number) => !graph.nodes[String(number)]);
+  const referenced = [...new Set(candidates.flatMap((c) => [c.from, c.to]))].filter((number) => !graph.nodes[String(number)]);
   const unresolved = [];
   for (const number of referenced) {
     const item = tracker.issueView(number);
     if (!item) { unresolved.push(number); continue; }
+    itemByNumber.set(number, item);
     const labels = (item.labels ?? []).map((label) => label.name);
     const source = { url: item.url, revision: item.updatedAt ?? 'unknown', observedAt: now, kind: 'referenced' };
     graph.nodes[String(number)] = { id: `github:${graph.repository ?? 'unknown'}#${number}`, number, title: item.title, status: deriveStatus(item.labels ?? [], item.state), labels: typeLabels(labels), url: item.url, context: Object.fromEntries(CONTEXT_FIELDS.map((field) => [field, unknownField(`참조된 GitHub 항목의 구조화된 ${field} 필드가 없음`, source)])), provenance: source };
   }
+  // 결정론 근거 조립: #N 참조 주변 문장을 verbatim 발췌하고 공유 개념을 추출한다 (#93).
+  const auto = candidates.map(({ from, to, type, ref, it }) => {
+    const other = itemByNumber.get(ref.reverse ? from : to);
+    const extracted = extractQuote(it.body ?? '', ref.index, ref.matched.length);
+    const shared = sharedConcepts(
+      { body: it.body, title: it.title, labels: (it.labels ?? []).map((label) => label.name ?? label) },
+      other ? { body: other.body, title: other.title, labels: (other.labels ?? []).map((label) => label.name ?? label) } : {},
+    );
+    const summary = `#${it.number} 본문이 "${ref.matched}" 로 #${ref.reverse ? from : to} 을(를) 참조`;
+    const toClosed = graph.nodes[String(to)]?.status === 'close';
+    return {
+      from, to, type,
+      kind: kindOfType(type),
+      rationale: summary,
+      context: { summary, label: ref.matched.slice(0, 20), keywords: shared.slice(0, 4), sharedConcepts: shared, generatedBy: 'deterministic', confidence: extracted ? 'high' : 'low', generatedAt: now },
+      evidence: extracted ? [{ issue: it.number, field: 'body', commentId: null, author: it.author?.login ?? it.author ?? null, authoredAt: it.createdAt ?? null, quote: extracted.quote, start: extracted.start, end: extracted.end, url: it.url, digest: digest(it.body ?? '') }] : [],
+      status: type === 'depends-on' && toClosed ? 'resolved' : 'active',
+      schemaVersion: EDGE_CONTEXT_VERSION,
+      createdBy: 'sync', createdAt: now,
+      provenance: { url: it.url, digest: digest(it.body ?? '') },
+    };
+  });
   const approved = resolveDecisions(decisions).map(decisionEdge).filter(Boolean).filter((edge) => { const key = edgeKey(edge); if (seen.has(key)) return false; seen.add(key); return true; });
   graph.edges = [...auto, ...approved];
+  // 재감지되지 않은 sync 엣지는 삭제하지 않고 stale 로 이관한다 — 소비 코드는 graph.edges 만 읽으므로 스케줄링에 영향 없음 (#93).
+  graph.staleEdges = carryStaleEdges(previousEdges, new Set(graph.edges.map(edgeKey)), now);
   const complete = state === 'all' && list.length < limit && unresolved.length === 0;
   graph.snapshot = { status: complete ? 'complete' : 'partial', fetchedAt: now, digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))), reason: complete ? null : unresolved.length ? `참조 GitHub 항목을 조회할 수 없음: ${unresolved.map((number) => `#${number}`).join(', ')}` : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음' };
 
