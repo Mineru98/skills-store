@@ -6,6 +6,63 @@ export const EDGE_TYPES = ['depends-on', 'parent-of', 'duplicate-of', 'relates-t
 export const ORDERING_TYPES = new Set(['depends-on']);
 export const DECISION_MARKER = 'issue-graph-v2-decision';
 export const CONTEXT_FIELDS = ['problem', 'outcome', 'scope', 'acceptance', 'result', 'components', 'decisions', 'evidence'];
+export const EDGE_CONTEXT_VERSION = 1;
+export const EDGE_KINDS = ['blocked-by', 'composition', 'duplicate', 'temporal', 'relates'];
+export function kindOfType(type) { return { 'depends-on': 'blocked-by', 'parent-of': 'composition', 'duplicate-of': 'duplicate', 'supersedes': 'temporal', 'relates-to': 'relates' }[type] ?? 'relates'; }
+/** 매치 주변 문장을 verbatim 발췌한다. NFC 정규화 후 indexOf 로 재검증한 offset 만 반환한다. 실패 시 null. */
+export function extractQuote(body, index, length, { min = 200, max = 400 } = {}) {
+  const normalized = String(body ?? '').normalize('NFC');
+  if (!normalized || !Number.isInteger(index) || index < 0 || index >= normalized.length) return null;
+  let start = 0;
+  for (let i = index - 1; i >= 0; i -= 1) { if ('\n.!?'.includes(normalized[i])) { start = i + 1; break; } }
+  let end = normalized.length;
+  for (let i = index + length; i < normalized.length; i += 1) { if ('\n.!?'.includes(normalized[i])) { end = i + 1; break; } }
+  // 문장 하나가 min 보다 짧으면 앞뒤 줄로 확장, max 를 넘으면 매치 중심으로 클램프
+  while (end - start < min && (start > 0 || end < normalized.length)) {
+    const prevBreak = normalized.lastIndexOf('\n', Math.max(0, start - 2));
+    const nextBreak = normalized.indexOf('\n', end + 1);
+    const grewStart = start > 0 ? (prevBreak >= 0 ? prevBreak + 1 : 0) : start;
+    const grewEnd = end < normalized.length ? (nextBreak >= 0 ? nextBreak : normalized.length) : end;
+    if (grewStart === start && grewEnd === end) break;
+    start = grewStart; end = grewEnd;
+  }
+  if (end - start > max) {
+    const half = Math.floor(max / 2);
+    start = Math.max(start, index - half);
+    end = Math.min(end, index + length + half);
+  }
+  const quote = normalized.slice(start, end).trim();
+  if (!quote) return null;
+  const verified = normalized.indexOf(quote);
+  if (verified < 0) return null;
+  return { quote, start: verified, end: verified + quote.length };
+}
+/** 두 이슈가 공유하는 라벨·파일 경로·백틱 식별자 교집합 (최대 limit). */
+export function sharedConcepts(a = {}, b = {}, { limit = 8 } = {}) {
+  const tokens = ({ body = '', title = '', labels = [] } = {}) => {
+    const text = `${title}\n${body}`.normalize('NFC');
+    const set = new Set(labels.map((label) => String(label).toLowerCase()));
+    for (const m of text.matchAll(/[\w@.-]*\/[\w@./-]+\.\w{1,6}|\b[\w.-]+\.(?:mjs|md|json|ts|tsx|js|sh|yml|yaml)\b/g)) set.add(m[0].toLowerCase());
+    for (const m of text.matchAll(/`([^`\n]{2,60})`/g)) set.add(m[1].trim().toLowerCase());
+    return set;
+  };
+  const left = tokens(a), right = tokens(b), out = [];
+  for (const token of [...left].sort()) {
+    if (token.length < 3 || token.startsWith('/') || token.startsWith('.') && !token.includes('/')) continue;
+    if (right.has(token)) { out.push(token); if (out.length >= limit) break; }
+  }
+  return out;
+}
+/** 재감지되지 않은 sync 엣지를 stale 로 이관한다 (기존 staleAt 보존, 결정 엣지는 제외). */
+export function carryStaleEdges(oldEdges = [], newKeys = new Set(), now = null) {
+  const stale = [];
+  for (const edge of oldEdges) {
+    if (edge.createdBy !== 'sync') continue;
+    if (newKeys.has(edgeKey(edge))) continue;
+    stale.push({ ...edge, status: 'stale', staleAt: edge.staleAt ?? now });
+  }
+  return stale.sort((a, b) => edgeKey(a).localeCompare(edgeKey(b)));
+}
 export function stable(value) { if (Array.isArray(value)) return value.map(stable); if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stable(value[key])])); return value; }
 export function digest(value) { return `sha256:${createHash('sha256').update(JSON.stringify(stable(value))).digest('hex')}`; }
 export function unknown(reason, source = null) { return { value: 'unknown', reason, source }; }
