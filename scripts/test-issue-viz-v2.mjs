@@ -25,6 +25,13 @@ assert.equal(deriveExecution({ ...graph, snapshot: {} }).reason, 'SNAPSHOT_REASO
 const html = renderHtml({ ...graph, nodes: { 1: node(1, 'open', { title: '</script><img src=x onerror=alert(1)>', context: { scope: { value: 'unknown', reason: 'missing', source: 'fixture' } } }) } });
 assert.ok(!html.includes('</script><img'));
 assert.ok(html.includes('작업 맥락'));
+assert.ok(html.includes("mode='execution'"));
+assert.ok(html.includes('id="lanes"'));
+assert.ok(html.includes('지금 착수'));
+assert.ok(html.includes('toggle-done'));
+assert.ok(html.includes('toggle-active-edges'));
+assert.ok(html.includes('완료 대기'));
+assert.ok(html.includes('function drawEdges()'));
 const hostile = renderHtml({ ...graph, nodes: { 1: node(1, 'open', { url: 'https://github.com/\" onfocus=\"alert(1)' }) } });
 assert.match(hostile, /function safeUrl\(v\)\{try\{var url=new URL/);
 assert.match(hostile, /href="'\+esc\(safeUrl\(n.url\)\)\+'"/);
