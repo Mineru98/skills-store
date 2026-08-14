@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { deriveExecution, renderHtml, outputPath } from '../.claude/skills/issue-viz/scripts/issue-viz.mjs';
+import { deriveExecution, renderHtml, outputPath, krTokenize, miniSearchInline } from '../.claude/skills/issue-viz/scripts/issue-viz.mjs';
 
 const node = (number, status = 'open', extra = {}) => ({ number, status, title: `Issue ${number}`, labels: [], ...extra });
 const graph = {
@@ -42,6 +42,18 @@ assert.ok(html.includes('650'));
 assert.ok(html.includes("ev.key==='Escape'"));
 assert.ok(html.includes('<details><summary>Raw JSON'));
 assert.ok(html.includes('e.rationale||e.type'), 'rationale 폴백 경로');
+
+// --- #96 MiniSearch 맥락 검색 ---
+assert.deepEqual(krTokenize('그래프를'), ['그래프를', '그래', '래프', '프를'], '한글 bigram');
+assert.ok(krTokenize('DAG 관리 스킬').includes('dag'), '소문자 정규화');
+assert.ok(krTokenize('그래프 갱신'.normalize('NFD')).includes('그래프'), 'NFD 입력 NFC 정규화');
+assert.ok(miniSearchInline().startsWith('/*! MiniSearch'), 'vendored 파일 + MIT 배너');
+assert.ok(html.includes('MiniSearch'), '렌더 HTML 에 MiniSearch 인라인');
+assert.ok(html.includes('function krTokenize'), '클라이언트 토크나이저');
+assert.ok(html.includes('rel-results'), '관계 결과 그룹');
+assert.ok(html.includes('<mark>'), '스니펫 하이라이트');
+assert.ok(html.includes('hay(n).indexOf(q)>=0'), 'substring fallback 유지');
+assert.ok(!html.includes('cdn.') && !html.includes('unpkg'), '외부 CDN 참조 없음');
 const hostile = renderHtml({ ...graph, nodes: { 1: node(1, 'open', { url: 'https://github.com/\" onfocus=\"alert(1)' }) } });
 assert.match(hostile, /function safeUrl\(v\)\{try\{var url=new URL/);
 assert.match(hostile, /href="'\+esc\(safeUrl\(n.url\)\)\+'"/);
