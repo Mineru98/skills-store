@@ -1,0 +1,272 @@
+[
+  {
+    "from": 61,
+    "to": 60,
+    "type": "depends-on",
+    "kind": "blocked-by",
+    "rationale": "#61 본문이 \"depends-on #60\" 로 #60 을(를) 참조",
+    "context": {
+      "summary": "#61 본문이 \"depends-on #60\" 로 #60 을(를) 참조",
+      "label": "depends-on #60",
+      "keywords": [
+        ".issue/graph.json",
+        "enhancement",
+        "graph.json",
+        "skill.md"
+      ],
+      "sharedConcepts": [
+        ".issue/graph.json",
+        "enhancement",
+        "graph.json",
+        "skill.md",
+        "status",
+        "status:close",
+        "type"
+      ],
+      "generatedBy": "deterministic",
+      "confidence": "high",
+      "generatedAt": "2026-08-14T04:00:36.113Z"
+    },
+    "evidence": [
+      {
+        "issue": 61,
+        "field": "body",
+        "commentId": null,
+        "author": "Mineru98",
+        "authoredAt": "2026-08-11T08:24:19Z",
+        "quote": "- SKILL.md + references/ (render, views, next-actions).\n\n## 완료 기준\n- 실제 graph.json 으로 HTML 생성 → 브라우저에서 노드/엣지/색/화살표 정상 표시.\n- ego/critical-path/ready 뷰 동작.\n- 증거: 생성된 HTML 스크린샷(webp).\n\n## 의존성\ndepends-on #60 (issue-todo) — graph.json 스키마가 있어야 렌더 가능.",
+        "start": 714,
+        "end": 958,
+        "url": "https://github.com/Mineru98/skills-store/issues/61",
+        "digest": "sha256:d49caaca62c904e29bfdf1bea54bf106a8b318a1c68425015cf368f76dc21d4b"
+      }
+    ],
+    "status": "resolved",
+    "schemaVersion": 1,
+    "createdBy": "sync",
+    "createdAt": "2026-08-14T04:00:36.113Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/61",
+      "digest": "sha256:d49caaca62c904e29bfdf1bea54bf106a8b318a1c68425015cf368f76dc21d4b"
+    }
+  },
+  {
+    "from": 62,
+    "to": 60,
+    "type": "depends-on",
+    "kind": "blocked-by",
+    "rationale": "#62 본문이 \"depends-on #60\" 로 #60 을(를) 참조",
+    "context": {
+      "summary": "#62 본문이 \"depends-on #60\" 로 #60 을(를) 참조",
+      "label": "depends-on #60",
+      "keywords": [
+        "enhancement",
+        "graph.json",
+        "next",
+        "skill.md"
+      ],
+      "sharedConcepts": [
+        "enhancement",
+        "graph.json",
+        "next",
+        "skill.md",
+        "status:close"
+      ],
+      "generatedBy": "deterministic",
+      "confidence": "high",
+      "generatedAt": "2026-08-14T04:00:36.113Z"
+    },
+    "evidence": [
+      {
+        "issue": 62,
+        "field": "body",
+        "commentId": null,
+        "author": "Mineru98",
+        "authoredAt": "2026-08-11T08:24:29Z",
+        "quote": "- 각 스킬 SKILL.md/references 갱신, machine-phase 계약 영향 검토.\n\n## 완료 기준\n- 4스킬 각각이 graph.json 을 읽거나 갱신함을 실제 흐름으로 확인.\n- issue-merge close → 재계산 → 새 ready 이슈 노출을 재현.\n- 증거: 배선된 각 지점의 실행 로그.\n\n## 의존성\ndepends-on #60 (issue-todo).",
+        "start": 592,
+        "end": 807,
+        "url": "https://github.com/Mineru98/skills-store/issues/62",
+        "digest": "sha256:43a2746887a02045c119242e95e801d4185b2cf144d2d6d8652da640279291eb"
+      }
+    ],
+    "status": "resolved",
+    "schemaVersion": 1,
+    "createdBy": "sync",
+    "createdAt": "2026-08-14T04:00:36.113Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/62",
+      "digest": "sha256:43a2746887a02045c119242e95e801d4185b2cf144d2d6d8652da640279291eb"
+    }
+  },
+  {
+    "from": 73,
+    "to": 2,
+    "type": "depends-on",
+    "kind": "blocked-by",
+    "rationale": "#73 본문이 \"needs #2\" 로 #2 을(를) 참조",
+    "context": {
+      "summary": "#73 본문이 \"needs #2\" 로 #2 을(를) 참조",
+      "label": "needs #2",
+      "keywords": [],
+      "sharedConcepts": [],
+      "generatedBy": "deterministic",
+      "confidence": "high",
+      "generatedAt": "2026-08-14T04:00:36.113Z"
+    },
+    "evidence": [
+      {
+        "issue": 73,
+        "field": "body",
+        "commentId": null,
+        "author": "Mineru98",
+        "authoredAt": "2026-08-11T09:24:42Z",
+        "quote": "4. **미지 선행이 영구 blocked 유발** — `classify`/`prereqMap` 가 노드로 존재하지 않는 depends-on 대상을 blocker 로 취급해 해당 이슈가 plan/next 에서 영원히 blocked. `findCycle` 처럼 미지 노드를 skip(=satisfiable) 처리.\n6. **\"needs #N\" 오탐** — `parseDependencies` 의 `needs #N` 이 \"needs #2 more tests\" 를 의존으로 오탐. 패턴 제거(또는 엄격화).",
+        "start": 890,
+        "end": 1169,
+        "url": "https://github.com/Mineru98/skills-store/issues/73",
+        "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+      }
+    ],
+    "status": "resolved",
+    "schemaVersion": 1,
+    "createdBy": "sync",
+    "createdAt": "2026-08-14T04:00:36.113Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/73",
+      "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+    }
+  },
+  {
+    "from": 73,
+    "to": 5,
+    "type": "depends-on",
+    "kind": "blocked-by",
+    "rationale": "#73 본문이 \"depends on #5\" 로 #5 을(를) 참조",
+    "context": {
+      "summary": "#73 본문이 \"depends on #5\" 로 #5 을(를) 참조",
+      "label": "depends on #5",
+      "keywords": [
+        "bug",
+        "status:close"
+      ],
+      "sharedConcepts": [
+        "bug",
+        "status:close"
+      ],
+      "generatedBy": "deterministic",
+      "confidence": "high",
+      "generatedAt": "2026-08-14T04:00:36.113Z"
+    },
+    "evidence": [
+      {
+        "issue": 73,
+        "field": "body",
+        "commentId": null,
+        "author": "Mineru98",
+        "authoredAt": "2026-08-11T09:24:42Z",
+        "quote": "6. **\"needs #N\" 오탐** — `parseDependencies` 의 `needs #N` 이 \"needs #2 more tests\" 를 의존으로 오탐. 패턴 제거(또는 엄격화).\n\n## 범위 밖 (별도/후속, 낮은 우선순위)\n- MED-5: `parseDependencies` 가 \"depends on #5, #6\" 에서 첫 #N 만 잡음(다중 의존). 개선 가치 있으나 손이 더 감.\n- LOW-7: 뷰 classify 가 비표준 status 에서 CLI 와 불일치.\n- LOW-8: 노드 클릭 `window.open` scheme 검사 없음.",
+        "start": 1064,
+        "end": 1375,
+        "url": "https://github.com/Mineru98/skills-store/issues/73",
+        "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+      }
+    ],
+    "status": "resolved",
+    "schemaVersion": 1,
+    "createdBy": "sync",
+    "createdAt": "2026-08-14T04:00:36.113Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/73",
+      "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+    }
+  },
+  {
+    "from": 73,
+    "to": 60,
+    "type": "depends-on",
+    "kind": "blocked-by",
+    "rationale": "#73 본문이 \"depends on #60\" 로 #60 을(를) 참조",
+    "context": {
+      "summary": "#73 본문이 \"depends on #60\" 로 #60 을(를) 참조",
+      "label": "depends on #60",
+      "keywords": [
+        "graph.json",
+        "status:close"
+      ],
+      "sharedConcepts": [
+        "graph.json",
+        "status:close"
+      ],
+      "generatedBy": "deterministic",
+      "confidence": "high",
+      "generatedAt": "2026-08-14T04:00:36.113Z"
+    },
+    "evidence": [
+      {
+        "issue": 73,
+        "field": "body",
+        "commentId": null,
+        "author": "Mineru98",
+        "authoredAt": "2026-08-11T09:24:42Z",
+        "quote": "- MED-4: 미지 선행을 가진 이슈가 ready 로 분류됨(dangling 은 validate 가 계속 경고).\n- MED-6: \"needs #N\" 문장이 엣지를 만들지 않음.\n- 증거: 각 수정의 전후 동작 로그, test-common/test-tracker 통과, sync-shared 드리프트 없음.\n\n## 의존성\ndepends on #60, #61, #62 (모두 merge 됨).",
+        "start": 1577,
+        "end": 1796,
+        "url": "https://github.com/Mineru98/skills-store/issues/73",
+        "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+      }
+    ],
+    "status": "resolved",
+    "schemaVersion": 1,
+    "createdBy": "sync",
+    "createdAt": "2026-08-14T04:00:36.113Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/73",
+      "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+    }
+  },
+  {
+    "from": 94,
+    "to": 93,
+    "type": "depends-on",
+    "kind": "blocked-by",
+    "rationale": "#94 본문이 \"depends on #93\" 로 #93 을(를) 참조",
+    "context": {
+      "summary": "#94 본문이 \"depends on #93\" 로 #93 을(를) 참조",
+      "label": "depends on #93",
+      "keywords": [
+        ".claude/skills/*/scripts/issue-common.mjs",
+        "enhancement"
+      ],
+      "sharedConcepts": [
+        ".claude/skills/*/scripts/issue-common.mjs",
+        "enhancement"
+      ],
+      "generatedBy": "deterministic",
+      "confidence": "high",
+      "generatedAt": "2026-08-14T04:00:36.113Z"
+    },
+    "evidence": [
+      {
+        "issue": 94,
+        "field": "body",
+        "commentId": null,
+        "author": "Mineru98",
+        "authoredAt": "2026-08-13T23:44:25Z",
+        "quote": "결정론 패스(선행 이슈)가 저장한 인용문·공유 개념 위에, 사람이 즉시 읽을 한국어 요약과\n관계 분류를 LLM 으로 보강한다. LLM 실패 시에도 그래프는 결정론 근거를 유지해야 한다.\n\ndepends on #93\n\n## 요구사항\n\n- 결정론 패스가 만든 엣지 상위 후보에만 LLM 호출 (retrieve-then-rerank 비용 모델, EasyLink 2025)",
+        "start": 7,
+        "end": 211,
+        "url": "https://github.com/Mineru98/skills-store/issues/94",
+        "digest": "sha256:d9f4ac86045e4ede013a039cfc5cc846251178cf06d0b9affe5abfdb032bf084"
+      }
+    ],
+    "status": "resolved",
+    "schemaVersion": 1,
+    "createdBy": "sync",
+    "createdAt": "2026-08-14T04:00:36.113Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/94",
+      "digest": "sha256:d9f4ac86045e4ede013a039cfc5cc846251178cf06d0b9affe5abfdb032bf084"
+    }
+  }
+]
