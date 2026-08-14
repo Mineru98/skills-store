@@ -1,0 +1,62 @@
+[
+  {
+    "from": 61,
+    "to": 60,
+    "type": "depends-on",
+    "rationale": "본문 참조에서 자동 감지",
+    "createdBy": "sync",
+    "createdAt": "2026-08-12T12:52:02.241Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/61",
+      "digest": "sha256:d49caaca62c904e29bfdf1bea54bf106a8b318a1c68425015cf368f76dc21d4b"
+    }
+  },
+  {
+    "from": 62,
+    "to": 60,
+    "type": "depends-on",
+    "rationale": "본문 참조에서 자동 감지",
+    "createdBy": "sync",
+    "createdAt": "2026-08-12T12:52:02.241Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/62",
+      "digest": "sha256:43a2746887a02045c119242e95e801d4185b2cf144d2d6d8652da640279291eb"
+    }
+  },
+  {
+    "from": 73,
+    "to": 2,
+    "type": "depends-on",
+    "rationale": "본문 참조에서 자동 감지",
+    "createdBy": "sync",
+    "createdAt": "2026-08-12T12:52:02.241Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/73",
+      "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+    }
+  },
+  {
+    "from": 73,
+    "to": 5,
+    "type": "depends-on",
+    "rationale": "본문 참조에서 자동 감지",
+    "createdBy": "sync",
+    "createdAt": "2026-08-12T12:52:02.241Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/73",
+      "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+    }
+  },
+  {
+    "from": 73,
+    "to": 60,
+    "type": "depends-on",
+    "rationale": "본문 참조에서 자동 감지",
+    "createdBy": "sync",
+    "createdAt": "2026-08-12T12:52:02.241Z",
+    "provenance": {
+      "url": "https://github.com/Mineru98/skills-store/issues/73",
+      "digest": "sha256:47775487de2498a90f98a1cc0df764ef490fc56b4df5a9e1051e5efa4338bf2b"
+    }
+  }
+]
