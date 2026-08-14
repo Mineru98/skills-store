@@ -33,6 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
 import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, EDGE_CONTEXT_VERSION, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1, kindOfType, extractQuote, sharedConcepts, carryStaleEdges } from './issue-graph-v2.mjs';
+import { detectLlmCommand, enrichEdges } from './issue-llm.mjs';
 
 export const GRAPH_VERSION = V2_GRAPH_VERSION;
 export const GRAPH_FILE = GRAPH_FILE_NAME;
@@ -288,6 +289,14 @@ function cmdSync(root, tracker, opts) {
   graph.edges = [...auto, ...approved];
   // 재감지되지 않은 sync 엣지는 삭제하지 않고 stale 로 이관한다 — 소비 코드는 graph.edges 만 읽으므로 스케줄링에 영향 없음 (#93).
   graph.staleEdges = carryStaleEdges(previousEdges, new Set(graph.edges.map(edgeKey)), now);
+  // LLM 보강 패스 (#94) — 실패·부재 시 결정론 산출물 유지, sync 는 정상 진행.
+  let llmStats = { enriched: 0, cached: 0, discarded: 0, skipped: opts.noLlm ? 'disabled-by-flag' : null };
+  if (!opts.noLlm) {
+    const command = detectLlmCommand();
+    const result = enrichEdges(graph.edges, { itemByNumber, previousEdges, command });
+    graph.edges = result.edges;
+    llmStats = result.stats;
+  }
   const complete = state === 'all' && list.length < limit && unresolved.length === 0;
   graph.snapshot = { status: complete ? 'complete' : 'partial', fetchedAt: now, digest: digest(list.map((it) => ({ number: it.number, updatedAt: it.updatedAt ?? null, body: it.body ?? '', comments: it.comments ?? [] }))), reason: complete ? null : unresolved.length ? `참조 GitHub 항목을 조회할 수 없음: ${unresolved.map((number) => `#${number}`).join(', ')}` : 'state filter 또는 limit로 전체 GitHub 이슈 목록을 증명할 수 없음' };
 
@@ -305,6 +314,10 @@ function cmdSync(root, tracker, opts) {
   console.log(`RESOLVED_REFERENCES=${referenced.length - unresolved.length}`);
   console.log(`UNRESOLVED_REFERENCES=${unresolved.join(' ')}`);
   console.log(`SNAPSHOT_STATUS=${graph.snapshot.status}`);
+  console.log(`LLM_ENRICHED=${llmStats.enriched}`);
+  console.log(`LLM_CACHED=${llmStats.cached}`);
+  console.log(`LLM_DISCARDED=${llmStats.discarded}`);
+  console.log(`LLM_SKIPPED=${llmStats.skipped ?? ''}`);
   console.log(`CYCLE=${cycle ? cycle.join('>') : ''}`);
 }
 
@@ -549,6 +562,7 @@ function main() {
     else if (arg === '--limit') opts.limit = argv[++i];
     else if (arg === '--repo') opts.repo = argv[++i];
     else if (arg === '--all') opts.all = true;
+    else if (arg === '--no-llm') opts.noLlm = true;
     else if (arg === '--out') opts.out = argv[++i];
     else if (arg === '--image-out') opts.imageOut = argv[++i];
     else if (arg.startsWith('-')) { console.error(`✗ 알 수 없는 옵션: ${arg}`); usage(); }

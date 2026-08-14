@@ -11,6 +11,7 @@ import {
   EDGE_KINDS, EDGE_CONTEXT_VERSION, kindOfType, extractQuote, sharedConcepts, carryStaleEdges, edgeKey,
 } from '../.codex/skills/issue-onboard/scripts/issue-graph-v2.mjs';
 import { deriveStatus, classify, parseDependencies } from '../.codex/skills/issue-onboard/scripts/issue-onboard.mjs';
+import { LLM_PROMPT_VERSION, buildCacheKey, parseLlmJson, validateEnrichment, applyEnrichment, enrichEdges } from '../.codex/skills/issue-onboard/scripts/issue-llm.mjs';
 
 assert.deepEqual(EDGE_TYPES, ['depends-on', 'parent-of', 'duplicate-of', 'relates-to', 'supersedes']);
 
@@ -55,6 +56,47 @@ assert.equal(carried[0].status, 'stale');
 assert.equal(carried[0].staleAt, '2026-08-14T00:00:00Z');
 assert.equal(carryStaleEdges([{ ...oldSyncEdge, status: 'stale', staleAt: '2026-08-01T00:00:00Z' }], new Set(), '2026-08-14T00:00:00Z')[0].staleAt, '2026-08-01T00:00:00Z', '기존 staleAt 보존');
 assert.deepEqual(carryStaleEdges([oldSyncEdge], new Set([edgeKey(oldSyncEdge)]), 'now'), [], '재감지된 엣지는 부활');
+
+// --- #94 LLM 엣지 맥락 보강 ---
+const keyBase = buildCacheKey({ fromBody: 'a', toBody: 'b', comments: '[]' });
+assert.equal(keyBase, buildCacheKey({ fromBody: 'a', toBody: 'b', comments: '[]' }), 'cacheKey 결정론');
+assert.notEqual(keyBase, buildCacheKey({ fromBody: 'a', toBody: 'b', comments: '[]', promptVersion: LLM_PROMPT_VERSION + 1 }), 'promptVersion 범프 시 무효화');
+assert.notEqual(keyBase, buildCacheKey({ fromBody: 'a2', toBody: 'b', comments: '[]' }), '본문 변경 시 무효화');
+assert.deepEqual(parseLlmJson('앞말 [{"edge":"1>2","verdict":"entailed"}] 뒷말'), [{ edge: '1>2', verdict: 'entailed' }]);
+assert.equal(parseLlmJson('JSON 없음'), null);
+assert.equal(validateEnrichment({ edge: '1>2', summary: 's', kind: 'unknown-kind', label: 'l' }), null, '허용 밖 kind 폐기');
+assert.equal(validateEnrichment({ edge: '1>2', summary: 's', kind: 'blocked-by', label: '스무글자제한을확실히넘기는아주아주긴라벨문자열' }), null, '20자 초과 label 폐기');
+const validItem = validateEnrichment({ edge: '1>2', summary: '#1 이 #2 의 스키마를 전제한다', kind: 'blocked-by', label: '스키마 선행', keywords: ['스키마', ''] });
+assert.deepEqual(validItem.keywords, ['스키마']);
+const detEdge = { from: 1, to: 2, type: 'depends-on', kind: 'blocked-by', rationale: '결정론 요약', createdBy: 'sync', context: { summary: '결정론 요약', generatedBy: 'deterministic', confidence: 'high', keywords: [] }, evidence: [{ quote: 'depends on #2' }] };
+const enriched = applyEnrichment(detEdge, validItem, 'entailed', { cacheKey: keyBase });
+assert.equal(enriched.context.generatedBy, 'llm');
+assert.equal(enriched.context.confidence, 'high');
+assert.equal(enriched.rationale, validItem.summary, 'rationale 하위 호환 갱신');
+assert.equal(applyEnrichment(detEdge, validItem, 'neutral', {}).context.confidence, 'medium');
+const rejected = applyEnrichment(detEdge, validItem, 'contradicted', { cacheKey: keyBase });
+assert.equal(rejected.context.generatedBy, 'deterministic', 'contradicted 는 결정론 유지');
+assert.equal(rejected.context.confidence, 'low');
+assert.equal(rejected.cacheKey, keyBase, '부정 결과도 캐시');
+// enrichEdges: mock runner 로 파이프라인 검증 (실 LLM 호출 없음)
+const mockItems = new Map([['1>2', { edge: '1>2', summary: '#1 은 #2 완료가 선행이다', kind: 'blocked-by', label: '선행 의존', keywords: ['선행'] }]]);
+const mockRunner = (_cmd, prompt) => prompt.includes('verdict')
+  ? JSON.stringify([{ edge: '1>2', verdict: 'entailed' }])
+  : JSON.stringify([...mockItems.values()]);
+const itemByNumber = new Map([[1, { number: 1, title: 'one', body: 'depends on #2', comments: [] }], [2, { number: 2, title: 'two', body: 'b', comments: [] }]]);
+const run1 = enrichEdges([detEdge], { itemByNumber, previousEdges: [], command: 'mock', runner: mockRunner });
+assert.equal(run1.stats.enriched, 1);
+assert.equal(run1.edges[0].context.generatedBy, 'llm');
+const run2 = enrichEdges([detEdge], { itemByNumber, previousEdges: run1.edges, command: 'mock', runner: () => { throw new Error('캐시 히트면 호출되지 않아야 한다'); } });
+assert.equal(run2.stats.cached, 1, '동일 입력 재실행은 캐시 히트');
+assert.equal(run2.edges[0].context.generatedBy, 'llm');
+const runNoCmd = enrichEdges([detEdge], { itemByNumber, previousEdges: [], command: null });
+assert.equal(runNoCmd.stats.skipped, 'llm-command-not-found');
+assert.equal(runNoCmd.edges[0].context.generatedBy, 'deterministic', 'LLM 부재 시 결정론 폴백');
+const runFailed = enrichEdges([detEdge], { itemByNumber, previousEdges: [], command: 'mock', runner: () => 'JSON 아님 — 호출 실패 시뮬레이션' });
+assert.equal(runFailed.stats.skipped, 'llm-call-failed');
+assert.equal(runFailed.edges[0].cacheKey, undefined, '일시 실패는 캐시하지 않는다 (다음 sync 재시도)');
+assert.equal(runFailed.edges[0].context.generatedBy, 'deterministic');
 assert.deepEqual(normalizeEdge({ from: 9, to: 4, type: 'relates-to' }), { from: 4, to: 9, type: 'relates-to' });
 assert.equal(digest({ b: 2, a: 1 }), digest({ a: 1, b: 2 }));
 
