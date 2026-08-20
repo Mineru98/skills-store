@@ -1,4 +1,0 @@
-interface:
-  display_name: "DESIGN.md Validator"
-  short_description: "Validate and compare DESIGN.md files"
-  default_prompt: "Use $design-md-validator to validate this DESIGN.md file and explain any findings."
