@@ -58,7 +58,7 @@ function usage(exitCode = 1) {
 }
 
 function run(cmd, args, opts = {}) {
-  const res = spawnSync(cmd, args, { encoding: 'utf8', ...opts });
+  const res = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
   if (res.error) return { status: 127, stdout: '', stderr: String(res.error.message) };
   return { status: res.status ?? 1, stdout: res.stdout ?? '', stderr: res.stderr ?? '' };
 }

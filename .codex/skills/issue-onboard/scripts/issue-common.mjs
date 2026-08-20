@@ -19,6 +19,7 @@ import {
 import path from 'node:path';
 import os from 'node:os';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 /* ------------------------------------------------------------------ 상수 */
 
@@ -111,7 +112,7 @@ export const PROJECT_SETTINGS_REL = `${WORKSPACE_DIR}/${PROJECT_SETTINGS_FILE}`;
 /* ------------------------------------------------------------- 프로세스 */
 
 export function run(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, { encoding: 'utf8', ...opts });
+  const r = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
   return { code: r.status ?? 1, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
 }
 
@@ -129,6 +130,75 @@ export function must(cmd, args, opts = {}) {
   const r = run(cmd, args, opts);
   if (r.code !== 0) fail(`${cmd} ${args.join(' ')} 실패: ${r.err || r.out}`);
   return r.out;
+}
+
+/* --------------------------------------------------- 스킬 간 스크립트 해석 */
+
+/** 스킬이 설치될 수 있는 flavor 디렉터리. 우선순위 순. */
+export const SKILL_FLAVORS = ['.claude', '.codex'];
+
+/**
+ * 형제 스킬의 스크립트 절대경로를 찾는다. 없으면 null.
+ *
+ * 스킬은 폴더 단위로 독립 설치되므로 스킬 간 import 가 불가능하다.
+ * 그래서 서로를 자식 프로세스로 띄우는데, 그러려면 경로를 직접 알아내야 한다.
+ * 설치 형태는 세 가지다 — 프로젝트 로컬(`<repo>/.claude/skills/`),
+ * 홈 전역(`~/.claude/skills/`), 그리고 저장소를 홈 아래로 링크한 개발 설치.
+ *
+ * 예전에는 프로젝트 로컬만 뒤졌다. 그래서 홈 전역으로만 깐 환경에서는
+ * issue-onboard ↔ issue-sync ↔ issue-viz 가 서로를 못 찾고 죽었고,
+ * 사용자가 `.claude/skills/` 에 링크를 손으로 걸어야 굴러갔다.
+ *
+ * 그래서 "자기 자신의 형제" 를 가장 먼저 본다. 호출자가 넘긴 selfUrl 로
+ * `<base>/<자기이름>/scripts/` 를 역산해 그 옆을 뒤지면, 설치 위치와
+ * flavor 가 무엇이든 같이 깔린 한 벌끼리 짝이 맞는다. 링크 설치를 대비해
+ * 링크를 푼 경로(import.meta.url)와 실행된 경로(argv[1])를 둘 다 후보에 넣는다.
+ * 그다음이 프로젝트 로컬, 마지막이 홈 전역이다.
+ *
+ * @param {string} selfUrl 호출하는 스크립트의 `import.meta.url`
+ * @param {string} skill   찾을 스킬 이름 (예: 'issue-viz')
+ * @param {string} script  그 스킬의 scripts/ 아래 파일명
+ * @param {{root?: string}} [opts] root 는 저장소 루트. 주면 프로젝트 로컬도 본다.
+ */
+export function resolveSkillScript(selfUrl, skill, script, { root } = {}) {
+  const bases = [];
+  const add = (base) => {
+    if (base && !bases.includes(base)) bases.push(base);
+  };
+
+  // `<base>/<자기이름>/scripts/<파일>` 에서 <base> 를 역산한다.
+  const siblingBase = (file) => (file ? path.resolve(path.dirname(file), '..', '..') : null);
+
+  let selfFile = null;
+  try {
+    if (selfUrl) selfFile = fileURLToPath(selfUrl);
+  } catch {
+    selfFile = null;
+  }
+  add(siblingBase(selfFile));
+  add(siblingBase(process.argv[1] ? path.resolve(process.argv[1]) : null));
+
+  for (const dir of [root, os.homedir()]) {
+    if (!dir) continue;
+    for (const flavor of SKILL_FLAVORS) add(path.join(dir, flavor, 'skills'));
+  }
+
+  for (const base of bases) {
+    const file = path.join(base, skill, 'scripts', script);
+    if (existsSync(file)) return file;
+  }
+  return null;
+}
+
+/** resolveSkillScript 와 같지만 못 찾으면 어디를 뒤졌는지 알리고 종료한다. */
+export function requireSkillScript(selfUrl, skill, script, opts = {}) {
+  const file = resolveSkillScript(selfUrl, skill, script, opts);
+  if (file) return file;
+  fail(
+    `${skill} 스킬을 찾지 못했다. 프로젝트의 .claude/skills/ 나 ~/.claude/skills/ 에 `
+    + `${skill} 이 설치돼 있는지 확인하라.`,
+  );
+  return null;
 }
 
 /**

@@ -39,7 +39,7 @@ import process from 'node:process';
 import {
   git, fail, parseArgs, repoRoot, currentBranch, isLinkedWorktree, detectBase,
   evidenceKey, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, listWorktrees, issueDir, WORKSPACE_DIR,
+  mirrorEvidence, listWorktrees, issueDir, WORKSPACE_DIR, syncBaseCheckout,
 } from './issue-common.mjs';
 import { createTracker, gitHost, evidenceUrls, setTrackerStatus } from './issue-tracker.mjs';
 import { publishDocumentation } from './issue-docs.mjs';
@@ -53,7 +53,7 @@ import {
   validatePhaseEnvelope,
 } from './issue-phase-contract.mjs';
 
-const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|report-check|pure-tree|status> [options]
+const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|report-check|pure-tree|sync-base|status> [options]
 
   --issue <n>        이슈 번호 (생략 시 브랜치에서 추론)
   --base <branch>    기준 브랜치 고정
@@ -270,6 +270,11 @@ function cmdUrls(args) {
     evidenceUrls({ root, key, issue, branch, mirrorRef: args.mirrorRef, base: args.base }),
     null, 2,
   ));
+}
+
+function cmdSyncBase(args) {
+  const root = repoRoot();
+  console.log(JSON.stringify(syncBaseCheckout({ root, base: args.base }), null, 2));
 }
 
 function cmdStatus(args) {
@@ -734,6 +739,7 @@ switch (sub) {
   case 'mirror': cmdMirror(args); break;
   case 'urls': cmdUrls(args); break;
   case 'report-check': cmdReportCheck(args); break;
+  case 'sync-base': cmdSyncBase(args); break;
   case 'status': cmdStatus(args); break;
   case 'pure-tree': cmdPureTree(args); break;
   case 'phase': cmdPhase(args); break;

@@ -30,7 +30,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber } from './issue-common.mjs';
+import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber, resolveSkillScript } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
 import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, EDGE_CONTEXT_VERSION, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1, kindOfType, extractQuote, sharedConcepts, carryStaleEdges } from './issue-graph-v2.mjs';
 import { detectLlmCommand, enrichEdges } from './issue-llm.mjs';
@@ -468,9 +468,14 @@ function cmdAudit(root, tracker) {
   console.log('AUDIT=1'); console.log('PROBLEMS=0');
 }
 
-function projectSkill(root, skill, script) {
-  return [path.join(root, '.codex', 'skills', skill, 'scripts', script), path.join(root, '.claude', 'skills', skill, 'scripts', script)]
-    .find((file) => existsSync(file)) ?? null;
+/** 형제 스킬 스크립트. 프로젝트 로컬·홈 전역·링크 개발 설치를 모두 본다. */
+function siblingSkill(root, skill, script) {
+  return resolveSkillScript(import.meta.url, skill, script, { root });
+}
+
+/** 못 찾았을 때 어디를 확인해야 하는지 알려 주는 메시지. */
+function missingSkill(skill) {
+  return `${skill} 스킬을 찾지 못했다. 프로젝트의 .claude/skills/ 나 ~/.claude/skills/ 에 설치돼 있는지 확인하라.`;
 }
 
 function reportPath(root, file) {
@@ -481,8 +486,8 @@ function reportPath(root, file) {
 
 function cmdOnboard(root, tracker, opts) {
   if (!existsSync(graphPath(root))) {
-    const sync = projectSkill(root, 'issue-sync', 'issue-sync.mjs');
-    if (!sync) throw new Error('issue-sync 스킬을 찾지 못했다.');
+    const sync = siblingSkill(root, 'issue-sync', 'issue-sync.mjs');
+    if (!sync) throw new Error(missingSkill('issue-sync'));
     const result = spawnSync(process.execPath, [sync], { cwd: root, encoding: 'utf8' });
     process.stdout.write(result.stdout);
     process.stderr.write(result.stderr);
@@ -503,8 +508,8 @@ function cmdOnboard(root, tracker, opts) {
   const visible = opts.all ? ordered : ordered.slice(0, 6);
   const html = opts.out ?? '.issue/onboard/graph.html';
   const image = opts.imageOut ?? '.issue/onboard/graph.webp';
-  const viz = projectSkill(root, 'issue-viz', 'issue-viz.mjs');
-  if (!viz) throw new Error('issue-viz 스킬을 찾지 못했다.');
+  const viz = siblingSkill(root, 'issue-viz', 'issue-viz.mjs');
+  if (!viz) throw new Error(missingSkill('issue-viz'));
   const rendered = spawnSync(process.execPath, [viz, 'render', '--out', html, '--image-out', image], { cwd: root, encoding: 'utf8' });
   process.stdout.write(rendered.stdout);
   process.stderr.write(rendered.stderr);

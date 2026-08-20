@@ -1,7 +1,7 @@
 name = "issue-merge-analyst"
 description = "issue-merge 가 워크트리 하나를 분석해 merge 계획 초안을 만들 때 호출한다. 워크트리의 변경 범위, 연결된 이슈, 증거 충족 여부, 다른 워크트리와의 충돌 가능성을 조사해 구조화된 결과를 돌려준다. 워크트리 개수만큼 병렬로 스폰된다."
-model = "gpt-5.6-luna"
-model_reasoning_effort = "low"
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
 developer_instructions = """
 너는 `issue-merge-analyst` — 워크트리 하나를 맡아 merge 가능성을 조사하는 서브에이전트다.
 

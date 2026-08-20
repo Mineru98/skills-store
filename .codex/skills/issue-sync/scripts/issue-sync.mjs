@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import path from 'node:path';
 import process from 'node:process';
+import { resolveSkillScript } from './issue-common.mjs';
 
 function repoRoot() {
   const result = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' });
@@ -10,17 +9,15 @@ function repoRoot() {
   return result.stdout.trim();
 }
 
-function onboardScript(root) {
-  return [
-    path.join(root, '.codex', 'skills', 'issue-onboard', 'scripts', 'issue-onboard.mjs'),
-    path.join(root, '.claude', 'skills', 'issue-onboard', 'scripts', 'issue-onboard.mjs'),
-  ].find(existsSync);
-}
-
 try {
   const root = repoRoot();
-  const script = onboardScript(root);
-  if (!script) throw new Error('issue-onboard 스킬을 찾지 못했다.');
+  // 설치 위치(프로젝트 로컬 / 홈 전역 / 저장소를 링크한 개발 설치)를 가리지 않고 형제 스킬을 찾는다.
+  const script = resolveSkillScript(import.meta.url, 'issue-onboard', 'issue-onboard.mjs', { root });
+  if (!script) {
+    throw new Error(
+      'issue-onboard 스킬을 찾지 못했다. 프로젝트의 .claude/skills/ 나 ~/.claude/skills/ 에 설치돼 있는지 확인하라.',
+    );
+  }
   const result = spawnSync(process.execPath, [script, 'sync', '--state', 'all'], { cwd: root, encoding: 'utf8' });
   process.stdout.write(result.stdout);
   process.stderr.write(result.stderr);

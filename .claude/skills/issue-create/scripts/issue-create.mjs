@@ -119,7 +119,7 @@ request.md 는 ${WORKSPACE_DIR}/<번호>/ 에 남고, ${WORKSPACE_DIR} 는 .giti
 }
 
 function run(cmd, args, opts = {}) {
-  const res = spawnSync(cmd, args, { encoding: 'utf8', ...opts });
+  const res = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
   if (res.error) throw res.error;
   return res;
 }
@@ -442,7 +442,7 @@ function cmdCreate(root, opts, tracker) {
   console.log('');
   console.log(`ISSUE_NUMBER=${number}`);
   console.log(`ISSUE_URL=${url}`);
-  console.log(`NEXT=/issue-start #${number}`);
+  console.log(`NEXT=$issue-start #${number}`);
 }
 
 /* ------------------------------------------------------------------- main */
