@@ -125,10 +125,10 @@ cp /tmp/issue-draft.md .issue/<번호>/request.md
 
 ## DAG 배선 (issue-onboard 사용 시)
 
-등록과 `status:open` 전환이 모두 성공했으면 `$issue-graph-sync #<번호> open`을 호출한다.
-그래프 파일이 없으면 이 호출은 새 캐시를 만들지 않고 건너뛴다. 그래프가 있으면 `issue-onboard`가
-GitHub를 다시 읽어 캐시를 갱신한다. **분할 때 확정한 의존은 그때만 알 수 있으므로** 버리지 말고
-엣지로 남긴다. 본문에 `depends on #N` 을 적으면 sync가 자동 감지하고, 즉시 걸려면 아래로 근거와 함께 남긴다.
+`.issue/graph.json` 이 있으면(issue-onboard 사용 중) 새로 만든 이슈의 노드는 `status:open` 자동 부착이
+`setTrackerStatus` 를 지나며 그래프에 자동 등록된다. **분할 때 확정한 의존은 그때만 알 수 있으므로**
+버리지 말고 엣지로 남긴다. 본문에 `depends on #N` 을 적으면 `issue-onboard sync` 가 자동 감지하고,
+즉시 걸려면 아래로 근거와 함께 남긴다.
 
 ```bash
 node <issue-onboard>/scripts/issue-onboard.mjs link <새 이슈> <선행 이슈> --why "<왜 막히는지>"

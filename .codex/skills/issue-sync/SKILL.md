@@ -22,4 +22,4 @@ node <issue-sync>/scripts/issue-sync.mjs
 온보딩 추천에 사용하지 않는다.
 
 `issue-onboard`는 graph.json이 없을 때 이 스킬을 먼저 호출한다. 상태 전이 뒤의 선택적 캐시
-갱신은 `issue-graph-sync`가 담당한다.
+갱신은 `setTrackerStatus` 내부에서 자동으로 처리한다.

@@ -10,9 +10,9 @@
 질문 — issue-merge 8단계(다음 행동 선택)
 다음으로 무엇을 할까요?
 
-1. 다른 이슈 착수 (권장)   남은 열린 이슈 중 하나를 골라 /issue-start 로 넘어갑니다
-2. 보류분 마무리           이번에 빠진 워크트리를 /issue-end 로 정리합니다
-3. 새 이슈 등록            /issue-create 로 넘어갑니다
+1. 다른 이슈 착수 (권장)   남은 열린 이슈 중 하나를 골라 $issue-start 로 넘어갑니다
+2. 보류분 마무리           이번에 빠진 워크트리를 $issue-end 로 정리합니다
+3. 새 이슈 등록            $issue-create 로 넘어갑니다
 4. 여기서 종료             마무리 보고만 남기고 끝냅니다
 
 번호로 답해 주세요.
@@ -45,7 +45,7 @@ node <issue-onboard>/scripts/issue-onboard.mjs plan     # 방금 close 로 BLOCK
 
 ## 1번 — 다른 이슈 착수
 
-이슈 목록을 번호·제목·라벨로 보여주고 고르게 한 뒤 `/issue-start <번호>` 로 넘긴다.
+이슈 목록을 번호·제목·라벨로 보여주고 고르게 한 뒤 `$issue-start <번호>` 로 넘긴다.
 
 `.issue/merge/base` 에서 시작하지 않는다. `issue-start` 가 새 워크트리를 만든다. base-tree 를 이미 제거했다면 그대로 둔다.
 
@@ -54,16 +54,16 @@ node <issue-onboard>/scripts/issue-onboard.mjs plan     # 방금 close 로 BLOCK
 이번 회차에서 빠진 워크트리를 무엇이 부족했는지와 함께 보여주고, 하나를 골라 그 워크트리에서 `issue-end` 를 돌린다.
 
 ```text
-#64  before 증거 없음    → 해당 워크트리에서 /issue-end (pure-tree 로 before 재캡처)
-#71  PR 없음             → 해당 워크트리에서 /issue-end (PR 생성)
-#83  CI 실패             → 원인을 고친 뒤 다시 /issue-end
+#64  before 증거 없음    → 해당 워크트리에서 $issue-end (pure-tree 로 before 재캡처)
+#71  PR 없음             → 해당 워크트리에서 $issue-end (PR 생성)
+#83  CI 실패             → 원인을 고친 뒤 다시 $issue-end
 ```
 
-정리가 끝나면 다시 `/issue-merge` 로 돌아와 다음 회차를 돈다.
+정리가 끝나면 다시 `$issue-merge` 로 돌아와 다음 회차를 돈다.
 
 ## 3번 — 새 이슈 등록
 
-`/issue-create` 로 넘긴다.
+`$issue-create` 로 넘긴다.
 
 통합 테스트에서 회귀가 나왔다면 **그 내용을 그대로 이슈 초안에 담아 넘긴다.** 어떤 조합에서 무엇이 깨졌는지, 재현 조건이 무엇인지가 이미 손에 있다.
 
@@ -72,7 +72,7 @@ node <issue-onboard>/scripts/issue-onboard.mjs plan     # 방금 close 로 BLOCK
 마무리 보고를 출력하고 끝낸다.
 
 ```text
-남은 워크트리   <n>개 — 통합하려면 /issue-merge
+남은 워크트리   <n>개 — 통합하려면 $issue-merge
 남은 이슈       <n>건 열림
 ```
 

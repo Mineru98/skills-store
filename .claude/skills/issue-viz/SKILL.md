@@ -1,6 +1,6 @@
 ---
 name: issue-viz
-description: issue-onboard 그래프를 오프라인 HTML과 webp 이미지로 렌더합니다. "이슈 그래프 그려줘", "DAG 시각화", "그래프 이미지", "/issue-viz" 요청에 사용합니다.
+description: issue-onboard 그래프를 오프라인 HTML과 webp 이미지로 렌더합니다. "이슈 그래프 그려줘", "DAG 시각화", "그래프 이미지", "$issue-viz" 요청에 사용합니다.
 ---
 
 # Issue Viz

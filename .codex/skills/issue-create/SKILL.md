@@ -30,7 +30,6 @@ description: 이미 굴러가는 저장소에서 코드를 바꾸는 요청이�
     <always>references/issue-draft.md — 초안 작성과 라벨 선택</always>
     <always>references/label-audit.md — 라벨 부착과 기존 이슈 라벨 점검</always>
     <always>references/create-and-handoff.md — 등록과 issue-start 인계</always>
-    <branch name="graph status sync" when="등록 뒤 status:open 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>
@@ -55,7 +54,6 @@ description: 이미 굴러가는 저장소에서 코드를 바꾸는 요청이�
     <rule>만든 이슈에는 성격 라벨을 반드시 하나 이상 붙인다. 스크립트가 성격 라벨 없는 `create` 를 exit 2 로 막는다.</rule>
     <rule>진행 상태 라벨(`status:*`)은 상호배타다. 바꿀 때는 `status` 명령으로 교체하고, 직접 add/remove 를 조합하지 않는다.</rule>
     <rule>상태 전환 실패는 흐름을 막지 않는다. 경고만 남기고 진행한 뒤 마무리 보고에 적는다.</rule>
-    <rule>`status:open` 전환이 성공한 뒤에는 `issue-graph-sync`를 호출한다. 그래프가 없거나 동기화에 실패해도 등록·인계를 막지 않는다.</rule>
     <rule>라벨을 새로 만들거나 기존 이슈의 라벨을 바꾸는 것은 사용자 승인 후에만 한다. `status:open` 자동 부착은 예외다.</rule>
     <rule>이슈 상태 변경, 코멘트 작성, PR 생성을 하지 않는다.</rule>
   </hard-rules>
@@ -269,7 +267,6 @@ both            사용자 플로우 전체를 다루거나 API 계약 변경이 
 
 항목마다 `create` 를 따로 호출한다. 실패한 항목은 **건너뛰고 계속** 하고, 성공·실패를 모아 마지막에 한 번 보고한다.
 `status:open` 은 등록 성공 직후 스크립트가 자동으로 붙인다. `--label` 로 직접 넘기지 않는다.
-성공한 이슈마다 이어서 `$issue-graph-sync #<번호> open`을 호출한다. 그래프가 없거나 sync가 실패하면 경고와 결과만 남기고 다음 등록·라벨 점검을 계속한다.
 
 ## 7단계 — 기존 이슈 라벨 점검
 

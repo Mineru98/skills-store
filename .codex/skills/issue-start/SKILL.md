@@ -36,7 +36,6 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     <always>references/implementation.md — 구현과 무확인 커밋 규칙</always>
     <always>references/evidence-capture.md — 전후 캡처·바운딩 박스·미러 커밋·이슈 코멘트</always>
     <always>references/next-actions.md — 마무리 뒤 다음 행동 4지선다</always>
-    <branch name="graph status sync" when="status:plan 또는 status:in-process 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>
@@ -54,7 +53,6 @@ description: GitHub 이슈 번호를 받아 본문·코멘트·첨부 이미지�
     <rule>증거 이미지는 webp 로만 만들고, after 에는 변경 구간을 가리키는 바운딩 박스를 넣는다.</rule>
     <rule>첨부 이미지는 요약만 믿지 않고 Read 로 직접 열어본다.</rule>
     <rule>이슈 상태 변경, PR 생성, merge 를 하지 않는다. 각각 issue-end 와 issue-merge 의 몫이다.</rule>
-    <rule>`status:plan`과 `status:in-process` 전환이 성공한 뒤에는 각각 `issue-graph-sync`를 호출한다. 그래프가 없거나 동기화에 실패해도 착수 흐름을 막지 않는다.</rule>
     <rule>사용자에게 말을 걸 때는 — 전이 보고든 질문이든 — 현재 단계를 반드시 함께 밝힌다.
       본문이 5줄 미만이면 앞에, 5줄 이상이면 마지막 줄에 둔다. 형식은 `# 현재 단계 밝히기` 를 따른다.</rule>
   </hard-rules>
@@ -387,7 +385,6 @@ node <skill>/scripts/issue-start.mjs fetch {issue_number}
 
 수집에 성공하면 스크립트가 진행 상태 라벨을 `status:plan` 으로 옮긴다(출력의 `STATUS=`).
 이슈를 잡았다는 신호이므로 별도 호출이 필요 없다. 막으려면 `--no-status`.
-전환이 성공했으면 이어서 `$issue-graph-sync #<번호> plan`을 호출한다. 그래프 미사용 또는 sync 실패는 경고로만 남긴다.
 
 ## 3단계 — 작업 성격 판정
 
@@ -423,7 +420,6 @@ neither         문서·설정만 바뀜 — 캡처 대신 변경 근거를 글�
 `references/worktree.md` 를 따른다. 배치 방식이 정해지지 않았으면 여기서 딱 한 번 묻고 고정한다.
 
 워크트리가 서면 스크립트가 진행 상태를 `status:in-process` 로 옮긴다. 코드가 돌아가기 시작했다는 뜻이다.
-전환이 성공했으면 파일을 고치기 전에 `$issue-graph-sync #<번호> in-process`를 호출한다. 그래프 동기화 실패는 워크트리·before 증거 단계를 막지 않는다.
 
 ## 6단계 — before 캡처
 

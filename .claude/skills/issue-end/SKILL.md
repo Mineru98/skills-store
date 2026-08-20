@@ -1,6 +1,6 @@
 ---
 name: issue-end
-description: issue-start 가 증거와 리포트를 게시하고 사람이 승인한 작업을 마무리합니다. 기존 증거의 완결성과 게시 상태를 확인하고, 부족하거나 바뀐 경우에만 보강·재게시한 뒤 PR 을 만듭니다. merge 는 하지 않고 issue-merge 로 넘깁니다. `/issue-end`, "이슈 마무리", "작업 종료", "승인한 작업 PR" 요청에 사용합니다.
+description: issue-start 가 증거와 리포트를 게시하고 사람이 승인한 작업을 마무리합니다. 기존 증거의 완결성과 게시 상태를 확인하고, 부족하거나 바뀐 경우에만 보강·재게시한 뒤 PR 을 만듭니다. merge 는 하지 않고 issue-merge 로 넘깁니다. `$issue-end`, "이슈 마무리", "작업 종료", "승인한 작업 PR" 요청에 사용합니다.
 ---
 
 <skill>
@@ -140,7 +140,7 @@ PR 생성은 그 다음에 따로 묻겠습니다.
 
 ```mermaid
 flowchart TD
-    A[/"/issue-end"/] --> B[context: 워크트리·브랜치·이슈·PR·증거 상태]
+    A[/"$issue-end"/] --> B[context: 워크트리·브랜치·이슈·PR·증거 상태]
     B --> C{상황 확인}
     C -- 워크트리 아님 / 이슈 불명확 --> C1[AskUserQuestion] --> D
     C -- 정상 --> D{evidenceComplete?}
@@ -162,9 +162,9 @@ flowchart TD
     L -- 예 --> M["gh pr create · 관련 이슈 #N (Closes 금지)"]
     L -- 아니오 --> N
     M --> N[다음 행동 4지선다]
-    N -->|merge| O[/issue-merge 위임/]
-    N -->|다른 이슈| P[/issue-start 위임/]
-    N -->|새 이슈| Q[/issue-create 위임/]
+    N -->|merge| O[$issue-merge 위임/]
+    N -->|다른 이슈| P[$issue-start 위임/]
+    N -->|새 이슈| Q[$issue-create 위임/]
     N -->|종료| R[보고]
 ```
 

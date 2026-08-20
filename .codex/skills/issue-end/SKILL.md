@@ -26,7 +26,6 @@ description: issue-start 가 증거와 리포트를 게시하고 사람이 승�
     <always>references/evidence-recheck.md — 증거 완결성 검사와 pure-tree 재캡처</always>
     <always>references/report-and-pr.md — 게시 상태 확인·조건부 보강·PR</always>
     <always>references/next-actions.md — 다음 행동 4지선다와 issue-merge 위임</always>
-    <branch name="graph status sync" when="PR 생성 뒤 status:review 전환이 성공함">../issue-graph-sync/SKILL.md — issue-onboard 그래프 캐시 동기화</branch>
   </routing>
 
   <subagents>
@@ -48,7 +47,6 @@ description: issue-start 가 증거와 리포트를 게시하고 사람이 승�
     <rule>이슈 번호를 확정하지 못한 상태에서 임의의 이슈에 코멘트하지 않는다.</rule>
     <rule>측정값과 캡처를 지어내지 않는다. 악화된 지표도 그대로 적는다.</rule>
     <rule>미러 push 뒤 메인 체크아웃 최신화를 시도한다. 막히면 사용자와 함께 정하고, 확인 없이 치워두거나 브랜치를 갈아타지 않는다.</rule>
-    <rule>PR 생성 뒤 `status:review` 전환이 성공하면 `issue-graph-sync`를 호출한다. 그래프가 없거나 동기화에 실패해도 PR 결과를 되돌리거나 다음 단계를 막지 않는다.</rule>
     <rule>사용자에게 말을 걸 때는 — 전이 보고든 질문이든 — 현재 단계를 반드시 함께 밝힌다.
       본문이 5줄 미만이면 앞에, 5줄 이상이면 마지막 줄에 둔다. 형식은 `# 현재 단계 밝히기` 를 따른다.</rule>
   </hard-rules>
@@ -346,8 +344,6 @@ TodoWrite 로 아래 11개를 만든다. private 저장소에서는 7.5 단계�
 ```bash
 node <skill>/scripts/issue-end.mjs status {issue_number} review
 ```
-
-전환이 성공했으면 이어서 `$issue-graph-sync #<번호> review`를 호출한다. 그래프 미사용 또는 sync 실패는 마무리 보고에만 남긴다.
 
 7단계(메인 체크아웃 최신화)는 흐름을 막지 않는다. 안전하지 않아 건너뛰었으면 사용자와 함께 정하고, 결정이 늦어지면 나머지를 먼저 끝낸 뒤 마무리 보고에 결과를 적는다.
 

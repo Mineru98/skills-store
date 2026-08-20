@@ -10,9 +10,9 @@ AskUserQuestion 으로 제시한다. 순서를 바꾸지 않는다. 새 작업�
 ```text
 질문   issue-end 11단계(다음 행동 선택)입니다. PR 까지 끝났습니다. 다음으로 무엇을 할까요?
 
-1. 다른 이슈 착수 (권장)   등록된 열린 이슈 중 하나를 골라 /issue-start
-2. 워크트리 전부 merge     지금까지 쌓인 워크트리를 모아 /issue-merge
-3. 새 이슈 등록            /issue-create
+1. 다른 이슈 착수 (권장)   등록된 열린 이슈 중 하나를 골라 $issue-start
+2. 워크트리 전부 merge     지금까지 쌓인 워크트리를 모아 $issue-merge
+3. 새 이슈 등록            $issue-create
 4. 종료                    여기서 마친다
 ```
 
@@ -30,7 +30,7 @@ git worktree list
 
 ## 1번 — 다른 이슈 착수
 
-이슈 목록을 번호·제목·라벨로 보여주고 고르게 한 뒤 `/issue-start <번호>` 로 넘긴다.
+이슈 목록을 번호·제목·라벨로 보여주고 고르게 한 뒤 `$issue-start <번호>` 로 넘긴다.
 
 현재 워크트리에서 그대로 시작하지 않는다. `issue-start` 가 새 워크트리를 만든다.
 
@@ -39,7 +39,7 @@ git worktree list
 `issue-merge` 로 위임한다. **이 스킬이 직접 merge 하지 않는다.**
 
 ```text
-/issue-merge
+$issue-merge
 ```
 
 넘길 때 아래를 함께 전달한다.
@@ -59,14 +59,14 @@ sh <migrate-skill-agent>/scripts/migrate-skill-agent.sh \
 
 ## 3번 — 새 이슈 등록
 
-`/issue-create` 로 넘긴다. 없으면 `issue-start` 의 `references/intake.md` 에 있는 설치 폴백 체인을 그대로 쓴다.
+`$issue-create` 로 넘긴다. 없으면 `issue-start` 의 `references/intake.md` 에 있는 설치 폴백 체인을 그대로 쓴다.
 
 ## 4번 — 종료
 
 마무리 보고를 출력하고 끝낸다. 워크트리는 지우지 않는다.
 
 ```text
-남은 워크트리   <n>개 — 통합하려면 /issue-merge
+남은 워크트리   <n>개 — 통합하려면 $issue-merge
 ```
 
 ## 하지 않는 것
