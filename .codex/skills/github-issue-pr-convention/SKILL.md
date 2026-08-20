@@ -1,5 +1,5 @@
 ---
-name: convention
+name: github-issue-pr-convention
 description: Scan a GitHub repository's contribution conventions and write them to a replaceable local instructions block. Use when joining, forking, or cloning a repository, when the user asks how issues, pull requests, base branches, or work branches should be handled, or when `AGENTS.local.md` / `CLAUDE.local.md` should reflect the repository's actual contribution rules.
 ---
 
@@ -12,8 +12,8 @@ Read the repository's GitHub metadata and recent contribution history, then reco
 Choose the active runtime. Do not write both files unless the user explicitly asks for both.
 
 ```bash
-node .codex/skills/convention/scripts/convention.mjs scan --flavor codex
-node .claude/skills/convention/scripts/convention.mjs scan --flavor claude
+node .codex/skills/github-issue-pr-convention/scripts/convention.mjs scan --flavor codex
+node .claude/skills/github-issue-pr-convention/scripts/convention.mjs scan --flavor claude
 ```
 
 Use `--cwd <repository>` when the target is not the current directory.
