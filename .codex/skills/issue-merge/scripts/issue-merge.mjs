@@ -25,11 +25,12 @@ import { mkdirSync, existsSync, rmSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
-  git, fail, parseArgs, repoRoot, currentBranch, detectBase,
+  git, run, fail, parseArgs, repoRoot, currentBranch, detectBase,
   inferIssue, listWorktrees, listEvidence, evidenceRel, setTerminalTitle, WORKSPACE_DIR,
 } from './issue-common.mjs';
 import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
 import { cmdPhase } from './issue-merge-phase.mjs';
+import { gateAction } from './issue-ontology.mjs';
 
 const USAGE = `Usage: node issue-merge.mjs <inventory|base-tree|plan-dir|preflight|resolve|merge|close|status|cleanup> [options]
 
@@ -476,14 +477,48 @@ const MERGE_HINT = {
   unknown: 'gh pr checks 와 gh pr view 로 확인하세요.',
 };
 
+function prHeadRef(root, number) {
+  const result = run('gh', ['pr', 'view', String(number), '--json', 'headRefName'], { cwd: root });
+  if (result.code !== 0) {
+    fail('PR head branch 조회 실패: ' + (result.err || result.out));
+  }
+  let data;
+  try {
+    data = JSON.parse(result.out);
+  } catch {
+    fail('PR head branch 응답이 JSON이 아닙니다.');
+  }
+  if (!data.headRefName) fail('PR head branch가 비어 있어 merge하지 않습니다.');
+  return data.headRefName;
+}
+
 function cmdMerge(args) {
   if (!args.pr) fail('--pr <번호> 가 필요합니다.');
+  const root = repoRoot();
   const method = args.method || 'squash';
   if (!['squash', 'merge', 'rebase'].includes(method)) {
     fail(`알 수 없는 merge 방식: ${method} (가능: squash, merge, rebase)`);
   }
 
   // 증거 URL 이 브랜치에 의존할 수 있으므로 --delete-branch 를 붙이지 않는다.
+  const headRef = prHeadRef(root, args.pr);
+  const issue = inferIssue(headRef);
+  if (!issue) fail('PR head branch에서 연결 이슈 번호를 추론할 수 없어 merge하지 않습니다.');
+  const evidence = listEvidence(root, issue);
+  const observed = {
+    gitRepo: git(['rev-parse', '--show-toplevel'], { cwd: root }).code === 0,
+    trackerAuth: createTracker(root).auth().ok,
+    issueExists: Boolean(issue),
+    evidenceComplete: evidence.some((file) => file.includes('/before/'))
+      && evidence.some((file) => file.includes('/after/')),
+  };
+  const guard = gateAction({
+    action: 'merge',
+    graphPresent: existsSync(path.join(root, WORKSPACE_DIR, 'graph.json')),
+    observed,
+  });
+  if (!guard.ok) fail('merge 온톨로지 guard 실패: ' + guard.error);
+
   const r = gitHost.prMerge(args.pr, method);
   if (!r.ok) {
     const reason = r.err || r.out;

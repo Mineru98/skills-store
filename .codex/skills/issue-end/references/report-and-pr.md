@@ -343,6 +343,11 @@ gh issue view 59 --json comments \
 
 ## 10단계 — PR 생성
 
+PR 생성 직전에 end action fact guard를 실행한다. island이 없는 복사 설치에서는 guard가
+skip하고, island이 있으면 tracker 인증·이슈 식별·before/after evidence 완결성을 검증한다.
+
+    node <skill>/scripts/issue-end.mjs ontology-guard --issue {n}
+
 **증거가 없으면 PR 을 만들지 않는다.** 이유를 보고하고 멈춘다.
 
 `context` 의 `openPr` 가 있으면 새로 만들지 않고 그 PR 에 코멘트할지 AskUserQuestion 으로 묻는다.

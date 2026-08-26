@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-store.local/schemas/actions/merge.schema.json",
+  "title": "Issue merge action fact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action",
+    "graphPresent",
+    "observed"
+  ],
+  "properties": {
+    "action": {
+      "const": "merge"
+    },
+    "graphPresent": {
+      "const": true
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gitRepo",
+        "trackerAuth",
+        "issueExists",
+        "evidenceComplete"
+      ],
+      "properties": {
+        "gitRepo": {
+          "const": true
+        },
+        "trackerAuth": {
+          "const": true
+        },
+        "issueExists": {
+          "const": true
+        },
+        "evidenceComplete": {
+          "const": true
+        }
+      }
+    }
+  }
+}

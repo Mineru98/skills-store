@@ -44,6 +44,17 @@ sync는 이전 캐시 노드를 보존하지 않고 GitHub snapshot에서 다시
 원자 저장한다. `migrate`는 V1의 `blocks`를 역방향 `depends-on`으로 정규화하지만 snapshot을
 `migrating`으로 남긴다. `sync`와 `audit`을 통과하기 전에는 이를 실행 가능한 그래프로 취급하지 않는다.
 
+## 온톨로지 검증
+
+tools/issue-ontology가 graph-v2 JSON Schema와 create/start/end/merge action schema의
+정본이다. Ajv는 문서 shape, 필수 키, 허용된 enum과 action precondition을 검사하고,
+기존 issue-graph-v2 walker는 dangling edge, parent-of 순환·중복 parent, duplicate 승인과
+close 불일치를 검사한다. Ajv가 없는 복사 설치의 경계 guard는 skip하지만, 이 저장소의
+validate와 island 테스트는 Ajv 없이는 실패한다.
+
+노드 상태를 계산할 때는 tracker state의 CLOSED 또는 MERGED가 stale status 라벨보다
+우선한다. 따라서 CLOSED 이슈에 status:open이 남아 있어도 close/done으로 분류한다.
+
 ## 관계와 실행 규칙
 
 `depends-on`, `parent-of`, `duplicate-of`, `relates-to`, `supersedes`만 허용한다.

@@ -1,0 +1,142 @@
+{
+  "version": 2,
+  "provider": "github",
+  "repository": "Mineru98/skills-store",
+  "updatedAt": "2026-08-26T00:00:00.000Z",
+  "snapshot": {
+    "status": "complete",
+    "fetchedAt": "2026-08-26T00:00:00.000Z",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "reason": null
+  },
+  "nodes": {
+    "101": {
+      "id": "github:Mineru98/skills-store#101",
+      "number": 101,
+      "title": "이슈 그래프 온톨로지 v1",
+      "status": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "url": "https://github.com/Mineru98/skills-store/issues/101",
+      "context": {
+        "problem": {
+          "value": "그래프 shape가 명시되지 않았다",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "outcome": {
+          "value": "Ajv로 검증 가능",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "scope": {
+          "value": "graph-v2",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "acceptance": {
+          "value": "valid graph",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "result": {
+          "value": "unknown",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "components": {
+          "value": [
+            "issue-onboard"
+          ],
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "decisions": {
+          "value": "Ajv island",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "evidence": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        }
+      },
+      "provenance": {
+        "url": "https://github.com/Mineru98/skills-store/issues/101",
+        "revision": "fixture-revision",
+        "observedAt": "2026-08-26T00:00:00.000Z"
+      }
+    },
+    "102": {
+      "id": "github:Mineru98/skills-store#102",
+      "number": 102,
+      "title": "선행 fixture",
+      "status": "close",
+      "labels": [],
+      "url": "https://github.com/Mineru98/skills-store/issues/102",
+      "context": {
+        "problem": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "outcome": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "scope": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "acceptance": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "result": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "components": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "decisions": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        },
+        "evidence": {
+          "value": "fixture",
+          "reason": "fixture",
+          "source": "fixture"
+        }
+      },
+      "provenance": {
+        "url": "https://github.com/Mineru98/skills-store/issues/102",
+        "revision": "fixture-revision",
+        "observedAt": "2026-08-26T00:00:00.000Z"
+      }
+    }
+  },
+  "edges": [
+    {
+      "from": 101,
+      "to": 102,
+      "type": "depends-on",
+      "rationale": "fixture",
+      "createdBy": "sync",
+      "createdAt": "2026-08-26T00:00:00.000Z",
+      "provenance": {
+        "url": "https://github.com/Mineru98/skills-store/issues/101",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    }
+  ]
+}

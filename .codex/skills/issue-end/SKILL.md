@@ -339,6 +339,10 @@ TodoWrite 로 아래 11개를 만든다. private 저장소에서는 7.5 단계�
 `references/report-and-pr.md` 를 따른다. 게시본이 현재 로컬 증거와 같으면 재게시와 코멘트 갱신을 생략한다.
 증거가 부족하거나 게시 뒤 바뀌었다면 보강·재게시를 끝낸 뒤 PR 로 넘어간다.
 
+10단계에서 PR을 만들기 직전에 다음 guard를 실행한다.
+
+    node <skill>/scripts/issue-end.mjs ontology-guard --issue {issue_number}
+
 10단계에서 PR 을 만든 직후 진행 상태를 `status:review` 로 옮긴다. 다른 전환과 달리 이건 자동이 아니다.
 
 ```bash

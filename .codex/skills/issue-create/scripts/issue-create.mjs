@@ -35,10 +35,11 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import {
-  repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, readIssueSettings,
+  git, repoRoot, issueDir, ensureIgnoreBlock, parseIssueNumber, readIssueSettings,
   WORKSPACE_DIR, STATUS_ORDER, typeLabels, isStatusLabel,
 } from './issue-common.mjs';
 import { createTracker, gitHost, setTrackerStatus } from './issue-tracker.mjs';
+import { gateAction } from './issue-ontology.mjs';
 
 export { parseIssueNumber };
 
@@ -406,6 +407,15 @@ function cmdCreate(root, opts, tracker) {
     console.log(`(dry-run) gh ${args.map((arg) => (/\s/.test(arg) ? JSON.stringify(arg) : arg)).join(' ')}`);
     console.log('\n아무것도 생성하지 않았다.');
     return;
+  }
+
+  const guard = gateAction('create', {
+    gitRepo: git(['rev-parse', '--show-toplevel'], { cwd: root }).code === 0,
+    trackerAuth: tracker.auth().ok,
+  });
+  if (!guard.ok) {
+    console.error('✗ create 온톨로지 guard 실패: ' + guard.error);
+    process.exit(2);
   }
 
   const res = tracker.issueCreate({

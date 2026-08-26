@@ -29,7 +29,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync, realpathSync, renam
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { repoRoot, WORKSPACE_DIR, GRAPH_FILE_NAME, isStatusLabel, typeLabels, parseIssueNumber, resolveSkillScript } from './issue-common.mjs';
 import { createTracker } from './issue-tracker.mjs';
 import { GRAPH_VERSION as V2_GRAPH_VERSION, EDGE_TYPES as V2_EDGE_TYPES, ORDERING_TYPES as V2_ORDERING_TYPES, CONTEXT_FIELDS, EDGE_CONTEXT_VERSION, digest, normalizeEdge, edgeKey, parseDecisionComments, decisionEdge, resolveDecisions, auditGraph, migrateGraphV1, kindOfType, extractQuote, sharedConcepts, carryStaleEdges } from './issue-graph-v2.mjs';
@@ -46,6 +46,32 @@ export const ORDERING_TYPES = V2_ORDERING_TYPES;
 const DONE = 'close';
 const IN_PROGRESS = new Set(['plan', 'in-process', 'review']);
 function unknownField(reason, source) { return { value: 'unknown', reason, source }; }
+
+function ontologyEntry(start = process.cwd()) {
+  if (process.env.ISSUE_ONTOLOGY_ROOT) {
+    return path.join(path.resolve(process.env.ISSUE_ONTOLOGY_ROOT), 'validate.mjs');
+  }
+  let current = path.resolve(start);
+  while (true) {
+    const candidate = path.join(current, 'tools', 'issue-ontology', 'validate.mjs');
+    if (existsSync(candidate)) return candidate;
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return null;
+}
+
+const ONTOLOGY_ENTRY = ontologyEntry();
+let ontologyModule = null;
+let ontologyLoadError = null;
+if (ONTOLOGY_ENTRY) {
+  try {
+    ontologyModule = await import(pathToFileURL(ONTOLOGY_ENTRY).href);
+  } catch (error) {
+    ontologyLoadError = error;
+  }
+}
 
 /* --------------------------------------------------------------- graph I/O */
 
@@ -86,11 +112,12 @@ export function saveGraph(root, graph, { now } = {}) {
 
 /* --------------------------------------------------------------- 상태 파생 */
 
-/** 라벨과 트래커 state 로 노드 상태를 정한다. status:* 라벨 우선, 없으면 state 로 폴백. */
+/** 트래커의 종료 state를 먼저 반영하고, 열린 이슈만 status:* 라벨로 세부 상태를 정한다. */
 export function deriveStatus(labels = [], state) {
+  if (['CLOSED', 'MERGED'].includes(String(state ?? '').toUpperCase())) return 'close';
   const status = labels.map((l) => (typeof l === 'string' ? l : l.name)).find(isStatusLabel);
   if (status) return status.slice('status:'.length);
-  return ['CLOSED', 'MERGED'].includes(String(state ?? '').toUpperCase()) ? 'close' : 'open';
+  return 'open';
 }
 
 /** 노드에서 우선순위 랭크를 뽑는다. P0=0 … 라벨 없으면 뒤로. */
@@ -413,8 +440,53 @@ function cmdNext(root, tracker) {
   console.log(`NEXT=/issue-start #${n}`);
 }
 
-function cmdValidate(root, tracker) {
-  const graph = loadGraph(root, tracker.provider);
+function graphFromFile(root, file) {
+  const resolved = path.resolve(root, file);
+  if (!existsSync(resolved)) {
+    console.error('✗ 그래프 파일이 없습니다: ' + resolved);
+    process.exit(1);
+  }
+  try {
+    return JSON.parse(readFileSync(resolved, 'utf8'));
+  } catch (error) {
+    console.error('✗ 그래프 JSON 파싱 실패: ' + error.message);
+    process.exit(1);
+  }
+}
+
+function ontologyProblems(graph, { required = false } = {}) {
+  if (!ontologyModule || ontologyModule.ontologyAvailable === false) {
+    if (required) {
+      console.error('✗ Ajv 온톨로지를 사용할 수 없습니다. tools/issue-ontology에서 npm install을 실행하세요.');
+      if (ontologyLoadError) console.error('  ' + ontologyLoadError.message);
+      process.exit(2);
+    }
+    return [];
+  }
+  try {
+    const result = ontologyModule.validateGraphDocument(graph);
+    return result.valid ? [] : result.errors.map((error) =>
+      (error.instancePath || '/') + ' ' + error.message);
+  } catch (error) {
+    if (required) {
+      console.error('✗ Ajv 온톨로지 검증 실패: ' + error.message);
+      process.exit(2);
+    }
+    throw error;
+  }
+}
+
+function cmdValidate(root, tracker, opts = {}) {
+  const graph = opts.graph ? graphFromFile(root, opts.graph) : loadGraph(root, tracker.provider);
+  const shapeProblems = ontologyProblems(graph, { required: true });
+  if (shapeProblems.length) {
+    console.log('AJV_VALID=0');
+    for (const problem of shapeProblems) console.log('  - ' + problem);
+    console.log('VALID=0');
+    console.log('PROBLEMS=' + shapeProblems.length);
+    process.exit(1);
+  }
+  console.log('AJV_VALID=1');
   const problems = auditGraph(graph);
 
   const cycle = findCycle(graph);
@@ -498,6 +570,7 @@ function cmdOnboard(root, tracker, opts) {
   const openIssues = tracker.issueList({ state: 'open', limit: 200, fields: 'number,title,labels,url,state,updatedAt' });
   if (openIssues === null) throw new Error('GitHub 열린 이슈를 조회하지 못했다.');
   const problems = auditGraph(graph);
+  problems.push(...ontologyProblems(graph));
   const cycle = findCycle(graph);
   if (cycle) problems.push(`순환 의존: ${cycle.join(' → ')}`);
   if (problems.length) throw new Error(`안전하지 않은 그래프: ${problems.join(' / ')}`);
@@ -534,7 +607,7 @@ function usage(exitCode = 1) {
   node issue-onboard.mjs unlink <from> <to> [--type <type>]
   node issue-onboard.mjs plan [--json]
   node issue-onboard.mjs next
-  node issue-onboard.mjs validate
+  node issue-onboard.mjs validate [--graph <path>]
   node issue-onboard.mjs audit
   node issue-onboard.mjs migrate
 
@@ -570,6 +643,7 @@ function main() {
     else if (arg === '--no-llm') opts.noLlm = true;
     else if (arg === '--out') opts.out = argv[++i];
     else if (arg === '--image-out') opts.imageOut = argv[++i];
+    else if (arg === '--graph') opts.graph = argv[++i];
     else if (arg.startsWith('-')) { console.error(`✗ 알 수 없는 옵션: ${arg}`); usage(); }
     else positionals.push(arg);
   }
@@ -583,7 +657,7 @@ function main() {
   else if (mode === 'unlink') cmdUnlink(root, tracker, parseIssueNumber(positionals[0]), parseIssueNumber(positionals[1]), opts);
   else if (mode === 'plan') cmdPlan(root, tracker, opts);
   else if (mode === 'next') cmdNext(root, tracker);
-  else if (mode === 'validate') cmdValidate(root, tracker);
+  else if (mode === 'validate') cmdValidate(root, tracker, opts);
   else if (mode === 'audit') cmdAudit(root, tracker);
   else if (mode === 'migrate') cmdMigrate(root, tracker, opts);
 }
