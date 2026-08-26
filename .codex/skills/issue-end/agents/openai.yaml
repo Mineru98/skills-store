@@ -1,4 +1,0 @@
-interface:
-  display_name: "Issue End"
-  short_description: "Re-verify evidence, commit it to the default branch, comment, and open a PR"
-  default_prompt: "Use $issue-end to wrap up: re-check the before/after evidence and recapture what is missing, commit the evidence and report to the default branch, comment on the issue, and open a PR. Do not merge."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "GH Setup"
-  short_description: "Install and authenticate the GitHub CLI for this platform"
-  default_prompt: "Use $gh-setup to detect this platform, install the GitHub CLI if it is missing, and walk me through gh auth login."
