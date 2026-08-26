@@ -17,7 +17,7 @@ Issue workflow 스킬과 전용 에이전트는 [Mineru98/samsara](https://githu
 - `tmux-orchestrate`: 여러 tmux 세션의 상태를 확인하고 지시를 전파합니다.
 - `commit`: Codex 변경 사항을 기능별 커밋으로 나눕니다.
 
-Claude Code에는 `commands-creator`, `imagine`, `pyautogui-helper`, `subagents-creator`도 제공합니다. Codex와 Claude Code 공용 스킬은 각 flavor 디렉터리에 맞춰 관리합니다.
+Claude Code에는 `commands-creator`, `pyautogui-helper`, `subagents-creator`도 제공합니다. Codex와 Claude Code 공용 스킬은 각 flavor 디렉터리에 맞춰 관리합니다.
 
 ## 저장소 구조
 
