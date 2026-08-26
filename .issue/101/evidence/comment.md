@@ -8,7 +8,7 @@ create/start/end/merge 경계에서 관찰 사실을 검증하고, 실패하면 
 
 - 변경 전: `.issue/101/evidence/before/behavior.txt`
   - CLOSED → `open`, MERGED → `plan`으로 파생되던 상태를 기록했습니다.
-- 변경 후: `.issue/101/evidence/after/verification.txt`
+- 변경 후: `.issue/101/evidence/after/behavior.txt`
   - CLOSED/MERGED → `close` 우선 처리와 Ajv·walker 검증 결과를 기록했습니다.
 - CLI·JSON Schema·그래프 walker 변경이며 HTTP/UI 화면은 없습니다. 따라서 스크린샷 대신 실행 원본을 남겼습니다.
 
