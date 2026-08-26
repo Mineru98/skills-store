@@ -1,0 +1,38 @@
+Issue #103 before manifest
+Commit: 5031c8353d6711b8be82a670ee061b456e007113
+
+The following tracked directories are present before implementation and are
+scheduled for removal:
+
+.claude/skills/gh-setup
+.claude/skills/github-issue-pr-convention
+.claude/skills/issue-create
+.claude/skills/issue-end
+.claude/skills/issue-merge
+.claude/skills/issue-onboard
+.claude/skills/issue-start
+.claude/skills/issue-sync
+.claude/skills/issue-viz
+.codex/skills/gh-setup
+.codex/skills/github-issue-pr-convention
+.codex/skills/issue-create
+.codex/skills/issue-end
+.codex/skills/issue-merge
+.codex/skills/issue-onboard
+.codex/skills/issue-start
+.codex/skills/issue-sync
+.codex/skills/issue-viz
+
+Issue agents present before implementation:
+
+.claude/agents/issue-merge-analyst.md
+.claude/agents/issue-merge-critic.md
+.claude/agents/issue-merge-resolver.md
+.claude/agents/issue-verifier.md
+.codex/agents/issue-merge-analyst.toml
+.codex/agents/issue-merge-critic.toml
+.codex/agents/issue-merge-resolver.toml
+.codex/agents/issue-verifier.toml
+
+README references the old issue workflow, including issue-create,
+issue-start, issue-end, issue-merge, issue-sync, issue-verifier, and gh-setup.
