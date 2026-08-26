@@ -1,4 +1,0 @@
-interface:
-  display_name: "Issue Merge"
-  short_description: "Integrate multiple issue worktrees with conflict preflight and evidence-based verification"
-  default_prompt: "Use $issue-merge to review every open worktree, confirm each linked issue is actually resolved by its evidence, preflight the conflicts before merging, resolve them on the topic branches, then merge, re-verify, and close."
