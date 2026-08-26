@@ -2,7 +2,7 @@
 
 ![Skills Store overview](assets/images/skills-store-overview.png)
 
-Codex와 Claude Code에서 사용하는 스킬, 에이전트, 명령, 프로젝트 룰을 모아 둔 저장소입니다.
+Codex와 Claude Code에서 사용하는 스킬, 에이전트, 명령을 모아 둔 저장소입니다.
 
 Issue workflow 스킬과 전용 에이전트는 [Mineru98/samsara](https://github.com/Mineru98/samsara)로 분리했습니다. 이 저장소는 일반적인 개발 보조 스킬과 에이전트를 관리합니다.
 
@@ -31,12 +31,10 @@ Claude Code에는 `commands-creator`, `imagine`, `pyautogui-helper`, `subagents-
 ├── .claude/
 │   ├── agents/                 # 현재는 songcopy 에이전트
 │   ├── commands/
-│   ├── rules/
 │   └── skills/                 # Claude Code용 일반 스킬
 └── .codex/
     ├── agents/                 # 현재는 songcopy 에이전트
     ├── config.toml
-    ├── rules/
     └── skills/                 # Codex용 일반 스킬
 ```
 
