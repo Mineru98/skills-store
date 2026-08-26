@@ -1,0 +1,29 @@
+Issue #103 after manifest
+Implementation commits:
+- bc760f5 chore(issue): issue 워크플로 자산 제거
+- 61c0b11 docs(readme): samsara 분리 안내 갱신
+
+Validation result: AFTER_VALIDATION=PASS
+
+Removed:
+- 18 skill directories across `.claude/skills` and `.codex/skills`:
+  `issue-create`, `issue-end`, `issue-merge`, `issue-onboard`,
+  `issue-start`, `issue-sync`, `issue-viz`, `gh-setup`, and
+  `github-issue-pr-convention` in both flavors.
+- 8 issue agent files across `.claude/agents` and `.codex/agents`.
+
+Remaining Claude Code skills:
+`commands-creator`, `imagine`, `install-skill`, `irasutoya-search`,
+`migrate-skill-agent`, `pyautogui-helper`, `subagents-creator`,
+`tmux-orchestrate`, `visual-companion`.
+
+Remaining Codex skills:
+`commit`, `install-skill`, `irasutoya-search`, `kill-process`, `loop`,
+`migrate-skill-agent`, `schedule`, `tmux-orchestrate`, `visual-companion`.
+
+Remaining agents: `songcopy.md`, `songcopy.toml`.
+
+README contains the `Mineru98/samsara` link and no longer lists the removed
+workflow skill or agent names. `git diff --check origin/main..HEAD` passed,
+and the changed tracked paths are limited to the approved removals and
+`README.md`.
