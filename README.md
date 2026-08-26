@@ -28,7 +28,6 @@ Claude Code에는 `commands-creator`, `imagine`, `pyautogui-helper`, `subagents-
 ├── LICENSE
 ├── README.md
 ├── assets/images/
-├── tools/issue-ontology/       # 스키마와 검증 테스트
 ├── .claude/
 │   ├── agents/                 # 현재는 songcopy 에이전트
 │   ├── commands/
