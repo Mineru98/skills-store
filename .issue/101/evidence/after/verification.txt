@@ -1,0 +1,75 @@
+Issue #101 after evidence
+
+Feature commit:
+60dff1f5feef12fe00b86ba54e808f8078bfc9bf
+
+Command:
+node --test tools/issue-ontology/*.test.mjs .claude/skills/issue-onboard/scripts/derive-status.test.mjs .codex/skills/issue-onboard/scripts/derive-status.test.mjs
+
+Output:
+✔ tracker CLOSED and MERGED states override stale status labels
+✔ open issues retain status labels or fall back to open
+✔ a closed derived node is classified as done
+✔ tracker CLOSED and MERGED states override stale status labels
+✔ open issues retain status labels or fall back to open
+✔ a closed derived node is classified as done
+! issue-onboard plan --json 실패로 ready 판정을 생략합니다.
+✔ valid graph passes Ajv and the schema contains the live snapshot keys
+✔ Ajv rejects blocks and unknown graph root properties
+✔ the walker rejects a parent-of cycle after Ajv shape validation
+✔ the schema edge enum stays aligned with the onboard walker
+✔ start requires an open tracker issue and a ready result when checked
+✔ create has only git and tracker preconditions
+✔ end and merge require complete before and after evidence
+✔ missing island is an explicit skip for the human end guard
+✔ a failed sibling plan probe keeps start ready unchecked
+ℹ tests 15
+ℹ pass 15
+ℹ fail 0
+
+Command:
+node .claude/skills/issue-onboard/scripts/issue-onboard.mjs validate --graph tools/issue-ontology/fixtures/graph-valid.json
+node .codex/skills/issue-onboard/scripts/issue-onboard.mjs validate --graph tools/issue-ontology/fixtures/graph-valid.json
+
+Output:
+AJV_VALID=1
+✓ 문제 없음 — V2 snapshot·관계·DAG 정상
+VALID=1
+PROBLEMS=0
+AJV_VALID=1
+✓ 문제 없음 — V2 snapshot·관계·DAG 정상
+VALID=1
+PROBLEMS=0
+
+Command:
+node .claude/skills/issue-onboard/scripts/issue-onboard.mjs validate --graph tools/issue-ontology/fixtures/graph-parent-cycle.json
+
+Output:
+AJV_VALID=1
+✗ 문제 발견:
+  - parent-of 순환: #102
+VALID=0
+PROBLEMS=1
+Exit: 1 (expected walker rejection)
+
+Command:
+ISSUE_ONTOLOGY_ROOT=/tmp/skills-store-issue-101-no-ontology node .claude/skills/issue-end/scripts/issue-end.mjs ontology-guard --issue 101
+ISSUE_ONTOLOGY_ROOT=/tmp/skills-store-issue-101-no-ontology node .codex/skills/issue-end/scripts/issue-end.mjs ontology-guard --issue 101 --skip-ok
+
+Output:
+The default missing-island guard exited 0 without output.
+ONTOLOGY_SKIPPED=1
+Exit: 0
+
+Command:
+node .claude/skills/issue-end/scripts/issue-end.mjs phase --request /tmp/issue-101-phase-request.json
+
+Output:
+{"apiVersion":"issue-phase/v1","checkpoint":{"attempt":1,"id":"issue-end.pr.1","owner":"issue-end"},"contractId":"issue-phase-api-v1","data":{},"error":{"code":"ONTOLOGY_GUARD","message":"end schema validation failed: /observed/evidenceComplete must be equal to constant","retryable":false},"handback":{"disposition":"failed","resume":"none","retry":"never"},"observedFacts":[],"ok":false,"phaseId":"issue-end.pr","proposedEffect":null}
+Exit: 2 (expected failed phase envelope; phasePr was not invoked)
+
+Additional checks:
+- node --check passed for changed JavaScript modules.
+- .claude and .codex implementation/docs/resolver mirrors are byte-identical where required.
+- git diff --check passed.
+- No HTTP/UI surface exists for this CLI/schema change, so no browser capture applies.
