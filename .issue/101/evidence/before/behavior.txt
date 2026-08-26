@@ -1,0 +1,14 @@
+Issue #101 before evidence
+
+Command:
+node --input-type=module -e "import('./.claude/skills/issue-onboard/scripts/issue-onboard.mjs').then(({deriveStatus}) => { console.log(JSON.stringify({closedWithStaleOpen: deriveStatus([{name:'status:open'}], 'CLOSED'), mergedWithStalePlan: deriveStatus([{name:'status:plan'}], 'MERGED'), openWithPlan: deriveStatus([{name:'status:plan'}], 'OPEN'), openWithoutStatus: deriveStatus([], 'OPEN')})); })"
+
+Output:
+{"closedWithStaleOpen":"open","mergedWithStalePlan":"plan","openWithPlan":"plan","openWithoutStatus":"open"}
+
+Product tree:
+git status --short --branch
+## feat/101-issue-ontology-ajv...origin/main
+
+Surface note:
+This issue changes CLI, JSON Schema, and graph-walker behavior. There is no HTTP/UI endpoint to capture.
