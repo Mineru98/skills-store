@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-store.local/schemas/graph-v2.schema.json",
+  "title": "Issue graph V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "provider",
+    "repository",
+    "updatedAt",
+    "snapshot",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "version": {
+      "const": 2
+    },
+    "provider": {
+      "enum": [
+        "github",
+        "jira"
+      ]
+    },
+    "repository": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedAt": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "snapshot": {
+      "$ref": "#/$defs/snapshot"
+    },
+    "nodes": {
+      "type": "object",
+      "patternProperties": {
+        "^[1-9][0-9]*$": {
+          "$ref": "#/$defs/node"
+        }
+      },
+      "additionalProperties": false
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    }
+  },
+  "$defs": {
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "fetchedAt",
+        "digest",
+        "reason"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "missing",
+            "migrating"
+          ]
+        },
+        "fetchedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "contextSource": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "url",
+            "revision",
+            "observedAt"
+          ],
+          "properties": {
+            "url": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "revision": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "observedAt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "contextValue": {
+      "type": "object",
+      "required": [
+        "value",
+        "reason",
+        "source"
+      ],
+      "properties": {
+        "value": {},
+        "reason": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/contextSource"
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "number",
+        "title",
+        "status",
+        "labels",
+        "url",
+        "context",
+        "provenance"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "open",
+            "plan",
+            "in-process",
+            "review",
+            "close"
+          ]
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "problem",
+            "outcome",
+            "scope",
+            "acceptance",
+            "result",
+            "components",
+            "decisions",
+            "evidence"
+          ],
+          "properties": {
+            "problem": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "outcome": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "scope": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "acceptance": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "result": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "components": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "decisions": {
+              "$ref": "#/$defs/contextValue"
+            },
+            "evidence": {
+              "$ref": "#/$defs/contextValue"
+            }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "revision",
+            "observedAt"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "observedAt": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "edgeProvenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "url",
+        "digest"
+      ],
+      "properties": {
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "type",
+        "provenance"
+      ],
+      "properties": {
+        "from": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "to": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": {
+          "enum": [
+            "depends-on",
+            "parent-of",
+            "duplicate-of",
+            "relates-to",
+            "supersedes"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decisionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": "stale"
+        },
+        "staleAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/edgeProvenance"
+        }
+      }
+    }
+  }
+}

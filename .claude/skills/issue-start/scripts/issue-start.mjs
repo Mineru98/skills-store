@@ -33,6 +33,7 @@ import {
   mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, renameSync, readdirSync, cpSync,
   realpathSync,
 } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -41,8 +42,8 @@ import {
   branchExists, remoteBranchExists, existingWorktreeFor, isIgnored,
   slugify, prefixFromLabels, parseIssueNumber, inferIssue,
   issueDir, evidenceDir, evidenceRel, listEvidence, ensureIgnoreBlock,
-  mirrorEvidence, resolveWorktreePath, getWorktreeLayout, syncBaseCheckout, worktreeDisplayPath,
-  setTerminalTitle, WORKSPACE_DIR, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
+  mirrorEvidence, resolveSkillScript, resolveWorktreePath, getWorktreeLayout, syncBaseCheckout, worktreeDisplayPath,
+  setTerminalTitle, WORKSPACE_DIR, GRAPH_FILE_NAME, LEGACY_WORKSPACE_DIR, LEGACY_EVIDENCE_DIR, WORKTREE_LAYOUTS,
 } from './issue-common.mjs';
 import {
   createTracker, evidenceUrls, gitHost, setTrackerStatus,
@@ -52,6 +53,7 @@ import {
   collectImageReferences, downloadImageReference, validateEvidenceReport,
 } from './issue-media.mjs';
 import { runIssueStartPhase } from './issue-start-phase.mjs';
+import { gateAction } from './issue-ontology.mjs';
 
 function usage(exitCode = 1) {
   console.error(`Usage:
@@ -96,8 +98,60 @@ export function downloadImage(url, dir, index, auth) {
   return downloadImageReference(url, dir, index, auth);
 }
 
-function cmdFetch(number, root, tracker) {
+export function readyFact(number, root) {
+  const graphFile = path.join(root, WORKSPACE_DIR, GRAPH_FILE_NAME);
+  if (!existsSync(graphFile)) return { readyChecked: false };
+
+  const onboard = resolveSkillScript(import.meta.url, 'issue-onboard', 'issue-onboard.mjs', { root });
+  if (!onboard) {
+    console.error('! sibling issue-onboard을 찾지 못해 ready 판정을 생략합니다.');
+    return { readyChecked: false };
+  }
+  const result = spawnSync(process.execPath, [onboard, 'plan', '--json'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    console.error('! issue-onboard plan --json 실패로 ready 판정을 생략합니다.');
+    return { readyChecked: false };
+  }
+
+  let plan;
+  try {
+    plan = JSON.parse(String(result.stdout ?? '').trim());
+  } catch {
+    console.error('! issue-onboard plan --json 응답이 JSON이 아니어서 ready 판정을 생략합니다.');
+    return { readyChecked: false };
+  }
+  if (!Array.isArray(plan.ready)) {
+    console.error('! issue-onboard plan --json 응답에 ready 배열이 없어 판정을 생략합니다.');
+    return { readyChecked: false };
+  }
+  return { readyChecked: true, ready: plan.ready.includes(Number(number)) };
+}
+
+function cmdFetch(number, root, tracker, providedAuth) {
+  const auth = providedAuth || tracker.auth();
+  if (!auth.ok) {
+    console.error('✗ ' + tracker.provider + ' 인증 실패: ' + auth.detail);
+    if (auth.hint) console.error('  ' + auth.hint);
+    process.exit(4);
+  }
+
   const issue = tracker.issueView(number);
+  if (issue) {
+    const guard = gateAction('start', {
+      gitRepo: git(['rev-parse', '--show-toplevel'], { cwd: root }).code === 0,
+      trackerAuth: auth.ok,
+      issueExists: true,
+      trackerStateOpen: String(issue.state ?? '').toUpperCase() === 'OPEN',
+      ...readyFact(number, root),
+    });
+    if (!guard.ok) {
+      console.error('✗ start 온톨로지 guard 실패: ' + guard.error);
+      process.exit(2);
+    }
+  }
   if (!issue) fail(`이슈 ${tracker.displayKey(number)} 를 읽지 못했습니다. 번호와 트래커 설정을 확인하세요.`);
 
   const dir = issueDir(root, number);
@@ -138,8 +192,8 @@ function cmdFetch(number, root, tracker) {
   ];
   const references = collectImageReferences(sources);
   const inline = references.filter((ref) => ref.inline);
-  const auth = inline.length ? tracker.attachmentAuth() : null;
-  const downloads = inline.map((ref, i) => downloadImageReference(ref, imagesDir, i + 1, auth));
+  const attachmentAuth = inline.length ? tracker.attachmentAuth() : null;
+  const downloads = inline.map((ref, i) => downloadImageReference(ref, imagesDir, i + 1, attachmentAuth));
 
   const rel = (p) => {
     const r = path.relative(root, p);
@@ -510,13 +564,13 @@ function main() {
     case 'fetch': {
       setTerminalTitle(`#${number}`);
       const tracker = createTracker(root, { repo: opts.repo });
-      const auth = tracker.provider === 'jira' ? tracker.auth() : { ok: true };
+      const auth = tracker.auth();
       if (!auth.ok) {
         console.error(`✗ ${tracker.provider} 인증 실패: ${auth.detail}`);
         if (auth.hint) console.error(`  ${auth.hint}`);
         process.exit(4);
       }
-      cmdFetch(number, root, tracker);
+      cmdFetch(number, root, tracker, auth);
       if (!opts.noStatus && !opts.dryRun) setTrackerStatus(tracker, number, 'plan', { quiet: true });
       break;
     }

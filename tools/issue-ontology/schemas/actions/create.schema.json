@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-store.local/schemas/actions/create.schema.json",
+  "title": "Issue create action fact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action",
+    "observed"
+  ],
+  "properties": {
+    "action": {
+      "const": "create"
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gitRepo",
+        "trackerAuth"
+      ],
+      "properties": {
+        "gitRepo": {
+          "const": true
+        },
+        "trackerAuth": {
+          "const": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-store.local/schemas/actions/start.schema.json",
+  "title": "Issue start action fact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "action",
+    "observed"
+  ],
+  "properties": {
+    "action": {
+      "const": "start"
+    },
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gitRepo",
+        "trackerAuth",
+        "issueExists",
+        "trackerStateOpen",
+        "readyChecked"
+      ],
+      "properties": {
+        "gitRepo": {
+          "const": true
+        },
+        "trackerAuth": {
+          "const": true
+        },
+        "issueExists": {
+          "const": true
+        },
+        "trackerStateOpen": {
+          "const": true
+        },
+        "readyChecked": {
+          "type": "boolean"
+        },
+        "ready": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "readyChecked": {
+                "const": true
+              }
+            },
+            "required": [
+              "readyChecked"
+            ]
+          },
+          "then": {
+            "required": [
+              "ready"
+            ],
+            "properties": {
+              "ready": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

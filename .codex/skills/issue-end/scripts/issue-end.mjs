@@ -52,8 +52,9 @@ import {
   phaseApprovalId,
   validatePhaseEnvelope,
 } from './issue-phase-contract.mjs';
+import { gateAction, ontologyStatus } from './issue-ontology.mjs';
 
-const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|report-check|pure-tree|sync-base|status> [options]
+const USAGE = `Usage: node issue-end.mjs <context|init|commit|mirror|urls|report-check|ontology-guard|pure-tree|sync-base|status> [options]
 
   --issue <n>        이슈 번호 (생략 시 브랜치에서 추론)
   --base <branch>    기준 브랜치 고정
@@ -332,6 +333,61 @@ function cmdPureTree(args) {
     base,
     note: '캡처가 끝나면 `pure-tree --remove` 로 정리하세요. 이 경로는 .issue/** 로 무시됩니다.',
   }, null, 2));
+}
+
+function cmdOntologyGuard(args) {
+  const root = repoRoot();
+  const status = ontologyStatus();
+  if (!status.available) {
+    if (args['skip-ok']) console.log('ONTOLOGY_SKIPPED=1');
+    return;
+  }
+
+  const { key, issue } = evidenceKey(args, currentBranch());
+  const tracker = createTracker(root);
+  const trackerAuth = tracker.auth();
+  const evidence = evidenceSummary(root, key);
+  const guard = gateAction('end', {
+    gitRepo: git(['rev-parse', '--show-toplevel'], { cwd: root }).code === 0,
+    trackerAuth: trackerAuth.ok,
+    issueExists: Boolean(issue),
+    evidenceComplete: evidence.before > 0 && evidence.after > 0,
+  });
+  if (!guard.ok) {
+    console.error('✗ end 온톨로지 guard 실패: ' + guard.error);
+    process.exit(2);
+  }
+  console.log('ONTOLOGY_VALID=1');
+}
+
+function failedOntologyEnvelope(request, message) {
+  return validatePhaseEnvelope({
+    apiVersion: PHASE_API_VERSION,
+    contractId: PHASE_CONTRACT_ID,
+    phaseId: request.phaseId,
+    checkpoint: request.checkpoint,
+    ok: false,
+    data: {},
+    observedFacts: [],
+    proposedEffect: null,
+    handback: { disposition: 'failed', resume: 'none', retry: 'never' },
+    error: { code: 'ONTOLOGY_GUARD', message, retryable: false },
+  });
+}
+
+function phaseOntologyFailure(request) {
+  if (ontologyStatus().available === false) return null;
+  const root = repoRoot();
+  const { key, issue } = evidenceKey({}, currentBranch(root));
+  const trackerAuth = createTracker(root).auth();
+  const evidence = evidenceSummary(root, key);
+  const guard = gateAction('end', {
+    gitRepo: git(['rev-parse', '--show-toplevel'], { cwd: root }).code === 0,
+    trackerAuth: trackerAuth.ok,
+    issueExists: Boolean(issue),
+    evidenceComplete: evidence.before > 0 && evidence.after > 0,
+  });
+  return guard.ok ? null : failedOntologyEnvelope(request, guard.error);
 }
 
 // ---------------------------------------------------------------- machine phase API
@@ -718,7 +774,16 @@ const PHASE_HANDLERS = {
 function cmdPhase(args) {
   try {
     const request = parsePhaseRequest(args.request);
-    const envelope = PHASE_HANDLERS[request.phaseId](request);
+    let envelope;
+    if (request.phaseId === 'issue-end.pr') {
+      envelope = phaseOntologyFailure(request);
+      if (envelope) {
+        process.stdout.write(canonicalJsonBytes(envelope));
+        process.exitCode = 2;
+        return;
+      }
+    }
+    envelope = PHASE_HANDLERS[request.phaseId](request);
     process.stdout.write(canonicalJsonBytes(envelope));
     if (envelope.handback.disposition === 'held') process.exitCode = 3;
   } catch (error) {
@@ -730,7 +795,7 @@ function cmdPhase(args) {
 // ---------------------------------------------------------------- entry
 
 const [, , sub, ...rest] = process.argv;
-const args = parseArgs(rest, ['push', 'json', 'dry-run', 'remove']);
+const args = parseArgs(rest, ['push', 'json', 'dry-run', 'remove', 'skip-ok']);
 
 switch (sub) {
   case 'context': cmdContext(args); break;
@@ -739,6 +804,7 @@ switch (sub) {
   case 'mirror': cmdMirror(args); break;
   case 'urls': cmdUrls(args); break;
   case 'report-check': cmdReportCheck(args); break;
+  case 'ontology-guard': cmdOntologyGuard(args); break;
   case 'sync-base': cmdSyncBase(args); break;
   case 'status': cmdStatus(args); break;
   case 'pure-tree': cmdPureTree(args); break;
