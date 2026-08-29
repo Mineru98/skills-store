@@ -1,0 +1,24 @@
+issue-start 9단계 변경 후 근거
+
+git ls-files '.claude/skills/imagine/**':
+(no output)
+
+repository imagine references excluding .git and .issue:
+(no output)
+
+top-level Claude skills after change (8 preserved):
+commands-creator
+install-skill
+irasutoya-search
+migrate-skill-agent
+pyautogui-helper
+subagents-creator
+tmux-orchestrate
+visual-companion
+
+validation:
+PASS imagine directory absent
+PASS no imagine references
+PASS git diff check
+
+Evidence type: text inventory. No UI or API surface exists for this repository-only skill removal.
