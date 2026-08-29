@@ -1,0 +1,31 @@
+issue-start 6단계 변경 전 근거
+
+tracked imagine files (7):
+.claude/skills/imagine/.gitignore
+.claude/skills/imagine/SKILL.md
+.claude/skills/imagine/config.json
+.claude/skills/imagine/reference/installation.md
+.claude/skills/imagine/scripts/edit.js
+.claude/skills/imagine/scripts/generate.js
+.claude/skills/imagine/scripts/verify.js
+
+repository references (6):
+.claude/skills/imagine/SKILL.md:2:name: imagine
+.claude/skills/imagine/SKILL.md:3:description contains imagine trigger
+.claude/skills/imagine/SKILL.md:7:# imagine
+.claude/skills/imagine/SKILL.md:41:skill path reference
+.claude/skills/imagine/SKILL.md:107:imagine directory example
+.claude/skills/imagine/reference/installation.md:3:imagine installation text
+
+top-level Claude skills before change:
+commands-creator
+imagine
+install-skill
+irasutoya-search
+migrate-skill-agent
+pyautogui-helper
+subagents-creator
+tmux-orchestrate
+visual-companion
+
+Evidence type: text inventory. No UI or API surface exists for this repository-only skill removal.
