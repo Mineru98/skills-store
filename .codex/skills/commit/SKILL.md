@@ -38,6 +38,8 @@ git log --oneline -3
 - 명령형 현재 시제 사용: "추가", "수정", "삭제"
 - subject는 50자 이내, 끝에 마침표 없음
 - 필요시 body에 상세 설명 추가
+- **`Co-Authored-By:` 트레일러는 어떤 경우에도 커밋 메시지에 포함하지 않는다** (`Co-Authored-By: Claude`, `Co-Authored-By: Codex` 등 모두 금지)
+- 생성 도구를 표시하는 다른 서명 문구(`Generated with ...` 등)도 커밋 메시지에 넣지 않는다
 
 ## 한글 커밋 메시지 깨짐 방지
 
@@ -51,8 +53,6 @@ feat(auth): JWT 로그인 및 미들웨어 추가
 
 - JWT 토큰 생성 구현
 - 보호된 라우트용 인증 미들웨어 추가
-
-Co-Authored-By: Codex
 EOF
 )"
 ```
