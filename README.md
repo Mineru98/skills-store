@@ -4,8 +4,6 @@
 
 Codex와 Claude Code에서 사용하는 스킬, 에이전트, 명령을 모아 둔 저장소입니다.
 
-Issue workflow 스킬과 전용 에이전트는 [Mineru98/samsara](https://github.com/Mineru98/samsara)로 분리했습니다. 이 저장소는 일반적인 개발 보조 스킬과 에이전트를 관리합니다.
-
 ## 빠른 사용
 
 - `visual-companion`: 브라우저 기반 시각 자료와 인터랙티브 목업을 만듭니다.
@@ -44,12 +42,6 @@ Claude Code에는 `commands-creator`, `pyautogui-helper`, `subagents-creator`도
 
 ```text
 Mineru98/skills-store에서 visual-companion 스킬을 현재 프로젝트의 Codex에 설치해 주세요.
-```
-
-Issue 기반 작업 관리가 필요하면 `Mineru98/samsara`를 사용합니다.
-
-```text
-Mineru98/samsara의 issue workflow 스킬을 현재 프로젝트의 Codex에 설치해 주세요.
 ```
 
 설치할 때는 `SKILL.md`만 복사하지 말고 해당 스킬 폴더의 references, scripts, flavor별 메타데이터를 함께 유지하세요.
