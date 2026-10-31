@@ -1,5 +1,3 @@
-model = "gpt-5.6-sol"
-model_context_window = 272000
 model_reasoning_effort = "medium"
 plan_mode_reasoning_effort = "xhigh"
 [agents]
