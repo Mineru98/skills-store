@@ -7,6 +7,7 @@ Codex와 Claude Code에서 사용하는 스킬, 에이전트, 명령을 모아 �
 ## 빠른 사용
 
 - `visual-companion`: 브라우저 기반 시각 자료와 인터랙티브 목업을 만듭니다.
+- `prototype-deploy`: 요구사항별 디자인 프로토타입을 만들고 Tailscale로 정적 배포해 링크를 전달합니다.
 - `install-skill`: GitHub 저장소의 스킬을 설치합니다.
 - `irasutoya-search`: 이라스토야 이미지를 검색하고 미리 봅니다.
 - `herdr`: Herdr 터미널 멀티플렉서의 pane, tab, workspace를 조회하고 제어합니다.

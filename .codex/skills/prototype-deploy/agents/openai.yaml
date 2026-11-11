@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prototype Deploy"
+  short_description: "Build a static design prototype and share it via Tailscale"
+  default_prompt: "Use $prototype-deploy to build a clickable prototype for these requirements and share it on the tailnet."
