@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prune Tests"
+  short_description: "Prune tests that guard no behavior"
+  default_prompt: "Use $prune-tests to find and remove tests that guard no behavior."
